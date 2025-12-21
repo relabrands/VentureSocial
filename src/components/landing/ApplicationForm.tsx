@@ -27,12 +27,14 @@ const ApplicationForm = () => {
     revenueRange: "",
     phone: "",
     email: "",
+    linkedin: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.position || !formData.revenueRange || !formData.phone || !formData.email) {
+    if (!formData.name || !formData.position || !formData.revenueRange || !formData.phone || !formData.email || !formData.linkedin) {
       toast({
         title: "Please fill all fields",
         description: "All fields are required to submit your application.",
@@ -41,19 +43,44 @@ const ApplicationForm = () => {
       return;
     }
 
-    toast({
-      title: "Application Received",
-      description: "We'll review your application and be in touch within 48 hours.",
-    });
+    setIsSubmitting(true);
 
-    setFormData({
-      name: "",
-      position: "",
-      revenueRange: "",
-      phone: "",
-      email: "",
-    });
-    setOpen(false);
+    try {
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send application");
+      }
+
+      toast({
+        title: "Application Received",
+        description: "We'll review your application and be in touch within 48 hours.",
+      });
+
+      setFormData({
+        name: "",
+        position: "",
+        revenueRange: "",
+        phone: "",
+        email: "",
+        linkedin: "",
+      });
+      setOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -88,6 +115,17 @@ const ApplicationForm = () => {
               placeholder="CEO, Founder, Investor..."
               value={formData.position}
               onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+              className="bg-background border-border"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="linkedin">LinkedIn Profile / Name</Label>
+            <Input
+              id="linkedin"
+              placeholder="linkedin.com/in/johndoe or John Doe"
+              value={formData.linkedin}
+              onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
               className="bg-background border-border"
             />
           </div>
@@ -134,8 +172,8 @@ const ApplicationForm = () => {
             />
           </div>
 
-          <Button type="submit" variant="hero" size="lg" className="w-full mt-6">
-            Submit Application
+          <Button type="submit" variant="hero" size="lg" className="w-full mt-6" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit Application"}
           </Button>
         </form>
       </DialogContent>

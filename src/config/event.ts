@@ -7,7 +7,7 @@
 
 export const EVENT_CONFIG = {
   // Next event date and time
-  nextEventDate: "2026-01-10T19:00:00",
+  nextEventDate: "2026-01-29T19:00:00",
 
   // Event location
   location: "Santo Domingo, Dominican Republic",

@@ -1,12 +1,16 @@
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
+import { defineString } from "firebase-functions/params";
 import { Resend } from "resend";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
 initializeApp();
 const db = getFirestore();
-const resend = new Resend("re_Doi4Und1_4nowJQ57yZEowgbwUtipQ6Fb");
+
+// Define environment variables
+const RESEND_API_KEY = defineString("RESEND_API_KEY");
+const FROM_EMAIL = defineString("FROM_EMAIL");
 
 export const onApplicationStatusChange = onDocumentUpdated("applications/{applicationId}", async (event) => {
     const change = event.data;
@@ -58,6 +62,10 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
             return;
         }
 
+        // Initialize Resend with the secret
+        const resend = new Resend(RESEND_API_KEY.value());
+        const fromEmail = FROM_EMAIL.value() || "onboarding@resend.dev";
+
         // Replace placeholders
         let subject = template.subject || "";
         let body = template.body || "";
@@ -75,7 +83,7 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
 
         // Send email
         const { data, error } = await resend.emails.send({
-            from: "Venture Social <onboarding@resend.dev>",
+            from: `Venture Social <${fromEmail}>`,
             to: email,
             subject: subject,
             html: body.replace(/\n/g, "<br>"), // Simple newline to br conversion

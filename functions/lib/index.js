@@ -3,12 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.onApplicationStatusChange = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
+const params_1 = require("firebase-functions/params");
 const resend_1 = require("resend");
 const app_1 = require("firebase-admin/app");
 const firestore_2 = require("firebase-admin/firestore");
 (0, app_1.initializeApp)();
 const db = (0, firestore_2.getFirestore)();
-const resend = new resend_1.Resend("re_Doi4Und1_4nowJQ57yZEowgbwUtipQ6Fb");
+// Define environment variables
+const RESEND_API_KEY = (0, params_1.defineString)("RESEND_API_KEY");
+const FROM_EMAIL = (0, params_1.defineString)("FROM_EMAIL");
 exports.onApplicationStatusChange = (0, firestore_1.onDocumentUpdated)("applications/{applicationId}", async (event) => {
     const change = event.data;
     if (!change)
@@ -52,6 +55,9 @@ exports.onApplicationStatusChange = (0, firestore_1.onDocumentUpdated)("applicat
             logger.info(`Template ${templateKey} is inactive`);
             return;
         }
+        // Initialize Resend with the secret
+        const resend = new resend_1.Resend(RESEND_API_KEY.value());
+        const fromEmail = FROM_EMAIL.value() || "onboarding@resend.dev";
         // Replace placeholders
         let subject = template.subject || "";
         let body = template.body || "";
@@ -66,7 +72,7 @@ exports.onApplicationStatusChange = (0, firestore_1.onDocumentUpdated)("applicat
         }
         // Send email
         const { data, error } = await resend.emails.send({
-            from: "Venture Social <onboarding@resend.dev>",
+            from: `Venture Social <${fromEmail}>`,
             to: email,
             subject: subject,
             html: body.replace(/\n/g, "<br>"), // Simple newline to br conversion

@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Applications collection
+    match /applications/{applicationId} {
+      // Public can create (submit application)
+      allow create: if true;
+      // Only admins can read, update, delete
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Email Templates collection
+    match /emailTemplates/{templateId} {
+      // Only admins can do anything
+      allow read, write: if isAdmin();
+    }
+
+    // Email Logs collection
+    match /emailLogs/{logId} {
+      // Only admins can read
+      allow read: if isAdmin();
+      // No one can write directly (only Cloud Functions)
+      allow write: if false;
+    }
+
+    // Admins collection (to store admin UIDs)
+    match /admins/{userId} {
+      // Only admins can read admins
+      allow read: if isAdmin();
+      allow write: if false; // Managed manually in console
+    }
+  }
+}

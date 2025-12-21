@@ -90,7 +90,7 @@ const ApplicationForm = () => {
           Apply for Access
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-background border-border">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto bg-background border-border">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight">
             Apply for Access

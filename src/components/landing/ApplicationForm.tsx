@@ -81,7 +81,7 @@ const ApplicationForm = () => {
       projectCompany: formData.projectCompany,
       message: formData.message,
       revenueRange: formData.revenueRange,
-      status: "pending",
+      status: "new",
       source: "Web",
       notes: "",
       createdAt: serverTimestamp(),

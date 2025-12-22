@@ -149,11 +149,46 @@ const Applications = () => {
         }
     };
 
+    const handleExport = () => {
+        const headers = ["Date", "Name", "Email", "Phone", "Role", "City", "Project/Company", "Status", "Source", "LinkedIn", "Revenue"];
+        const csvContent = [
+            headers.join(","),
+            ...applications.map(app => [
+                `"${app.createdAt?.seconds ? format(new Date(app.createdAt.seconds * 1000), "yyyy-MM-dd") : ""}"`,
+                `"${app.fullName}"`,
+                `"${app.email}"`,
+                `"${app.phone}"`,
+                `"${app.role}"`,
+                `"${app.city}"`,
+                `"${app.projectCompany}"`,
+                `"${app.status}"`,
+                `"${app.source}"`,
+                `"${app.linkedin}"`,
+                `"${app.revenueRange}"`
+            ].join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "applications_export.csv");
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-3xl font-bold tracking-tight">Applications</h1>
                 <div className="flex gap-2 w-full md:w-auto">
+                    <Button variant="outline" onClick={handleExport}>
+                        Export CSV
+                    </Button>
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input

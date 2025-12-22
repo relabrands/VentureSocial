@@ -12,7 +12,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Login from "@/pages/Login";
 import AdminLayout from "@/layouts/AdminLayout";
 import Applications from "@/pages/admin/Applications";
-import Templates from "@/pages/admin/Templates";
+import Members from "@/pages/admin/Members";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -28,6 +28,7 @@ const App = () => (
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/applications" replace />} />
               <Route path="applications" element={<Applications />} />
+              <Route path="members" element={<Members />} />
               <Route path="templates" element={<Templates />} />
             </Route>
 

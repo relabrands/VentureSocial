@@ -1,7 +1,7 @@
 import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, LogOut, Users } from "lucide-react";
 
 const AdminLayout = () => {
     const { user, loading, isAdmin, logout } = useAuth();
@@ -30,6 +30,12 @@ const AdminLayout = () => {
                         <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
                             <LayoutDashboard className="mr-2 h-4 w-4" />
                             Applications
+                        </Button>
+                    </Link>
+                    <Link to="/admin/members">
+                        <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
+                            <Users className="mr-2 h-4 w-4" />
+                            Members
                         </Button>
                     </Link>
                     <Link to="/admin/templates">

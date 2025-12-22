@@ -1,5 +1,63 @@
 import { onDocumentUpdated, onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
+
+// ... (existing imports)
+
+// ... (existing code)
+
+// Callable function for Admin to send custom emails
+export const sendAdminEmail = onCall(async (request) => {
+    // Ensure the user is authenticated (you might want to add stricter admin checks here)
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+
+    const { to, subject, html } = request.data;
+
+    if (!to || !subject || !html) {
+        throw new HttpsError('invalid-argument', 'Missing required fields: to, subject, html');
+    }
+
+    logger.info(`Sending admin email to ${to} with subject: ${subject}`);
+
+    try {
+        const resend = new Resend(RESEND_API_KEY.value());
+        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
+        const fromAddress = fromEmailRaw.includes("<")
+            ? fromEmailRaw
+            : `Venture Social <${fromEmailRaw}>`;
+
+        const { data, error } = await resend.emails.send({
+            from: fromAddress,
+            to: to,
+            subject: subject,
+            html: html,
+        });
+
+        if (error) {
+            logger.error("Error sending admin email:", error);
+            throw new HttpsError('internal', error.message);
+        }
+
+        logger.info("Admin email sent successfully:", data);
+
+        // Log to Firestore
+        await db.collection("emailLogs").add({
+            applicationId: "admin-action",
+            to: to,
+            templateKey: "custom-admin-email",
+            status: "sent",
+            sentBy: request.auth.uid,
+            sentAt: new Date(),
+        });
+
+        return { success: true, data };
+    } catch (error: any) {
+        logger.error("Error in sendAdminEmail:", error);
+        throw new HttpsError('internal', error.message);
+    }
+});
 import { defineString } from "firebase-functions/params";
 import { Resend } from "resend";
 import { initializeApp } from "firebase-admin/app";
@@ -34,6 +92,8 @@ async function sendEmailWithTemplate(applicationId: string, data: any, templateK
             logger.info(`Template ${templateKey} is inactive`);
             return;
         }
+
+        logger.info(`Fetched template ${templateKey}:`, { subject: template.subject, bodySnippet: template.body?.substring(0, 50) });
 
         // Initialize Resend with the secret
         const resend = new Resend(RESEND_API_KEY.value());

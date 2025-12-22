@@ -1,8 +1,55 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onApplicationStatusChange = exports.onApplicationCreated = void 0;
+exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendAdminEmail = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
+const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
+// ... (existing imports)
+// ... (existing code)
+// Callable function for Admin to send custom emails
+exports.sendAdminEmail = (0, https_1.onCall)(async (request) => {
+    // Ensure the user is authenticated (you might want to add stricter admin checks here)
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+    const { to, subject, html } = request.data;
+    if (!to || !subject || !html) {
+        throw new https_1.HttpsError('invalid-argument', 'Missing required fields: to, subject, html');
+    }
+    logger.info(`Sending admin email to ${to} with subject: ${subject}`);
+    try {
+        const resend = new resend_1.Resend(RESEND_API_KEY.value());
+        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
+        const fromAddress = fromEmailRaw.includes("<")
+            ? fromEmailRaw
+            : `Venture Social <${fromEmailRaw}>`;
+        const { data, error } = await resend.emails.send({
+            from: fromAddress,
+            to: to,
+            subject: subject,
+            html: html,
+        });
+        if (error) {
+            logger.error("Error sending admin email:", error);
+            throw new https_1.HttpsError('internal', error.message);
+        }
+        logger.info("Admin email sent successfully:", data);
+        // Log to Firestore
+        await db.collection("emailLogs").add({
+            applicationId: "admin-action",
+            to: to,
+            templateKey: "custom-admin-email",
+            status: "sent",
+            sentBy: request.auth.uid,
+            sentAt: new Date(),
+        });
+        return { success: true, data };
+    }
+    catch (error) {
+        logger.error("Error in sendAdminEmail:", error);
+        throw new https_1.HttpsError('internal', error.message);
+    }
+});
 const params_1 = require("firebase-functions/params");
 const resend_1 = require("resend");
 const app_1 = require("firebase-admin/app");
@@ -14,6 +61,7 @@ const RESEND_API_KEY = (0, params_1.defineString)("RESEND_API_KEY");
 const FROM_EMAIL = (0, params_1.defineString)("FROM_EMAIL");
 // Helper to send email using template
 async function sendEmailWithTemplate(applicationId, data, templateKey) {
+    var _a;
     const email = data.email;
     const fullName = data.fullName || data.name || "Applicant";
     const project = data.projectCompany || data.project || "Project";
@@ -30,6 +78,7 @@ async function sendEmailWithTemplate(applicationId, data, templateKey) {
             logger.info(`Template ${templateKey} is inactive`);
             return;
         }
+        logger.info(`Fetched template ${templateKey}:`, { subject: template.subject, bodySnippet: (_a = template.body) === null || _a === void 0 ? void 0 : _a.substring(0, 50) });
         // Initialize Resend with the secret
         const resend = new resend_1.Resend(RESEND_API_KEY.value());
         const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";

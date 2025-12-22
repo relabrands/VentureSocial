@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Search, Mail, Filter } from "lucide-react";
+import { Search, Mail, Filter, Eye, Download, Send } from "lucide-react";
 import { format } from "date-fns";
 import { getFunctions, httpsCallable } from "firebase/functions";
 
@@ -37,12 +37,15 @@ const Members = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
 
-    // Email Modal state
-    const [selectedMember, setSelectedMember] = useState<Application | null>(null);
-    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-    const [emailSubject, setEmailSubject] = useState("");
-    const [emailBody, setEmailBody] = useState("");
-    const [sendingEmail, setSendingEmail] = useState(false);
+    // View Modal state
+    const [viewMember, setViewMember] = useState<Application | null>(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+    // Email All Modal state
+    const [isEmailAllModalOpen, setIsEmailAllModalOpen] = useState(false);
+    const [emailAllSubject, setEmailAllSubject] = useState("");
+    const [emailAllBody, setEmailAllBody] = useState("");
+    const [sendingEmailAll, setSendingEmailAll] = useState(false);
 
     useEffect(() => {
         fetchMembers();
@@ -139,11 +142,96 @@ const Members = () => {
         }
     };
 
+    // New Features Implementation
+
+    const handleViewMember = (member: Application) => {
+        setViewMember(member);
+        setIsViewModalOpen(true);
+    };
+
+    const handleExport = () => {
+        const headers = ["Date", "Name", "Email", "Phone", "Role", "City", "Project/Company", "LinkedIn", "Revenue", "Position"];
+        const csvContent = [
+            headers.join(","),
+            ...filteredMembers.map(app => [
+                app.createdAt?.seconds ? format(new Date(app.createdAt.seconds * 1000), "yyyy-MM-dd") : "",
+                `"${app.fullName}"`,
+                app.email,
+                app.phone,
+                app.role,
+                `"${app.city}"`,
+                `"${app.projectCompany}"`,
+                app.linkedin,
+                `"${app.revenueRange}"`,
+                `"${app.positionRole}"`
+            ].join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "fundadores.csv");
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
+    const handleOpenEmailAllModal = () => {
+        if (filteredMembers.length === 0) {
+            toast.error("No members to email");
+            return;
+        }
+        setEmailAllSubject("");
+        setEmailAllBody("");
+        setIsEmailAllModalOpen(true);
+    };
+
+    const handleSendEmailAll = async () => {
+        if (!emailAllSubject || !emailAllBody) {
+            toast.error("Subject and Body are required");
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to send this email to ${filteredMembers.length} members?`)) return;
+
+        setSendingEmailAll(true);
+        try {
+            const functions = getFunctions();
+            const sendAdminEmail = httpsCallable(functions, 'sendAdminEmail');
+
+            // Send emails in parallel
+            const promises = filteredMembers.map(member =>
+                sendAdminEmail({
+                    to: member.email,
+                    subject: emailAllSubject,
+                    html: emailAllBody
+                }).catch(err => {
+                    console.error(`Failed to send to ${member.email}:`, err);
+                    return { error: err };
+                })
+            );
+
+            await Promise.all(promises);
+
+            toast.success(`Emails sent to ${filteredMembers.length} members`);
+            setIsEmailAllModalOpen(false);
+        } catch (error) {
+            console.error("Error sending bulk emails:", error);
+            toast.error("Failed to send some emails");
+        } finally {
+            setSendingEmailAll(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-3xl font-bold tracking-tight">Members</h1>
-                <div className="flex gap-2 w-full md:w-auto">
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -153,6 +241,14 @@ const Members = () => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <Button variant="outline" onClick={handleExport}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                    </Button>
+                    <Button onClick={handleOpenEmailAllModal}>
+                        <Send className="mr-2 h-4 w-4" />
+                        Email All
+                    </Button>
                 </div>
             </div>
 
@@ -189,10 +285,15 @@ const Members = () => {
                                     <TableCell className="capitalize">{member.role}</TableCell>
                                     <TableCell>{member.city}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="outline" size="sm" onClick={() => handleOpenEmailModal(member)}>
-                                            <Mail className="mr-2 h-4 w-4" />
-                                            Send Email
-                                        </Button>
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="ghost" size="icon" onClick={() => handleViewMember(member)}>
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => handleOpenEmailModal(member)}>
+                                                <Mail className="mr-2 h-4 w-4" />
+                                                Email
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -201,6 +302,7 @@ const Members = () => {
                 </Table>
             </div>
 
+            {/* Individual Email Modal */}
             <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
@@ -231,6 +333,111 @@ const Members = () => {
                             {sendingEmail ? "Sending..." : "Send Email"}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Email All Modal */}
+            <Dialog open={isEmailAllModalOpen} onOpenChange={setIsEmailAllModalOpen}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Email All Members ({filteredMembers.length} recipients)</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium">Subject</label>
+                            <Input
+                                value={emailAllSubject}
+                                onChange={(e) => setEmailAllSubject(e.target.value)}
+                                placeholder="Email Subject"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium">Message (HTML Supported)</label>
+                            <Textarea
+                                value={emailAllBody}
+                                onChange={(e) => setEmailAllBody(e.target.value)}
+                                placeholder="<p>Write your message here...</p>"
+                                className="h-[200px] font-mono"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEmailAllModalOpen(false)}>Cancel</Button>
+                        <Button onClick={handleSendEmailAll} disabled={sendingEmailAll}>
+                            {sendingEmailAll ? "Sending..." : "Send Email to All"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* View Details Modal */}
+            <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Member Details</DialogTitle>
+                    </DialogHeader>
+                    {viewMember && (
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Full Name</label>
+                                    <div className="text-sm font-medium">{viewMember.fullName}</div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Email</label>
+                                    <div className="text-sm">{viewMember.email}</div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Phone</label>
+                                    <div className="text-sm">{viewMember.phone}</div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Role</label>
+                                    <div className="text-sm capitalize">{viewMember.role}</div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">City</label>
+                                    <div className="text-sm">{viewMember.city}</div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Project / Company</label>
+                                    <div className="text-sm">{viewMember.projectCompany}</div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">LinkedIn</label>
+                                    <div className="text-sm truncate">
+                                        {viewMember.linkedin !== "—" ? (
+                                            <a href={viewMember.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                                {viewMember.linkedin}
+                                            </a>
+                                        ) : "—"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Revenue Range</label>
+                                    <div className="text-sm">{viewMember.revenueRange}</div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Position</label>
+                                    <div className="text-sm">{viewMember.positionRole}</div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Source</label>
+                                    <div className="text-sm">{viewMember.source}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-muted-foreground">Message</label>
+                                <div className="text-sm p-3 bg-muted rounded-md mt-1 whitespace-pre-wrap">{viewMember.message}</div>
+                            </div>
+                            {viewMember.notes && (
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Internal Notes</label>
+                                    <div className="text-sm p-3 bg-yellow-50 border border-yellow-100 rounded-md mt-1 whitespace-pre-wrap">{viewMember.notes}</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

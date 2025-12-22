@@ -128,6 +128,12 @@ const Templates = () => {
         }
     };
 
+    import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+    // ... (imports remain same)
+
+    // ... (inside component)
+
     const handleLoadDefaults = async () => {
         if (!confirm("This will create default templates if they don't exist. Continue?")) return;
 
@@ -135,39 +141,59 @@ const Templates = () => {
             {
                 id: "application_received",
                 subject: "Application Received - Venture Social",
-                body: "<h1>Application Received</h1><p>Hi {{fullName}},</p><p>Thanks for applying to Venture Social. We have received your application for <strong>{{project}}</strong> and will be in touch shortly.</p><br><p>Best regards,</p><p>The Venture Social Team</p>",
+                body: `<h1>Application Received</h1>
+<p>Hi {{fullName}},</p>
+<p>Thanks for applying to Venture Social. We have received your application for <strong>{{project}}</strong> and will be in touch shortly.</p>
+<p>Best regards,</p>
+<p>The Venture Social Team</p>`,
                 active: true
             },
             {
                 id: "application_accepted",
                 subject: "Congratulations! Application Accepted",
-                body: "<h1>Application Accepted</h1><p>Hi {{fullName}},</p><p>We are pleased to inform you that your application for <strong>{{project}}</strong> has been accepted!</p><p>We will be sending next steps in a separate email.</p><br><p>Welcome aboard,</p><p>Venture Social</p>",
+                body: `<h1>Application Accepted</h1>
+<p>Hi {{fullName}},</p>
+<p>We are pleased to inform you that your application for <strong>{{project}}</strong> has been accepted!</p>
+<p>We will be sending next steps in a separate email.</p>
+<p>Welcome aboard,</p>
+<p>Venture Social</p>`,
                 active: true
             },
             {
                 id: "application_rejected",
                 subject: "Update on your Application",
-                body: "<h1>Update on your Application</h1><p>Hi {{fullName}},</p><p>Thank you for your interest in Venture Social. After careful review, we are unable to proceed with your application for <strong>{{project}}</strong> at this time.</p><p>We wish you the best in your future endeavors.</p><br><p>Venture Social</p>",
+                body: `<h1>Update on your Application</h1>
+<p>Hi {{fullName}},</p>
+<p>Thank you for your interest in Venture Social. After careful review, we are unable to proceed with your application for <strong>{{project}}</strong> at this time.</p>
+<p>We wish you the best in your future endeavors.</p>
+<p>Venture Social</p>`,
                 active: true
             },
             {
                 id: "application_review",
                 subject: "Application Under Review",
-                body: "<h1>Under Review</h1><p>Hi {{fullName}},</p><p>Your application for <strong>{{project}}</strong> is now being reviewed by our team.</p><p>We will get back to you soon.</p><br><p>Best,</p><p>Venture Social Team</p>",
+                body: `<h1>Under Review</h1>
+<p>Hi {{fullName}},</p>
+<p>Your application for <strong>{{project}}</strong> is now being reviewed by our team.</p>
+<p>We will get back to you soon.</p>
+<p>Best,</p>
+<p>Venture Social Team</p>`,
                 active: true
             },
             {
                 id: "application_pending",
                 subject: "Application Pending",
-                body: "<h1>Application Pending</h1><p>Hi {{fullName}},</p><p>Your application for <strong>{{project}}</strong> is currently pending further action.</p><br><p>Best,</p><p>Venture Social Team</p>",
+                body: `<h1>Application Pending</h1>
+<p>Hi {{fullName}},</p>
+<p>Your application for <strong>{{project}}</strong> is currently pending further action.</p>
+<p>Best,</p>
+<p>Venture Social Team</p>`,
                 active: true
             }
         ];
 
         try {
             for (const temp of defaults) {
-                // Only create if not exists to avoid overwriting custom changes, or use set with merge
-                // Here using set with merge to ensure fields exist
                 await setDoc(doc(db, "emailTemplates", temp.id), {
                     ...temp,
                     updatedAt: serverTimestamp()
@@ -183,6 +209,7 @@ const Templates = () => {
 
     return (
         <div className="space-y-6">
+            {/* ... (header remains same) */}
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">Email Templates</h1>
                 <div className="flex gap-2">
@@ -196,6 +223,7 @@ const Templates = () => {
                 </div>
             </div>
 
+            {/* ... (grid remains same) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
                     <p>Loading...</p>
@@ -242,30 +270,31 @@ const Templates = () => {
             </div>
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-[600px]">
+                <DialogContent className="sm:max-w-[800px] h-[80vh] flex flex-col">
                     <DialogHeader>
                         <DialogTitle>{editingTemplate ? "Edit Template" : "New Template"}</DialogTitle>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="key">Template Key (ID)</Label>
-                            <Input
-                                id="key"
-                                value={key}
-                                onChange={(e) => setKey(e.target.value)}
-                                placeholder="e.g. application_accepted"
-                                disabled={!!editingTemplate} // Disable key editing for existing docs
-                            />
-                            <p className="text-xs text-muted-foreground">Unique identifier for the template (e.g. application_accepted)</p>
-                        </div>
 
-                        <div className="flex items-center space-x-2">
-                            <Switch
-                                id="active"
-                                checked={active}
-                                onCheckedChange={setActive}
-                            />
-                            <Label htmlFor="active">Active</Label>
+                    <div className="grid gap-4 py-4 flex-1 overflow-y-auto">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="key">Template Key (ID)</Label>
+                                <Input
+                                    id="key"
+                                    value={key}
+                                    onChange={(e) => setKey(e.target.value)}
+                                    placeholder="e.g. application_accepted"
+                                    disabled={!!editingTemplate}
+                                />
+                            </div>
+                            <div className="flex items-end pb-2 space-x-2">
+                                <Switch
+                                    id="active"
+                                    checked={active}
+                                    onCheckedChange={setActive}
+                                />
+                                <Label htmlFor="active">Active</Label>
+                            </div>
                         </div>
 
                         <div className="grid gap-2">
@@ -273,17 +302,33 @@ const Templates = () => {
                             <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject line" />
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="body">Body (HTML Supported)</Label>
-                            <Textarea
-                                id="body"
-                                value={body}
-                                onChange={(e) => setBody(e.target.value)}
-                                placeholder="<html>... Use {{fullName}} for dynamic values."
-                                className="h-[300px] font-mono text-xs"
-                            />
-                            <p className="text-xs text-muted-foreground">You can use HTML tags for formatting. Supported variables: {"{{fullName}}"}, {"{{project}}"}, {"{{status}}"}, {"{{role}}"}</p>
-                        </div>
+                        <Tabs defaultValue="edit" className="flex-1 flex flex-col">
+                            <TabsList>
+                                <TabsTrigger value="edit">Edit HTML</TabsTrigger>
+                                <TabsTrigger value="preview">Preview</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="edit" className="flex-1 mt-2">
+                                <div className="grid gap-2 h-full">
+                                    <Textarea
+                                        id="body"
+                                        value={body}
+                                        onChange={(e) => setBody(e.target.value)}
+                                        placeholder="<html>... Use {{fullName}} for dynamic values."
+                                        className="h-full min-h-[300px] font-mono text-xs"
+                                    />
+                                    <p className="text-xs text-muted-foreground">Supported variables: {"{{fullName}}"}, {"{{project}}"}, {"{{status}}"}, {"{{role}}"}</p>
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="preview" className="flex-1 mt-2 border rounded-md p-4 bg-white overflow-y-auto min-h-[300px]">
+                                <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{
+                                    __html: body
+                                        .replace(/{{fullName}}/g, "John Doe")
+                                        .replace(/{{project}}/g, "My Awesome Project")
+                                        .replace(/{{status}}/g, "accepted")
+                                        .replace(/{{role}}/g, "Developer")
+                                }} />
+                            </TabsContent>
+                        </Tabs>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>

@@ -66,7 +66,7 @@ async function sendEmailWithTemplate(applicationId: string, data: any, templateK
             from: fromAddress,
             to: email,
             subject: subject,
-            html: body.replace(/\n/g, "<br>"), // Simple newline to br conversion
+            html: body, // Send raw HTML body
         });
 
         if (error) {

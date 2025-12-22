@@ -37,6 +37,13 @@ const Members = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
 
+    // Email Modal state
+    const [selectedMember, setSelectedMember] = useState<Application | null>(null);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [emailSubject, setEmailSubject] = useState("");
+    const [emailBody, setEmailBody] = useState("");
+    const [sendingEmail, setSendingEmail] = useState(false);
+
     // View Modal state
     const [viewMember, setViewMember] = useState<Application | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);

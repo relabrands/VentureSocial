@@ -5,37 +5,6 @@ import { collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, serverT
 
 // ... (inside component)
 
-const handleLoadDefaults = async () => {
-    if (!confirm("This will create default templates ONLY if they don't exist. Existing templates will be preserved. Continue?")) return;
-
-    // ... (defaults array)
-
-    try {
-        let loadedCount = 0;
-        for (const temp of defaults) {
-            const docRef = doc(db, "emailTemplates", temp.id);
-            const docSnap = await getDoc(docRef);
-
-            if (!docSnap.exists()) {
-                await setDoc(docRef, {
-                    ...temp,
-                    updatedAt: serverTimestamp()
-                });
-                loadedCount++;
-            }
-        }
-
-        if (loadedCount > 0) {
-            toast.success(`Loaded ${loadedCount} new default templates`);
-            fetchTemplates();
-        } else {
-            toast.info("All default templates already exist");
-        }
-    } catch (error) {
-        console.error("Error loading defaults:", error);
-        toast.error("Failed to load default templates");
-    }
-};
 import { db } from "@/firebase/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,84 +57,6 @@ const Templates = () => {
             setLoading(false);
         }
     };
-
-    const handleOpenModal = (template?: EmailTemplate) => {
-        if (template) {
-            setEditingTemplate(template);
-            setKey(template.id);
-            setSubject(template.subject);
-            setBody(template.body);
-            setActive(template.active);
-        } else {
-            setEditingTemplate(null);
-            setKey("");
-            setSubject("");
-            setBody("");
-            setActive(true);
-        }
-        setIsModalOpen(true);
-    };
-
-    const handleSave = async () => {
-        if (!key || !subject || !body) {
-            toast.error("Key, Subject and Body are required");
-            return;
-        }
-
-        try {
-            const templateData = {
-                subject,
-                body,
-                active,
-                updatedAt: serverTimestamp(),
-            };
-
-            // Use setDoc with merge: true to create or update with specific ID (key)
-            await setDoc(doc(db, "emailTemplates", key), templateData, { merge: true });
-
-            toast.success(editingTemplate ? "Template updated" : "Template created");
-
-            setIsModalOpen(false);
-            fetchTemplates();
-        } catch (error) {
-            console.error("Error saving template:", error);
-            toast.error("Failed to save template");
-        }
-    };
-
-    const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this template?")) return;
-
-        try {
-            await deleteDoc(doc(db, "emailTemplates", id));
-            setTemplates(templates.filter(t => t.id !== id));
-            toast.success("Template deleted");
-        } catch (error) {
-            console.error("Error deleting template:", error);
-            toast.error("Failed to delete template");
-        }
-    };
-
-    const handleCopy = (template: EmailTemplate) => {
-        const textToCopy = `Subject: ${template.subject}\n\n${template.body}`;
-        navigator.clipboard.writeText(textToCopy);
-        toast.success("Copied to clipboard");
-    };
-
-    const toggleActive = async (template: EmailTemplate) => {
-        try {
-            await updateDoc(doc(db, "emailTemplates", template.id), {
-                active: !template.active,
-                updatedAt: serverTimestamp()
-            });
-            setTemplates(templates.map(t => t.id === template.id ? { ...t, active: !t.active } : t));
-            toast.success(`Template ${!template.active ? 'activated' : 'deactivated'}`);
-        } catch (error) {
-            toast.error("Failed to update status");
-        }
-    };
-
-
 
     const handleLoadDefaults = async () => {
         if (!confirm("This will create default templates ONLY if they don't exist. Existing templates will be preserved. Continue?")) return;
@@ -241,7 +132,7 @@ const Templates = () => {
             }
 
             if (loadedCount > 0) {
-                toast.success(`Loaded ${loadedCount} new default templates`);
+                toast.success(\`Loaded \${loadedCount} new default templates\`);
                 fetchTemplates();
             } else {
                 toast.info("All default templates already exist");
@@ -251,6 +142,86 @@ const Templates = () => {
             toast.error("Failed to load default templates");
         }
     };
+
+    const handleOpenModal = (template?: EmailTemplate) => {
+        if (template) {
+            setEditingTemplate(template);
+            setKey(template.id);
+            setSubject(template.subject);
+            setBody(template.body);
+            setActive(template.active);
+        } else {
+            setEditingTemplate(null);
+            setKey("");
+            setSubject("");
+            setBody("");
+            setActive(true);
+        }
+        setIsModalOpen(true);
+    };
+
+    const handleSave = async () => {
+        if (!key || !subject || !body) {
+            toast.error("Key, Subject and Body are required");
+            return;
+        }
+
+        try {
+            const templateData = {
+                subject,
+                body,
+                active,
+                updatedAt: serverTimestamp(),
+            };
+
+            // Use setDoc with merge: true to create or update with specific ID (key)
+            await setDoc(doc(db, "emailTemplates", key), templateData, { merge: true });
+
+            toast.success(editingTemplate ? "Template updated" : "Template created");
+
+            setIsModalOpen(false);
+            fetchTemplates();
+        } catch (error) {
+            console.error("Error saving template:", error);
+            toast.error("Failed to save template");
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this template?")) return;
+
+        try {
+            await deleteDoc(doc(db, "emailTemplates", id));
+            setTemplates(templates.filter(t => t.id !== id));
+            toast.success("Template deleted");
+        } catch (error) {
+            console.error("Error deleting template:", error);
+            toast.error("Failed to delete template");
+        }
+    };
+
+    const handleCopy = (template: EmailTemplate) => {
+        const textToCopy = `Subject: ${ template.subject }\n\n${ template.body }`;
+        navigator.clipboard.writeText(textToCopy);
+        toast.success("Copied to clipboard");
+    };
+
+    const toggleActive = async (template: EmailTemplate) => {
+        try {
+            await updateDoc(doc(db, "emailTemplates", template.id), {
+                active: !template.active,
+                updatedAt: serverTimestamp()
+            });
+            setTemplates(templates.map(t => t.id === template.id ? { ...t, active: !t.active } : t));
+            toast.success(`Template ${!template.active ? 'activated' : 'deactivated'} `);
+        } catch (error) {
+            toast.error("Failed to update status");
+        }
+    };
+
+
+
+
 
     return (
         <div className="space-y-6">

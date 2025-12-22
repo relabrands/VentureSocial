@@ -13,6 +13,7 @@ import Login from "@/pages/Login";
 import AdminLayout from "@/layouts/AdminLayout";
 import Applications from "@/pages/admin/Applications";
 import Members from "@/pages/admin/Members";
+import Templates from "@/pages/admin/Templates";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

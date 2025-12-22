@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Plus, Copy, Trash2, Edit } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface EmailTemplate {
     id: string; // This will be the key
@@ -128,11 +129,7 @@ const Templates = () => {
         }
     };
 
-    import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-    // ... (imports remain same)
-
-    // ... (inside component)
 
     const handleLoadDefaults = async () => {
         if (!confirm("This will create default templates if they don't exist. Continue?")) return;

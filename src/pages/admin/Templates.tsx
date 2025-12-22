@@ -1,5 +1,41 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
+
+// ... (imports)
+
+// ... (inside component)
+
+const handleLoadDefaults = async () => {
+    if (!confirm("This will create default templates ONLY if they don't exist. Existing templates will be preserved. Continue?")) return;
+
+    // ... (defaults array)
+
+    try {
+        let loadedCount = 0;
+        for (const temp of defaults) {
+            const docRef = doc(db, "emailTemplates", temp.id);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                await setDoc(docRef, {
+                    ...temp,
+                    updatedAt: serverTimestamp()
+                });
+                loadedCount++;
+            }
+        }
+
+        if (loadedCount > 0) {
+            toast.success(`Loaded ${loadedCount} new default templates`);
+            fetchTemplates();
+        } else {
+            toast.info("All default templates already exist");
+        }
+    } catch (error) {
+        console.error("Error loading defaults:", error);
+        toast.error("Failed to load default templates");
+    }
+};
 import { db } from "@/firebase/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,7 +168,7 @@ const Templates = () => {
 
 
     const handleLoadDefaults = async () => {
-        if (!confirm("This will create default templates if they don't exist. Continue?")) return;
+        if (!confirm("This will create default templates ONLY if they don't exist. Existing templates will be preserved. Continue?")) return;
 
         const defaults = [
             {
@@ -190,14 +226,26 @@ const Templates = () => {
         ];
 
         try {
+            let loadedCount = 0;
             for (const temp of defaults) {
-                await setDoc(doc(db, "emailTemplates", temp.id), {
-                    ...temp,
-                    updatedAt: serverTimestamp()
-                }, { merge: true });
+                const docRef = doc(db, "emailTemplates", temp.id);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists()) {
+                    await setDoc(docRef, {
+                        ...temp,
+                        updatedAt: serverTimestamp()
+                    });
+                    loadedCount++;
+                }
             }
-            toast.success("Default templates loaded");
-            fetchTemplates();
+
+            if (loadedCount > 0) {
+                toast.success(`Loaded ${loadedCount} new default templates`);
+                fetchTemplates();
+            } else {
+                toast.info("All default templates already exist");
+            }
         } catch (error) {
             console.error("Error loading defaults:", error);
             toast.error("Failed to load default templates");

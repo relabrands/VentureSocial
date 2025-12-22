@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
@@ -25,18 +33,33 @@ const ApplicationForm = () => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    role: "",
     position: "",
+    linkedin: "",
+    projectCompany: "",
+    message: "",
     revenueRange: "",
     phone: "",
     email: "",
-    linkedin: "",
+    city: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.position || !formData.revenueRange || !formData.phone || !formData.email || !formData.linkedin) {
+    if (
+      !formData.name ||
+      !formData.role ||
+      !formData.position ||
+      !formData.linkedin ||
+      !formData.projectCompany ||
+      !formData.message ||
+      !formData.revenueRange ||
+      !formData.phone ||
+      !formData.email ||
+      !formData.city
+    ) {
       toast({
         title: "Please fill all fields",
         description: "All fields are required to submit your application.",
@@ -47,24 +70,29 @@ const ApplicationForm = () => {
 
     setIsSubmitting(true);
 
+    const payload = {
+      fullName: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      city: formData.city,
+      role: formData.role || "Unknown",
+      positionRole: formData.position,
+      linkedin: formData.linkedin,
+      projectCompany: formData.projectCompany,
+      message: formData.message,
+      revenueRange: formData.revenueRange,
+      status: "pending",
+      source: "Web",
+      notes: "",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    console.log("Submitting Payload:", payload);
+
     try {
       // Save to Firestore
-      await addDoc(collection(db, "applications"), {
-        fullName: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        role: "founder",
-        city: "Santo Domingo",
-        project: "New Project",
-        message: "New Application",
-        linkedin: formData.linkedin,
-        revenueRange: formData.revenueRange,
-        position: formData.position,
-        status: "new",
-        source: "web",
-        notes: "",
-        createdAt: serverTimestamp(),
-      });
+      await addDoc(collection(db, "applications"), payload);
 
       // Send email via API (optional, keeping existing logic)
       try {
@@ -86,11 +114,15 @@ const ApplicationForm = () => {
 
       setFormData({
         name: "",
+        role: "",
         position: "",
+        linkedin: "",
+        projectCompany: "",
+        message: "",
         revenueRange: "",
         phone: "",
         email: "",
-        linkedin: "",
+        city: "",
       });
       setOpen(false);
     } catch (error) {
@@ -131,12 +163,41 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="position">Position / Role</Label>
+            <Label htmlFor="role">I am a...</Label>
+            <Select
+              value={formData.role}
+              onValueChange={(value) => setFormData({ ...formData, role: value })}
+            >
+              <SelectTrigger className="bg-background border-border">
+                <SelectValue placeholder="Select your role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="founder">Founder</SelectItem>
+                <SelectItem value="investor">Investor</SelectItem>
+                <SelectItem value="partner">Partner</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="position">Position / Role Title</Label>
             <Input
               id="position"
               placeholder="CEO, Founder, Investor..."
               value={formData.position}
               onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+              className="bg-background border-border"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="projectCompany">Project / Company Name</Label>
+            <Input
+              id="projectCompany"
+              placeholder="My Startup Inc."
+              value={formData.projectCompany}
+              onChange={(e) => setFormData({ ...formData, projectCompany: e.target.value })}
               className="bg-background border-border"
             />
           </div>
@@ -190,6 +251,28 @@ const ApplicationForm = () => {
               placeholder="john@company.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="bg-background border-border"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="city">City</Label>
+            <Input
+              id="city"
+              placeholder="Santo Domingo"
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              className="bg-background border-border"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="message">Message / Pitch</Label>
+            <Textarea
+              id="message"
+              placeholder="Tell us about your project..."
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               className="bg-background border-border"
             />
           </div>

@@ -19,15 +19,15 @@ interface Application {
     phone: string;
     role: string;
     city: string;
-    project: string;
+    projectCompany: string;
     message: string;
-    status: "new" | "review" | "accepted" | "rejected";
+    status: "pending" | "new" | "review" | "accepted" | "rejected";
     source: string;
     notes: string;
     createdAt: any;
-    linkedin?: string;
-    revenueRange?: string;
-    position?: string;
+    linkedin: string;
+    revenueRange: string;
+    positionRole: string;
 }
 
 const Applications = () => {
@@ -55,10 +55,29 @@ const Applications = () => {
         try {
             const q = query(collection(db, "applications"), orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
-            const apps = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            })) as Application[];
+            const apps = querySnapshot.docs.map((doc) => {
+                const data = doc.data();
+                console.log("Fetched Doc:", doc.id, data); // Debug log
+
+                // Fallback logic for legacy data
+                return {
+                    id: doc.id,
+                    fullName: data.fullName || data.name || "—",
+                    email: data.email || "—",
+                    phone: data.phone || "—",
+                    role: data.role || "Unknown",
+                    city: data.city || "—",
+                    projectCompany: data.projectCompany || data.project || "—",
+                    message: data.message || "—",
+                    status: data.status || "pending",
+                    source: data.source || "Web",
+                    notes: data.notes || "",
+                    createdAt: data.createdAt,
+                    linkedin: data.linkedin || data.linkedinProfile || "—",
+                    revenueRange: data.revenueRange || "—",
+                    positionRole: data.positionRole || data.position || "—",
+                };
+            }) as Application[];
             setApplications(apps);
         } catch (error) {
             console.error("Error fetching applications:", error);
@@ -80,7 +99,7 @@ const Applications = () => {
             result = result.filter(app =>
                 app.fullName.toLowerCase().includes(lowerSearch) ||
                 app.email.toLowerCase().includes(lowerSearch) ||
-                app.project.toLowerCase().includes(lowerSearch)
+                app.projectCompany.toLowerCase().includes(lowerSearch)
             );
         }
 
@@ -122,6 +141,7 @@ const Applications = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case "new": return "bg-blue-100 text-blue-800";
+            case "pending": return "bg-gray-100 text-gray-800";
             case "review": return "bg-yellow-100 text-yellow-800";
             case "accepted": return "bg-green-100 text-green-800";
             case "rejected": return "bg-red-100 text-red-800";
@@ -150,6 +170,7 @@ const Applications = () => {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="new">New</SelectItem>
                             <SelectItem value="review">In Review</SelectItem>
                             <SelectItem value="accepted">Accepted</SelectItem>
@@ -165,8 +186,9 @@ const Applications = () => {
                         <TableRow>
                             <TableHead>Date</TableHead>
                             <TableHead>Name</TableHead>
-                            <TableHead>Project</TableHead>
+                            <TableHead>Project / Company</TableHead>
                             <TableHead>Role</TableHead>
+                            <TableHead>Revenue</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -174,11 +196,11 @@ const Applications = () => {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-10">Loading...</TableCell>
+                                <TableCell colSpan={7} className="text-center py-10">Loading...</TableCell>
                             </TableRow>
                         ) : filteredApps.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-10">No applications found</TableCell>
+                                <TableCell colSpan={7} className="text-center py-10">No applications found</TableCell>
                             </TableRow>
                         ) : (
                             filteredApps.map((app) => (
@@ -188,8 +210,9 @@ const Applications = () => {
                                         <div className="font-medium">{app.fullName}</div>
                                         <div className="text-xs text-muted-foreground">{app.email}</div>
                                     </TableCell>
-                                    <TableCell>{app.project}</TableCell>
+                                    <TableCell>{app.projectCompany}</TableCell>
                                     <TableCell className="capitalize">{app.role}</TableCell>
+                                    <TableCell>{app.revenueRange}</TableCell>
                                     <TableCell>
                                         <Badge variant="secondary" className={getStatusColor(app.status)}>
                                             {app.status}
@@ -236,6 +259,14 @@ const Applications = () => {
                                     <p className="capitalize">{selectedApp.role}</p>
                                 </div>
                                 <div>
+                                    <h4 className="text-sm font-medium text-muted-foreground">Position / Title</h4>
+                                    <p>{selectedApp.positionRole}</p>
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-medium text-muted-foreground">Revenue Range</h4>
+                                    <p>{selectedApp.revenueRange}</p>
+                                </div>
+                                <div>
                                     <h4 className="text-sm font-medium text-muted-foreground">Source</h4>
                                     <p className="capitalize">{selectedApp.source}</p>
                                 </div>
@@ -251,7 +282,7 @@ const Applications = () => {
 
                             <div className="space-y-2">
                                 <h4 className="text-sm font-medium text-muted-foreground">Project / Company</h4>
-                                <p className="font-medium">{selectedApp.project}</p>
+                                <p className="font-medium">{selectedApp.projectCompany}</p>
                             </div>
 
                             <div className="space-y-2">
@@ -267,6 +298,7 @@ const Applications = () => {
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="pending">Pending</SelectItem>
                                             <SelectItem value="new">New</SelectItem>
                                             <SelectItem value="review">In Review</SelectItem>
                                             <SelectItem value="accepted">Accepted</SelectItem>

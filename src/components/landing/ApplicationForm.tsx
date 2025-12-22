@@ -11,6 +11,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/firebase/firebase";
 
 const revenueOptions = [
   { value: "pre-revenue", label: "Pre-Revenue" },
@@ -46,16 +48,35 @@ const ApplicationForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      // Save to Firestore
+      await addDoc(collection(db, "applications"), {
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        role: "founder",
+        city: "Santo Domingo",
+        project: "New Project",
+        message: "New Application",
+        linkedin: formData.linkedin,
+        revenueRange: formData.revenueRange,
+        position: formData.position,
+        status: "new",
+        source: "web",
+        notes: "",
+        createdAt: serverTimestamp(),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to send application");
+      // Send email via API (optional, keeping existing logic)
+      try {
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+      } catch (e) {
+        console.error("Failed to send email via API", e);
       }
 
       toast({
@@ -73,6 +94,7 @@ const ApplicationForm = () => {
       });
       setOpen(false);
     } catch (error) {
+      console.error("Error submitting application:", error);
       toast({
         title: "Error",
         description: "Failed to submit application. Please try again.",

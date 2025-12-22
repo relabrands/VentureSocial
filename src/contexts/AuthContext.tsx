@@ -29,10 +29,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            console.log("Auth State Changed:", currentUser?.uid);
             setUser(currentUser);
 
             if (currentUser) {
                 const adminStatus = await checkIsAdmin(currentUser.uid);
+                console.log("Is Admin:", adminStatus);
                 setIsAdmin(adminStatus);
             } else {
                 setIsAdmin(false);

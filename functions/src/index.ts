@@ -1,4 +1,4 @@
-import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onDocumentUpdated, onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 import { defineString } from "firebase-functions/params";
 import { Resend } from "resend";
@@ -12,40 +12,13 @@ const db = getFirestore();
 const RESEND_API_KEY = defineString("RESEND_API_KEY");
 const FROM_EMAIL = defineString("FROM_EMAIL");
 
-export const onApplicationStatusChange = onDocumentUpdated("applications/{applicationId}", async (event) => {
-    const change = event.data;
-    if (!change) return;
+// Helper to send email using template
+async function sendEmailWithTemplate(applicationId: string, data: any, templateKey: string) {
+    const email = data.email;
+    const fullName = data.fullName || data.name || "Applicant";
+    const project = data.projectCompany || data.project || "Project";
 
-    const newData = change.after.data();
-    const previousData = change.before.data();
-
-    // Only proceed if status changed
-    if (newData.status === previousData.status) return;
-
-    const applicationId = event.params.applicationId;
-    const newStatus = newData.status;
-    const email = newData.email;
-    const fullName = newData.fullName;
-    const project = newData.project;
-
-    logger.info(`Status changed for application ${applicationId} to ${newStatus}`);
-
-    // Map status to template key
-    let templateKey = "";
-    switch (newStatus) {
-        case "review":
-            templateKey = "application_review";
-            break;
-        case "accepted":
-            templateKey = "application_accepted";
-            break;
-        case "rejected":
-            templateKey = "application_rejected";
-            break;
-        default:
-            logger.info(`No template for status ${newStatus}`);
-            return;
-    }
+    logger.info(`Processing email for application ${applicationId} with template ${templateKey}`);
 
     try {
         // Fetch template
@@ -71,9 +44,10 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
         let body = template.body || "";
 
         const replacements: Record<string, string> = {
-            "{{fullName}}": fullName || "",
-            "{{status}}": newStatus || "",
-            "{{project}}": project || "",
+            "{{fullName}}": fullName,
+            "{{status}}": data.status || "",
+            "{{project}}": project,
+            "{{role}}": data.role || "",
         };
 
         for (const [key, value] of Object.entries(replacements)) {
@@ -82,7 +56,7 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
         }
 
         // Send email
-        const { data, error } = await resend.emails.send({
+        const { data: resendData, error } = await resend.emails.send({
             from: `Venture Social <${fromEmail}>`,
             to: email,
             subject: subject,
@@ -93,13 +67,62 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
             logger.error("Error sending email:", error);
             await logEmail(applicationId, email, templateKey, "failed", error.message);
         } else {
-            logger.info("Email sent successfully:", data);
+            logger.info("Email sent successfully:", resendData);
             await logEmail(applicationId, email, templateKey, "sent", null);
         }
 
     } catch (error: any) {
-        logger.error("Error in onApplicationStatusChange:", error);
+        logger.error(`Error sending email for ${templateKey}:`, error);
         await logEmail(applicationId, email, templateKey, "error", error.message);
+    }
+}
+
+// Trigger: When a new application is created
+export const onApplicationCreated = onDocumentCreated("applications/{applicationId}", async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) return;
+
+    const data = snapshot.data();
+    const applicationId = event.params.applicationId;
+
+    await sendEmailWithTemplate(applicationId, data, "application_received");
+});
+
+// Trigger: When an application status changes
+export const onApplicationStatusChange = onDocumentUpdated("applications/{applicationId}", async (event) => {
+    const change = event.data;
+    if (!change) return;
+
+    const newData = change.after.data();
+    const previousData = change.before.data();
+
+    // Only proceed if status changed
+    if (newData.status === previousData.status) return;
+
+    const applicationId = event.params.applicationId;
+    const newStatus = newData.status;
+
+    logger.info(`Status changed for application ${applicationId} to ${newStatus}`);
+
+    // Map status to template key
+    let templateKey = "";
+    switch (newStatus) {
+        case "review":
+            templateKey = "application_review"; // Optional
+            break;
+        case "accepted":
+            templateKey = "application_accepted";
+            break;
+        case "rejected":
+            templateKey = "application_rejected";
+            break;
+        default:
+            logger.info(`No template mapping for status ${newStatus}`);
+            return;
+    }
+
+    if (templateKey) {
+        await sendEmailWithTemplate(applicationId, newData, templateKey);
     }
 });
 

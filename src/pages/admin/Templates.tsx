@@ -128,14 +128,60 @@ const Templates = () => {
         }
     };
 
+    const handleLoadDefaults = async () => {
+        if (!confirm("This will create default templates if they don't exist. Continue?")) return;
+
+        const defaults = [
+            {
+                id: "application_received",
+                subject: "Application Received - Venture Social",
+                body: "Hi {{fullName}},\n\nThanks for applying to Venture Social. We have received your application for {{project}} and will be in touch shortly.\n\nBest regards,\nThe Venture Social Team",
+                active: true
+            },
+            {
+                id: "application_accepted",
+                subject: "Congratulations! Application Accepted",
+                body: "Hi {{fullName}},\n\nWe are pleased to inform you that your application for {{project}} has been accepted!\n\nWe will be sending next steps in a separate email.\n\nWelcome aboard,\nVenture Social",
+                active: true
+            },
+            {
+                id: "application_rejected",
+                subject: "Update on your Application",
+                body: "Hi {{fullName}},\n\nThank you for your interest in Venture Social. After careful review, we are unable to proceed with your application for {{project}} at this time.\n\nWe wish you the best in your future endeavors.\n\nVenture Social",
+                active: true
+            }
+        ];
+
+        try {
+            for (const temp of defaults) {
+                // Only create if not exists to avoid overwriting custom changes, or use set with merge
+                // Here using set with merge to ensure fields exist
+                await setDoc(doc(db, "emailTemplates", temp.id), {
+                    ...temp,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            }
+            toast.success("Default templates loaded");
+            fetchTemplates();
+        } catch (error) {
+            console.error("Error loading defaults:", error);
+            toast.error("Failed to load default templates");
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">Email Templates</h1>
-                <Button onClick={() => handleOpenModal()}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Template
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleLoadDefaults}>
+                        Load Defaults
+                    </Button>
+                    <Button onClick={() => handleOpenModal()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Template
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -94,18 +94,7 @@ const ApplicationForm = () => {
       // Save to Firestore
       await addDoc(collection(db, "applications"), payload);
 
-      // Send email via API (optional, keeping existing logic)
-      try {
-        await fetch("/api/send-email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-      } catch (e) {
-        console.error("Failed to send email via API", e);
-      }
+      // Email is now sent via Cloud Function trigger on document creation
 
       toast({
         title: "Application Received",

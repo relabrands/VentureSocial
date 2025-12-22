@@ -132,7 +132,7 @@ const Templates = () => {
             }
 
             if (loadedCount > 0) {
-                toast.success(\`Loaded \${loadedCount} new default templates\`);
+                toast.success(`Loaded ${loadedCount} new default templates`);
                 fetchTemplates();
             } else {
                 toast.info("All default templates already exist");
@@ -201,7 +201,7 @@ const Templates = () => {
     };
 
     const handleCopy = (template: EmailTemplate) => {
-        const textToCopy = `Subject: ${ template.subject }\n\n${ template.body }`;
+        const textToCopy = `Subject: ${template.subject}\n\n${template.body}`;
         navigator.clipboard.writeText(textToCopy);
         toast.success("Copied to clipboard");
     };

@@ -37,7 +37,13 @@ async function sendEmailWithTemplate(applicationId: string, data: any, templateK
 
         // Initialize Resend with the secret
         const resend = new Resend(RESEND_API_KEY.value());
-        const fromEmail = FROM_EMAIL.value() || "onboarding@resend.dev";
+        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
+
+        // If the env var already has the format "Name <email>", use it as is.
+        // Otherwise, wrap it with the default name.
+        const fromAddress = fromEmailRaw.includes("<")
+            ? fromEmailRaw
+            : `Venture Social <${fromEmailRaw}>`;
 
         // Replace placeholders
         let subject = template.subject || "";
@@ -57,7 +63,7 @@ async function sendEmailWithTemplate(applicationId: string, data: any, templateK
 
         // Send email
         const { data: resendData, error } = await resend.emails.send({
-            from: `Venture Social <${fromEmail}>`,
+            from: fromAddress,
             to: email,
             subject: subject,
             html: body.replace(/\n/g, "<br>"), // Simple newline to br conversion
@@ -108,7 +114,14 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
     let templateKey = "";
     switch (newStatus) {
         case "review":
-            templateKey = "application_review"; // Optional
+            templateKey = "application_review";
+            break;
+        case "pending":
+            templateKey = "application_pending";
+            break;
+        case "new":
+            // "new" might be the initial status, usually handled by onApplicationCreated, but if manually set:
+            templateKey = "application_received";
             break;
         case "accepted":
             templateKey = "application_accepted";

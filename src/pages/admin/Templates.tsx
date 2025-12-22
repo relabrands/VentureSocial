@@ -135,19 +135,31 @@ const Templates = () => {
             {
                 id: "application_received",
                 subject: "Application Received - Venture Social",
-                body: "Hi {{fullName}},\n\nThanks for applying to Venture Social. We have received your application for {{project}} and will be in touch shortly.\n\nBest regards,\nThe Venture Social Team",
+                body: "<h1>Application Received</h1><p>Hi {{fullName}},</p><p>Thanks for applying to Venture Social. We have received your application for <strong>{{project}}</strong> and will be in touch shortly.</p><br><p>Best regards,</p><p>The Venture Social Team</p>",
                 active: true
             },
             {
                 id: "application_accepted",
                 subject: "Congratulations! Application Accepted",
-                body: "Hi {{fullName}},\n\nWe are pleased to inform you that your application for {{project}} has been accepted!\n\nWe will be sending next steps in a separate email.\n\nWelcome aboard,\nVenture Social",
+                body: "<h1>Application Accepted</h1><p>Hi {{fullName}},</p><p>We are pleased to inform you that your application for <strong>{{project}}</strong> has been accepted!</p><p>We will be sending next steps in a separate email.</p><br><p>Welcome aboard,</p><p>Venture Social</p>",
                 active: true
             },
             {
                 id: "application_rejected",
                 subject: "Update on your Application",
-                body: "Hi {{fullName}},\n\nThank you for your interest in Venture Social. After careful review, we are unable to proceed with your application for {{project}} at this time.\n\nWe wish you the best in your future endeavors.\n\nVenture Social",
+                body: "<h1>Update on your Application</h1><p>Hi {{fullName}},</p><p>Thank you for your interest in Venture Social. After careful review, we are unable to proceed with your application for <strong>{{project}}</strong> at this time.</p><p>We wish you the best in your future endeavors.</p><br><p>Venture Social</p>",
+                active: true
+            },
+            {
+                id: "application_review",
+                subject: "Application Under Review",
+                body: "<h1>Under Review</h1><p>Hi {{fullName}},</p><p>Your application for <strong>{{project}}</strong> is now being reviewed by our team.</p><p>We will get back to you soon.</p><br><p>Best,</p><p>Venture Social Team</p>",
+                active: true
+            },
+            {
+                id: "application_pending",
+                subject: "Application Pending",
+                body: "<h1>Application Pending</h1><p>Hi {{fullName}},</p><p>Your application for <strong>{{project}}</strong> is currently pending further action.</p><br><p>Best,</p><p>Venture Social Team</p>",
                 active: true
             }
         ];
@@ -262,14 +274,15 @@ const Templates = () => {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="body">Body</Label>
+                            <Label htmlFor="body">Body (HTML Supported)</Label>
                             <Textarea
                                 id="body"
                                 value={body}
                                 onChange={(e) => setBody(e.target.value)}
-                                placeholder="Template content... Use {{fullName}} for dynamic values."
-                                className="h-[200px]"
+                                placeholder="<html>... Use {{fullName}} for dynamic values."
+                                className="h-[300px] font-mono text-xs"
                             />
+                            <p className="text-xs text-muted-foreground">You can use HTML tags for formatting. Supported variables: {"{{fullName}}"}, {"{{project}}"}, {"{{status}}"}, {"{{role}}"}</p>
                         </div>
                     </div>
                     <DialogFooter>

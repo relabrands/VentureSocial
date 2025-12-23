@@ -91,7 +91,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
 
                             {/* Tap Hint */}
                             {variant === 'private' && (
-                                <div className="absolute bottom-4 right-4 text-[10px] text-gray-500 animate-pulse flex items-center gap-1">
+                                <div className="absolute top-20 right-5 text-[10px] text-gray-500 animate-pulse flex items-center gap-1">
                                     Tap to flip 🔄
                                 </div>
                             )}

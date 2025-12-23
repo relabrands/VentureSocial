@@ -39,24 +39,6 @@ const FounderPass: React.FC<FounderPassProps> = ({
         ? `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(shareText || '')} ${encodeURIComponent(shareUrl)}`
         : '#';
 
-    const handleShare = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'Venture Social Founder Pass',
-                    text: shareText,
-                    url: shareUrl
-                });
-            } catch (err) {
-                console.error('Error sharing:', err);
-            }
-        } else {
-            window.open(linkedinShareUrl, '_blank');
-        }
-    };
-
     return (
         <div
             className={`relative w-[320px] h-[500px] perspective-1000 group ${variant === 'private' ? 'cursor-pointer' : ''}`}
@@ -178,13 +160,16 @@ const FounderPass: React.FC<FounderPassProps> = ({
 
                             <div className="w-full mb-2">
                                 {shareUrl && variant === 'private' && (
-                                    <button
-                                        onClick={handleShare}
+                                    <a
+                                        href={linkedinShareUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
                                         className="w-full bg-[#0077b5] hover:bg-[#006396] text-white font-bold py-6 text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 flex items-center justify-center rounded-md"
                                     >
                                         <Linkedin className="mr-2 h-6 w-6" />
                                         Share on LinkedIn
-                                    </button>
+                                    </a>
                                 )}
                                 {variant === 'private' && (
                                     <p className="text-[10px] text-gray-500 mt-4 animate-pulse">

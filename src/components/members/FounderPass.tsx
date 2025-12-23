@@ -29,7 +29,9 @@ const FounderPass: React.FC<FounderPassProps> = ({
         }
     };
 
-    const linkedinShareUrl = shareUrl ? `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`)} ${encodeURIComponent(shareUrl)}` : '#';
+    const linkedinShareUrl = shareUrl
+        ? `https://www.linkedin.com/feed/?shareActive=true&shareUrl=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`)}`
+        : '#';
 
     return (
         <div

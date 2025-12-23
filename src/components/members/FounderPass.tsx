@@ -9,6 +9,7 @@ interface FounderPassProps {
     company?: string;
     variant?: 'private' | 'public';
     shareUrl?: string;
+    role?: string;
 }
 
 const FounderPass: React.FC<FounderPassProps> = ({
@@ -17,7 +18,8 @@ const FounderPass: React.FC<FounderPassProps> = ({
     cohort = "JAN 2026",
     company = "@VentureSocial",
     variant = 'private',
-    shareUrl
+    shareUrl,
+    role = "FOUNDER"
 }) => {
     // If public, start flipped (showing back side)
     const [isFlipped, setIsFlipped] = useState(variant === 'public');

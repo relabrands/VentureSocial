@@ -190,7 +190,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
                 </div>
             </div>
         </div>
-        </div >
+
     );
 };
 

@@ -314,13 +314,13 @@ const Templates = () => {
     return (
         <div className="space-y-6">
             {/* ... (header remains same) */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-3xl font-bold tracking-tight">Email Templates</h1>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleLoadDefaults}>
+                <div className="flex gap-2 w-full md:w-auto">
+                    <Button variant="outline" onClick={handleLoadDefaults} className="flex-1 md:flex-none">
                         Load Defaults
                     </Button>
-                    <Button onClick={() => handleOpenModal()}>
+                    <Button onClick={() => handleOpenModal()} className="flex-1 md:flex-none">
                         <Plus className="mr-2 h-4 w-4" />
                         New Template
                     </Button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, doc, updateDoc, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -267,7 +268,76 @@ const Members = () => {
                 </div>
             </div>
 
-            <div className="border rounded-md bg-white">
+            {/* Mobile View (Cards) */}
+            <div className="grid gap-4 md:hidden">
+                {loading ? (
+                    <div className="text-center py-10">Loading...</div>
+                ) : filteredMembers.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground">No members found</div>
+                ) : (
+                    filteredMembers.map((member) => (
+                        <Card key={member.id}>
+                            <CardContent className="p-4 space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="font-bold text-lg">{member.fullName}</div>
+                                        <div className="text-sm text-muted-foreground">{member.email}</div>
+                                        {member.memberId && (
+                                            <Badge variant="outline" className="mt-1 text-[10px] h-5">
+                                                {member.memberId}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-1">
+                                        {member.memberId && (
+                                            <Button
+                                                variant="secondary"
+                                                size="icon"
+                                                onClick={() => handleViewPass(member.memberId!)}
+                                                className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 h-8 w-8"
+                                            >
+                                                🎫
+                                            </Button>
+                                        )}
+                                        <Button variant="ghost" size="icon" onClick={() => handleViewMember(member)} className="h-8 w-8">
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                        <span className="text-muted-foreground text-xs block">Project/Company</span>
+                                        <span className="font-medium">{member.projectCompany}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground text-xs block">Role</span>
+                                        <span className="capitalize">{member.role}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground text-xs block">City</span>
+                                        <span>{member.city}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground text-xs block">Date Accepted</span>
+                                        <span>{member.createdAt?.seconds ? format(new Date(member.createdAt.seconds * 1000), "MMM d, yyyy") : "N/A"}</span>
+                                    </div>
+                                </div>
+
+                                <div className="pt-2">
+                                    <Button variant="outline" size="sm" onClick={() => handleOpenEmailModal(member)} className="w-full">
+                                        <Mail className="mr-2 h-4 w-4" />
+                                        Send Email
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
+            </div>
+
+            {/* Desktop View (Table) */}
+            <div className="hidden md:block border rounded-md bg-white">
                 <Table>
                     <TableHeader>
                         <TableRow>

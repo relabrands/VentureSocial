@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, doc, updateDoc, orderBy, query, writeBatch, deleteDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -267,7 +268,59 @@ const Applications = () => {
                 </div>
             </div>
 
-            <div className="border rounded-md bg-white">
+            {/* Mobile View (Cards) */}
+            <div className="grid gap-4 md:hidden">
+                {loading ? (
+                    <div className="text-center py-10">Loading...</div>
+                ) : filteredApps.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground">No applications found</div>
+                ) : (
+                    filteredApps.map((app) => (
+                        <Card key={app.id}>
+                            <CardContent className="p-4 space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="font-bold text-lg">{app.fullName}</div>
+                                        <div className="text-sm text-muted-foreground">{app.email}</div>
+                                    </div>
+                                    <Badge variant="secondary" className={getStatusColor(app.status)}>
+                                        {app.status}
+                                    </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                        <span className="text-muted-foreground text-xs block">Project/Company</span>
+                                        <span className="font-medium">{app.projectCompany}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground text-xs block">Role</span>
+                                        <span className="capitalize">{app.role}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground text-xs block">Revenue</span>
+                                        <span>{app.revenueRange}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground text-xs block">Date</span>
+                                        <span>{app.createdAt?.seconds ? format(new Date(app.createdAt.seconds * 1000), "MMM d, yyyy") : "N/A"}</span>
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 flex justify-end">
+                                    <Button variant="outline" size="sm" onClick={() => handleView(app)} className="w-full">
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View Details
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
+            </div>
+
+            {/* Desktop View (Table) */}
+            <div className="hidden md:block border rounded-md bg-white">
                 <Table>
                     <TableHeader>
                         <TableRow>

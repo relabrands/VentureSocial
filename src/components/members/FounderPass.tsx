@@ -191,8 +191,8 @@ const FounderPass: React.FC<FounderPassProps> = ({
                     </div>
                 </div>
             </div>
-
-            );
+        </div>
+    );
 };
 
-            export default FounderPass;
+export default FounderPass;

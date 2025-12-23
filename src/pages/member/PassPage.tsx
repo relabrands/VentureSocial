@@ -60,7 +60,10 @@ const PassPage = () => {
 
     const handleShareLinkedIn = () => {
         const text = `Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`;
-        const url = window.location.href;
+        // Share the PUBLIC link (/p/ID) instead of the private pass link
+        // Use memberId directly if available to ensure correct URL construction
+        const shareId = member.memberId || id;
+        const url = `https://www.venturesocialdr.com/p/${shareId}`;
         const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)} ${encodeURIComponent(url)}`;
         window.open(linkedinUrl, '_blank');
     };
@@ -84,8 +87,6 @@ const PassPage = () => {
         );
     }
 
-
-
     return (
         <HelmetProvider>
             <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 gap-8">
@@ -97,22 +98,17 @@ const PassPage = () => {
                     <meta property="og:url" content={window.location.href} />
                     <meta property="og:type" content="website" />
                 </Helmet>
-                <FounderPass
-                    name={member.fullName || member.name}
-                    memberId={member.memberId || "PENDING"}
-                    company={member.projectCompany ? `@${member.projectCompany}` : undefined}
-                />
 
-                <div className="flex flex-col gap-4 w-full max-w-[320px]">
-                    <Button
-                        onClick={handleShareLinkedIn}
-                        className="w-full bg-[#0077b5] hover:bg-[#006396] text-white"
-                    >
-                        <Linkedin className="mr-2 h-4 w-4" />
-                        Share on LinkedIn
-                    </Button>
-                    <p className="text-xs text-center text-gray-500">
-                        Share your achievement with your network
+                <div className="flex flex-col items-center gap-4">
+                    <FounderPass
+                        name={member.fullName || member.name}
+                        memberId={member.memberId || "PENDING"}
+                        company={member.projectCompany ? `@${member.projectCompany}` : undefined}
+                        variant="private"
+                        onShare={handleShareLinkedIn}
+                    />
+                    <p className="text-xs text-gray-500 animate-pulse">
+                        Tap card to flip & share 🔄
                     </p>
                 </div>
             </div>

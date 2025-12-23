@@ -75,24 +75,100 @@ const Templates = () => {
             {
                 id: "application_accepted",
                 subject: "Welcome to Venture Social! 🚀",
-                body: `<div style="font-family: sans-serif; color: #333;">
-  <h1>Congratulations, {{fullName}}!</h1>
-  <p>We are thrilled to accept you into the <strong>Venture Social</strong> community.</p>
-  <p>Your project, <strong>{{project}}</strong>, stood out to us, and we can't wait to see what you build.</p>
-  
-  <div style="margin: 30px 0; padding: 20px; background-color: #0b1120; border-radius: 12px; text-align: center; color: white;">
-    <p style="margin-bottom: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af;">Your Founder Pass is Ready</p>
-    <h2 style="margin: 0 0 20px 0; font-size: 24px; color: white;">{{fullName}}</h2>
-    <a href="{{passUrl}}" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-      View & Share Your Pass 💳
-    </a>
-    <p style="margin-top: 15px; font-size: 12px; color: #6b7280;">Member ID: {{memberId}}</p>
-  </div>
+                body: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Accepted</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f8; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
 
-  <p>Click the button above to access your digital Founder Pass. It's your key to upcoming events and perks.</p>
-  <p>Welcome aboard!</p>
-  <p>The Venture Social Team</p>
-</div>`,
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f6f8;">
+        <tr>
+            <td align="center" style="padding-top: 30px; padding-bottom: 30px;">
+                
+                <table role="presentation" width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%;">
+                    <tr>
+                        <td align="center" style="background-color: #0b1120; padding: 20px 0; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">VENTURE SOCIAL</h1>
+                        </td>
+                    </tr>
+                </table>
+
+                <table role="presentation" width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="padding: 30px;">
+                            
+                            <h2 style="margin: 0 0 15px 0; color: #1f2937; font-size: 20px; font-weight: 600;">
+                                <span style="color:#10b981;">✅</span> You're in!
+                            </h2>
+                            
+                            <p style="margin: 0 0 12px 0; color: #4b5563; font-size: 16px; line-height: 1.5;">
+                                Hi <strong>{{fullName}}</strong>,
+                            </p>
+                            
+                            <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.5;">
+                                We are pleased to inform you that your application for <strong>{{project}}</strong> has been selected. Your profile is a perfect fit for the ecosystem we are building.
+                            </p>
+
+                            <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td style="padding-bottom: 8px; color: #6b7280; font-size: 13px;">Next Event:</td>
+                                        <td align="right" style="padding-bottom: 8px; color: #111827; font-weight: bold; font-size: 13px;">January 2026 (Launch)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-bottom: 8px; color: #6b7280; font-size: 13px;">Location:</td>
+                                        <td align="right" style="padding-bottom: 8px; color: #111827; font-weight: bold; font-size: 13px;">Barna Management School</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border-top: 1px solid #e5e7eb; padding-top: 8px; color: #10b981; font-weight: bold; font-size: 15px;">Status:</td>
+                                        <td align="right" style="border-top: 1px solid #e5e7eb; padding-top: 8px; color: #10b981; font-weight: bold; font-size: 15px;">Confirmed</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Founder Pass Section -->
+                            <div style="margin: 30px 0; padding: 20px; background-color: #0b1120; border-radius: 12px; text-align: center; color: white;">
+                                <p style="margin-bottom: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af;">Your Founder Pass is Ready</p>
+                                <h2 style="margin: 0 0 20px 0; font-size: 24px; color: white;">{{fullName}}</h2>
+                                <a href="{{passUrl}}" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                                View & Share Your Pass 💳
+                                </a>
+                                <p style="margin-top: 15px; font-size: 12px; color: #6b7280;">Member ID: {{memberId}}</p>
+                            </div>
+
+                            <p style="margin: 0 0 12px 0; color: #4b5563; font-size: 16px; line-height: 1.5;">
+                                You will receive the official calendar invite and access details shortly.
+                            </p>
+                            
+                            <p style="margin: 0; color: #4b5563; font-size: 16px;">
+                                Welcome to the club! 🚀
+                            </p>
+
+                        </td>
+                    </tr>
+                </table>
+
+                <table role="presentation" width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%;">
+                    <tr>
+                        <td align="center" style="padding: 20px 0;">
+                            <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                                 © 2025 Venture Social DR.<br>
+                                Connecting Founders & Capital.<br>
+                                Santo Domingo, Dominican Republic.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>`,
                 active: true
             },
             {

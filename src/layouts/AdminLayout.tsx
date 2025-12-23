@@ -51,6 +51,12 @@ const AdminLayout = () => {
                             Email Templates
                         </Button>
                     </Link>
+                    <Link to="/admin/priority-invites">
+                        <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                            <Users className="mr-2 h-4 w-4" />
+                            Priority Invite List
+                        </Button>
+                    </Link>
                     <Link to="/admin/check-in">
                         <Button variant={isActive("check-in") ? "secondary" : "ghost"} className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
                             <QrCode className="mr-2 h-4 w-4" />
@@ -103,6 +109,12 @@ const AdminLayout = () => {
                                     <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
                                         <FileText className="mr-2 h-4 w-4" />
                                         Email Templates
+                                    </Button>
+                                </Link>
+                                <Link to="/admin/priority-invites">
+                                    <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                        <Users className="mr-2 h-4 w-4" />
+                                        Priority Invite List
                                     </Button>
                                 </Link>
                                 <Link to="/admin/check-in">

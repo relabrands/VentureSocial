@@ -12,14 +12,14 @@ const Footer = () => {
 
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <a
-              href="mailto:hello@venturesocial.do"
+              href="mailto:hello@venturesocialdr.com"
               className="hover:text-foreground transition-colors duration-200"
             >
               Contact
             </a>
             <span className="text-border">•</span>
             <a
-              href="https://instagram.com/venturesocialdo"
+              href="https://instagram.com/venturesocialdr"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors duration-200"
@@ -28,7 +28,7 @@ const Footer = () => {
             </a>
             <span className="text-border">•</span>
             <a
-              href="https://linkedin.com/company/venturesocialdo"
+              href="https://linkedin.com/company/venture-social"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors duration-200"

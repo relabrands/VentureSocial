@@ -15,9 +15,11 @@ import Dashboard from "@/pages/admin/Dashboard";
 import Applications from "@/pages/admin/Applications";
 import Members from "@/pages/admin/Members";
 import Templates from "@/pages/admin/Templates";
+import PriorityInviteList from "@/pages/admin/PriorityInviteList";
 import CheckIn from "@/pages/admin/CheckIn";
 import PassPage from "@/pages/member/PassPage";
 import SharePage from "@/pages/member/SharePage";
+import ClaimPage from "@/pages/ClaimPage";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -36,6 +38,7 @@ const App = () => (
               <Route path="applications" element={<Applications />} />
               <Route path="members" element={<Members />} />
               <Route path="templates" element={<Templates />} />
+              <Route path="priority-invites" element={<PriorityInviteList />} />
               <Route path="check-in" element={<CheckIn />} />
             </Route>
 
@@ -43,6 +46,8 @@ const App = () => (
             <Route path="/pass/:id" element={<PassPage />} />
             {/* Public Share Route */}
             <Route path="/p/:id" element={<SharePage />} />
+            {/* Claim Invite Route */}
+            <Route path="/claim/:token" element={<ClaimPage />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

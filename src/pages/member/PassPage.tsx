@@ -22,7 +22,13 @@ const PassPage = () => {
 
                 // Check if ID is a Member ID (VS-XXX) or Document ID
                 if (id.startsWith("VS-")) {
-                    const q = query(collection(db, "applications"), where("memberId", "==", id));
+                    // Firestore Rules require the query to explicitly filter by status="accepted"
+                    // to match the "allow read: if resource.data.status == 'accepted'" rule.
+                    const q = query(
+                        collection(db, "applications"),
+                        where("memberId", "==", id),
+                        where("status", "==", "accepted")
+                    );
                     const querySnapshot = await getDocs(q);
                     if (!querySnapshot.empty) {
                         memberData = querySnapshot.docs[0].data();

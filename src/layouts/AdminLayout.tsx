@@ -1,7 +1,7 @@
 import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, LogOut, Users } from "lucide-react";
+import { LayoutDashboard, FileText, LogOut, Users, QrCode } from "lucide-react";
 
 const AdminLayout = () => {
     const { user, loading, isAdmin, logout } = useAuth();
@@ -48,6 +48,12 @@ const AdminLayout = () => {
                         <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
                             <FileText className="mr-2 h-4 w-4" />
                             Email Templates
+                        </Button>
+                    </Link>
+                    <Link to="/admin/check-in">
+                        <Button variant={isActive("check-in") ? "secondary" : "ghost"} className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
+                            <QrCode className="mr-2 h-4 w-4" />
+                            Event Check-in
                         </Button>
                     </Link>
                 </nav>

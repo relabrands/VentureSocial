@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import FounderPass from "@/components/members/FounderPass";
+import MemberDirectory from "@/components/members/MemberDirectory";
 import { Button } from "@/components/ui/button";
 import { Linkedin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -107,6 +108,10 @@ const PassPage = () => {
                         variant="private"
                         shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
                     />
+
+                    {/* The Room - Private Directory */}
+                    <MemberDirectory currentMemberId={member.memberId} />
+
                     <p className="text-xs text-gray-500 animate-pulse">
                         Tap card to flip & share 🔄
                     </p>

@@ -15,6 +15,7 @@ import Dashboard from "@/pages/admin/Dashboard";
 import Applications from "@/pages/admin/Applications";
 import Members from "@/pages/admin/Members";
 import Templates from "@/pages/admin/Templates";
+import CheckIn from "@/pages/admin/CheckIn";
 import PassPage from "@/pages/member/PassPage";
 import SharePage from "@/pages/member/SharePage";
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="applications" element={<Applications />} />
               <Route path="members" element={<Members />} />
               <Route path="templates" element={<Templates />} />
+              <Route path="check-in" element={<CheckIn />} />
             </Route>
 
             {/* Public Pass Route */}

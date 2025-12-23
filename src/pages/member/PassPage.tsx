@@ -6,6 +6,7 @@ import FounderPass from "@/components/members/FounderPass";
 import { Button } from "@/components/ui/button";
 import { Linkedin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 
 const PassPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -77,9 +78,7 @@ const PassPage = () => {
         );
     }
 
-    import { Helmet, HelmetProvider } from 'react-helmet-async';
 
-    // ... (inside component)
 
     return (
         <HelmetProvider>

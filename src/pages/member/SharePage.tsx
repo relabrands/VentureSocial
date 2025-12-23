@@ -91,7 +91,7 @@ const SharePage = () => {
                 <FounderPass
                     name={member.fullName || member.name}
                     memberId={member.memberId || "PENDING"}
-                    company={member.projectCompany ? `@${member.projectCompany}` : undefined}
+                    company={member.projectCompany ? `@${member.projectCompany}` : (member.company ? `@${member.company}` : undefined)}
                     variant="public"
                     shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
                 />

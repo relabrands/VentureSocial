@@ -91,7 +91,7 @@ const PassPage = () => {
 
     return (
         <HelmetProvider>
-            <div className="min-h-screen bg-black flex flex-col items-center pt-8 p-4 gap-6">
+            <div className="min-h-[100dvh] w-full bg-black flex flex-col items-center pt-8 p-4 gap-6">
                 <Helmet>
                     <title>{member.fullName} | Venture Social Founder Pass</title>
                     <meta property="og:title" content={`${member.fullName} | Venture Social Founder Pass`} />

@@ -77,27 +77,41 @@ const PassPage = () => {
         );
     }
 
-    return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 gap-8">
-            <FounderPass
-                name={member.fullName || member.name}
-                memberId={member.memberId || "PENDING"}
-                company={member.projectCompany ? `@${member.projectCompany}` : undefined}
-            />
+    import { Helmet, HelmetProvider } from 'react-helmet-async';
 
-            <div className="flex flex-col gap-4 w-full max-w-[320px]">
-                <Button
-                    onClick={handleShareLinkedIn}
-                    className="w-full bg-[#0077b5] hover:bg-[#006396] text-white"
-                >
-                    <Linkedin className="mr-2 h-4 w-4" />
-                    Share on LinkedIn
-                </Button>
-                <p className="text-xs text-center text-gray-500">
-                    Share your achievement with your network
-                </p>
+    // ... (inside component)
+
+    return (
+        <HelmetProvider>
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 gap-8">
+                <Helmet>
+                    <title>{member.fullName} | Venture Social Founder Pass</title>
+                    <meta property="og:title" content={`${member.fullName} | Venture Social Founder Pass`} />
+                    <meta property="og:description" content={`Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴`} />
+                    <meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/venture-social-dr.firebasestorage.app/o/founder-pass-preview.png?alt=media" />
+                    <meta property="og:url" content={window.location.href} />
+                    <meta property="og:type" content="website" />
+                </Helmet>
+                <FounderPass
+                    name={member.fullName || member.name}
+                    memberId={member.memberId || "PENDING"}
+                    company={member.projectCompany ? `@${member.projectCompany}` : undefined}
+                />
+
+                <div className="flex flex-col gap-4 w-full max-w-[320px]">
+                    <Button
+                        onClick={handleShareLinkedIn}
+                        className="w-full bg-[#0077b5] hover:bg-[#006396] text-white"
+                    >
+                        <Linkedin className="mr-2 h-4 w-4" />
+                        Share on LinkedIn
+                    </Button>
+                    <p className="text-xs text-center text-gray-500">
+                        Share your achievement with your network
+                    </p>
+                </div>
             </div>
-        </div>
+        </HelmetProvider>
     );
 };
 

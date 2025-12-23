@@ -31,7 +31,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
 
     return (
         <div
-            className="relative w-[320px] h-[500px] perspective-1000 cursor-pointer group"
+            className={`relative w-[320px] h-[500px] perspective-1000 group ${variant === 'private' ? 'cursor-pointer' : ''}`}
             onClick={handleFlip}
         >
             <div
@@ -88,6 +88,13 @@ const FounderPass: React.FC<FounderPassProps> = ({
                                     />
                                 </div>
                             </div>
+
+                            {/* Tap Hint */}
+                            {variant === 'private' && (
+                                <div className="absolute bottom-4 right-4 text-[10px] text-gray-500 animate-pulse flex items-center gap-1">
+                                    Tap to flip 🔄
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -103,7 +110,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
                                 <div className="text-[14px] font-extrabold tracking-[2px] uppercase text-[#9ca3af] mb-4">
                                     Venture Social
                                 </div>
-                                <h2 className="text-[40px] font-black leading-tight text-white mb-2">
+                                <h2 className="text-[40px] font-black leading-tight text-white mb-2 animate-fade-up">
                                     I AM A<br />
                                     <span className="text-[#10b981]">MEMBER</span>
                                 </h2>
@@ -125,15 +132,17 @@ const FounderPass: React.FC<FounderPassProps> = ({
                                             e.stopPropagation();
                                             onShare();
                                         }}
-                                        className="w-full bg-[#0077b5] hover:bg-[#006396] text-white font-bold py-6 text-lg"
+                                        className="w-full bg-[#0077b5] hover:bg-[#006396] text-white font-bold py-6 text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                     >
                                         <Linkedin className="mr-2 h-6 w-6" />
                                         Share on LinkedIn
                                     </Button>
                                 )}
-                                <p className="text-[10px] text-gray-500 mt-4">
-                                    Tap to flip back
-                                </p>
+                                {variant === 'private' && (
+                                    <p className="text-[10px] text-gray-500 mt-4 animate-pulse">
+                                        Tap to flip back 🔄
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>

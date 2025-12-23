@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, writeBatch } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, writeBatch, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,7 @@ const PriorityInviteList = () => {
         fullName: "",
         category: "founder",
         role: "",
-        company: "",
+        projectCompany: "",
         linkedin: ""
     });
 
@@ -76,7 +76,7 @@ const PriorityInviteList = () => {
     }, []);
 
     const handleAddVIP = async () => {
-        if (!formData.fullName || !formData.role || !formData.company) {
+        if (!formData.fullName || !formData.role || !formData.projectCompany) {
             toast.error("Please fill in all required fields");
             return;
         }
@@ -86,7 +86,7 @@ const PriorityInviteList = () => {
                 ...formData,
                 status: "pending_venue",
                 inviteToken: uuidv4(),
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 source: "admin_crm"
             };
 
@@ -97,7 +97,7 @@ const PriorityInviteList = () => {
                 fullName: "",
                 category: "founder",
                 role: "",
-                company: "",
+                projectCompany: "",
                 linkedin: ""
             });
             fetchInvites();
@@ -306,7 +306,7 @@ const PriorityInviteList = () => {
                                     <TableCell>
                                         <div className="text-sm">
                                             <span className="font-bold text-white">{invite.role}</span>
-                                            <span className="text-gray-400"> @ {invite.company}</span>
+                                            <span className="text-gray-400"> @ {invite.projectCompany}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>

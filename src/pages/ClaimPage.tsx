@@ -129,14 +129,14 @@ const ClaimPage = () => {
                     </h1>
 
                     <p className="text-gray-400 mb-8 leading-relaxed">
-                        Hemos reservado una credencial de <span className="text-white font-semibold">{invite.category}</span> para ti en representación de <span className="text-white font-semibold">{invite.company}</span>.
+                        Hemos reservado una credencial de <span className="text-white font-semibold">{invite.category}</span> para ti en representación de <span className="text-white font-semibold">{invite.projectCompany || invite.company}</span>.
                     </p>
 
                     <div className="space-y-4">
                         <Button
                             onClick={handleClaim}
                             disabled={claiming}
-                            className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold py-6 text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.02]"
+                            className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold py-6 text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.02] whitespace-normal h-auto min-h-[60px]"
                         >
                             {claiming ? (
                                 <>

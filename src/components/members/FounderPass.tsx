@@ -157,7 +157,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
                             </div>
 
                             <div className="w-full mb-2">
-                                {shareUrl && (
+                                {shareUrl && variant === 'private' && (
                                     <a
                                         href={linkedinShareUrl}
                                         target="_blank"

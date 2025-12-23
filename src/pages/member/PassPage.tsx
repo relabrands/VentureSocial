@@ -90,7 +90,7 @@ const PassPage = () => {
 
     return (
         <HelmetProvider>
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 gap-8">
+            <div className="min-h-screen bg-black flex flex-col items-center pt-8 p-4 gap-6">
                 <Helmet>
                     <title>{member.fullName} | Venture Social Founder Pass</title>
                     <meta property="og:title" content={`${member.fullName} | Venture Social Founder Pass`} />
@@ -100,22 +100,45 @@ const PassPage = () => {
                     <meta property="og:type" content="website" />
                 </Helmet>
 
-                <div className="flex flex-col items-center gap-4">
-                    <FounderPass
-                        name={member.fullName || member.name}
-                        memberId={member.memberId || "PENDING"}
-                        company={member.projectCompany ? `@${member.projectCompany}` : undefined}
-                        variant="private"
-                        shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
-                    />
-
-                    {/* The Room - Private Directory */}
-                    <MemberDirectory currentMemberId={member.memberId} />
-
-                    <p className="text-xs text-gray-500 animate-pulse">
-                        Tap card to flip & share 🔄
-                    </p>
+                {/* Tab Navigation */}
+                <div className="flex p-1 bg-[#111827] rounded-full border border-[#1f2937] mb-4">
+                    <button
+                        onClick={() => setActiveTab('pass')}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'pass'
+                                ? 'bg-[#10b981] text-white shadow-lg'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        My Pass 💳
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('room')}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'room'
+                                ? 'bg-[#10b981] text-white shadow-lg'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        The Room 👥
+                    </button>
                 </div>
+
+                {activeTab === 'pass' ? (
+                    <>
+                        <FounderPass
+                            name={member.fullName || member.name}
+                            memberId={member.memberId || "PENDING"}
+                            company={member.projectCompany ? `@${member.projectCompany}` : undefined}
+                            role={member.role || "FOUNDER"}
+                            variant="private"
+                            shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
+                        />
+                        <p className="text-xs text-gray-500 animate-pulse mt-4">
+                            Tap card to flip & share 🔄
+                        </p>
+                    </>
+                ) : (
+                    <MemberDirectory currentMemberId={member.memberId} />
+                )}
             </div>
         </HelmetProvider>
     );

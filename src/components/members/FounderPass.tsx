@@ -127,8 +127,11 @@ const FounderPass: React.FC<FounderPassProps> = ({
                             </div>
 
                             <div className="flex-grow flex flex-col justify-center items-center w-full">
-                                <div className="text-[24px] font-bold text-white mb-2">
+                                <div className="text-[24px] font-bold text-white mb-1">
                                     {name}
+                                </div>
+                                <div className="text-[14px] font-medium text-[#10b981] mb-1 uppercase tracking-wider">
+                                    {role}
                                 </div>
                                 <div className="text-[16px] text-[#9ca3af]">
                                     {company}

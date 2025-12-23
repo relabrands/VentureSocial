@@ -132,6 +132,7 @@ const PassPage = () => {
                             role={member.role || "FOUNDER"}
                             variant="private"
                             shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
+                            shareText={`Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`}
                         />
                         <p className="text-xs text-gray-500 animate-pulse mt-4">
                             Tap card to flip & share 🔄

@@ -10,6 +10,7 @@ interface FounderPassProps {
     company?: string;
     variant?: 'private' | 'public';
     shareUrl?: string;
+    shareText?: string;
     role?: string;
 }
 
@@ -20,6 +21,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
     company = "@VentureSocial",
     variant = 'private',
     shareUrl,
+    shareText,
     role = "FOUNDER"
 }) => {
     // If public, start flipped (showing back side)
@@ -34,7 +36,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
     };
 
     const linkedinShareUrl = shareUrl
-        ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
+        ? `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(shareText || '')} ${encodeURIComponent(shareUrl)}`
         : '#';
 
     return (

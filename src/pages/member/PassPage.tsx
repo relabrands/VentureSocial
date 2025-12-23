@@ -13,6 +13,7 @@ const PassPage = () => {
     const { id } = useParams<{ id: string }>();
     const [member, setMember] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [currentTab, setCurrentTab] = useState<'pass' | 'room'>('pass');
 
     useEffect(() => {
         const fetchMember = async () => {
@@ -103,26 +104,26 @@ const PassPage = () => {
                 {/* Tab Navigation */}
                 <div className="flex p-1 bg-[#111827] rounded-full border border-[#1f2937] mb-4">
                     <button
-                        onClick={() => setActiveTab('pass')}
-                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'pass'
-                                ? 'bg-[#10b981] text-white shadow-lg'
-                                : 'text-gray-400 hover:text-white'
+                        onClick={() => setCurrentTab('pass')}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${currentTab === 'pass'
+                            ? 'bg-[#10b981] text-white shadow-lg'
+                            : 'text-gray-400 hover:text-white'
                             }`}
                     >
                         My Pass 💳
                     </button>
                     <button
-                        onClick={() => setActiveTab('room')}
-                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'room'
-                                ? 'bg-[#10b981] text-white shadow-lg'
-                                : 'text-gray-400 hover:text-white'
+                        onClick={() => setCurrentTab('room')}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${currentTab === 'room'
+                            ? 'bg-[#10b981] text-white shadow-lg'
+                            : 'text-gray-400 hover:text-white'
                             }`}
                     >
                         The Room 👥
                     </button>
                 </div>
 
-                {activeTab === 'pass' ? (
+                {currentTab === 'pass' ? (
                     <>
                         <FounderPass
                             name={member.fullName || member.name}

@@ -20,7 +20,7 @@ const Partners = () => {
               <img
                 src={partner.logo}
                 alt={partner.name}
-                className="h-6 sm:h-8 w-auto grayscale opacity-40 hover:opacity-60 transition-opacity duration-300"
+                className="h-10 sm:h-14 w-auto grayscale opacity-40 hover:opacity-60 transition-opacity duration-300"
               />
             </div>
           ))}

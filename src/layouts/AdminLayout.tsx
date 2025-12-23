@@ -26,9 +26,15 @@ const AdminLayout = () => {
                     <p className="text-sm text-muted-foreground">Admin Dashboard</p>
                 </div>
                 <nav className="px-4 space-y-2">
+                    <Link to="/admin/dashboard">
+                        <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            Dashboard
+                        </Button>
+                    </Link>
                     <Link to="/admin/applications">
                         <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            <FileText className="mr-2 h-4 w-4" />
                             Applications
                         </Button>
                     </Link>

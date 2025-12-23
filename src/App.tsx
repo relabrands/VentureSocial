@@ -11,6 +11,7 @@ const queryClient = new QueryClient();
 import { AuthProvider } from "@/contexts/AuthContext";
 import Login from "@/pages/Login";
 import AdminLayout from "@/layouts/AdminLayout";
+import Dashboard from "@/pages/admin/Dashboard";
 import Applications from "@/pages/admin/Applications";
 import Members from "@/pages/admin/Members";
 import Templates from "@/pages/admin/Templates";
@@ -29,7 +30,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
 
             <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="/admin/applications" replace />} />
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
               <Route path="applications" element={<Applications />} />
               <Route path="members" element={<Members />} />
               <Route path="templates" element={<Templates />} />

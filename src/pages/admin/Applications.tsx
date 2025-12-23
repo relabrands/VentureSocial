@@ -170,7 +170,7 @@ const Applications = () => {
             }
 
             // 2. Reset Member ID Counter
-            await deleteDoc(doc(db, "counters", "members"));
+            await setDoc(doc(db, "counters", "members"), { count: 0 });
 
             toast.success("All data deleted and counters reset.");
             setApplications([]);

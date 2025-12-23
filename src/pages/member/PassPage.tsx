@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, doc, getDoc } from "firebase/firesto
 import { db } from "@/firebase/firebase";
 import FounderPass from "@/components/members/FounderPass";
 import MemberDirectory from "@/components/members/MemberDirectory";
+import Agenda from "@/components/members/Agenda";
 import { Button } from "@/components/ui/button";
 import { Linkedin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ const PassPage = () => {
     const { id } = useParams<{ id: string }>();
     const [member, setMember] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [currentTab, setCurrentTab] = useState<'pass' | 'room'>('pass');
+    const [currentTab, setCurrentTab] = useState<'pass' | 'room' | 'agenda'>('pass');
 
     useEffect(() => {
         const fetchMember = async () => {
@@ -60,16 +61,6 @@ const PassPage = () => {
         fetchMember();
     }, [id]);
 
-    const handleShareLinkedIn = () => {
-        const text = `Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`;
-        // Share the PUBLIC link (/p/ID) instead of the private pass link
-        // Use memberId directly if available to ensure correct URL construction
-        const shareId = member.memberId || id;
-        const url = `https://www.venturesocialdr.com/p/${shareId}`;
-        const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)} ${encodeURIComponent(url)}`;
-        window.open(linkedinUrl, '_blank');
-    };
-
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
@@ -91,7 +82,7 @@ const PassPage = () => {
 
     return (
         <HelmetProvider>
-            <div className="min-h-[100dvh] w-full bg-black flex flex-col items-center pt-8 p-4 gap-6">
+            <div className="min-h-[100dvh] w-full bg-black flex flex-col items-center pt-8 p-4 pb-24 gap-6 relative">
                 <Helmet>
                     <title>{member.fullName} | Venture Social Founder Pass</title>
                     <meta property="og:title" content={`${member.fullName} | Venture Social Founder Pass`} />
@@ -101,46 +92,63 @@ const PassPage = () => {
                     <meta property="og:type" content="website" />
                 </Helmet>
 
-                {/* Tab Navigation */}
-                <div className="flex p-1 bg-[#111827] rounded-full border border-[#1f2937] mb-4">
-                    <button
-                        onClick={() => setCurrentTab('pass')}
-                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${currentTab === 'pass'
-                            ? 'bg-[#10b981] text-white shadow-lg'
-                            : 'text-gray-400 hover:text-white'
-                            }`}
-                    >
-                        My Pass 💳
-                    </button>
-                    <button
-                        onClick={() => setCurrentTab('room')}
-                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${currentTab === 'room'
-                            ? 'bg-[#10b981] text-white shadow-lg'
-                            : 'text-gray-400 hover:text-white'
-                            }`}
-                    >
-                        The Room 👥
-                    </button>
+                {/* Content Area */}
+                <div className="w-full max-w-md animate-in fade-in duration-500">
+                    {currentTab === 'pass' && (
+                        <div className="flex flex-col items-center">
+                            <FounderPass
+                                name={member.fullName || member.name}
+                                memberId={member.memberId || "PENDING"}
+                                company={member.projectCompany ? `@${member.projectCompany}` : (member.company ? `@${member.company}` : undefined)}
+                                role={member.role || "FOUNDER"}
+                                variant="private"
+                                shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
+                                shareText={`Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`}
+                            />
+                            <p className="text-xs text-gray-500 animate-pulse mt-4">
+                                Tap card to flip & share 🔄
+                            </p>
+                        </div>
+                    )}
+
+                    {currentTab === 'room' && (
+                        <MemberDirectory currentMemberId={member.memberId} />
+                    )}
+
+                    {currentTab === 'agenda' && (
+                        <Agenda />
+                    )}
                 </div>
 
-                {currentTab === 'pass' ? (
-                    <>
-                        <FounderPass
-                            name={member.fullName || member.name}
-                            memberId={member.memberId || "PENDING"}
-                            company={member.projectCompany ? `@${member.projectCompany}` : (member.company ? `@${member.company}` : undefined)}
-                            role={member.role || "FOUNDER"}
-                            variant="private"
-                            shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
-                            shareText={`Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`}
-                        />
-                        <p className="text-xs text-gray-500 animate-pulse mt-4">
-                            Tap card to flip & share 🔄
-                        </p>
-                    </>
-                ) : (
-                    <MemberDirectory currentMemberId={member.memberId} />
-                )}
+                {/* Bottom Navigation */}
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-[#111827]/90 backdrop-blur-lg border border-gray-800 rounded-full p-1.5 shadow-2xl z-50 flex justify-between items-center">
+                    <button
+                        onClick={() => setCurrentTab('pass')}
+                        className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all ${currentTab === 'pass' ? 'bg-[#10b981] text-white shadow-lg' : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        <span className="text-lg">💳</span>
+                        <span className="text-[10px] font-medium mt-0.5">My Pass</span>
+                    </button>
+
+                    <button
+                        onClick={() => setCurrentTab('room')}
+                        className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all ${currentTab === 'room' ? 'bg-[#10b981] text-white shadow-lg' : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        <span className="text-lg">👥</span>
+                        <span className="text-[10px] font-medium mt-0.5">The Room</span>
+                    </button>
+
+                    <button
+                        onClick={() => setCurrentTab('agenda')}
+                        className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all ${currentTab === 'agenda' ? 'bg-[#10b981] text-white shadow-lg' : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        <span className="text-lg">📅</span>
+                        <span className="text-[10px] font-medium mt-0.5">Agenda</span>
+                    </button>
+                </div>
             </div>
         </HelmetProvider>
     );

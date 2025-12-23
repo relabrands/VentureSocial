@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendAdminEmail = void 0;
+exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendMagicLink = exports.sendAdminEmail = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
@@ -47,6 +47,50 @@ exports.sendAdminEmail = (0, https_1.onCall)(async (request) => {
     }
     catch (error) {
         logger.error("Error in sendAdminEmail:", error);
+        throw new https_1.HttpsError('internal', error.message);
+    }
+});
+// Callable function to send Magic Link for login
+exports.sendMagicLink = (0, https_1.onCall)(async (request) => {
+    const { email, memberId, name } = request.data;
+    if (!email || !memberId) {
+        throw new https_1.HttpsError('invalid-argument', 'Missing required fields: email, memberId');
+    }
+    logger.info(`Sending magic link to ${email} for member ${memberId}`);
+    try {
+        const resend = new resend_1.Resend(RESEND_API_KEY.value());
+        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
+        const fromAddress = fromEmailRaw.includes("<")
+            ? fromEmailRaw
+            : `Venture Social <${fromEmailRaw}>`;
+        const magicLink = `https://www.venturesocialdr.com/pass/${memberId}`;
+        const html = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h1 style="color: #10b981;">Access your Founder Pass</h1>
+                <p>Hello ${name || 'Member'},</p>
+                <p>Click the button below to access your Venture Social Founder Pass and the Member Panel.</p>
+                <a href="${magicLink}" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 16px 0;">
+                    Access Member Panel
+                </a>
+                <p style="color: #666; font-size: 14px;">Or copy this link: <a href="${magicLink}">${magicLink}</a></p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+                <p style="color: #999; font-size: 12px;">If you didn't request this, you can safely ignore this email.</p>
+            </div>
+        `;
+        const { data, error } = await resend.emails.send({
+            from: fromAddress,
+            to: email,
+            subject: "Your Venture Social Member Access Link",
+            html: html,
+        });
+        if (error) {
+            logger.error("Error sending magic link:", error);
+            throw new https_1.HttpsError('internal', error.message);
+        }
+        return { success: true, data };
+    }
+    catch (error) {
+        logger.error("Error in sendMagicLink:", error);
         throw new https_1.HttpsError('internal', error.message);
     }
 });

@@ -157,29 +157,29 @@ const CheckIn = () => {
         <div className="space-y-6 max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Event Check-in</h1>
-                    <p className="text-muted-foreground">Manage guest attendance</p>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Event Check-in</h1>
+                    <p className="text-sm md:text-base text-muted-foreground">Manage guest attendance</p>
                 </div>
-                <div className="flex gap-2 w-full md:w-auto">
-                    <Button onClick={() => setIsScannerOpen(true)} className="flex-1 md:flex-none">
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <Button onClick={() => setIsScannerOpen(true)} className="w-full sm:w-auto flex-1 md:flex-none">
                         <Camera className="mr-2 h-4 w-4" />
                         Scan QR
                     </Button>
-                    <Card className="w-full md:w-auto bg-slate-900 text-white border-none flex-1 md:flex-none">
-                        <CardContent className="p-4 flex items-center gap-6 justify-center">
+                    <Card className="w-full sm:w-auto bg-slate-900 text-white border-none flex-1 md:flex-none">
+                        <CardContent className="p-3 md:p-4 flex items-center gap-4 md:gap-6 justify-center">
                             <div className="text-center">
-                                <div className="text-xs text-slate-400 uppercase tracking-wider">Total</div>
-                                <div className="text-2xl font-bold">{stats.total}</div>
+                                <div className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider">Total</div>
+                                <div className="text-xl md:text-2xl font-bold">{stats.total}</div>
                             </div>
                             <div className="h-8 w-px bg-slate-700"></div>
                             <div className="text-center">
-                                <div className="text-xs text-emerald-400 uppercase tracking-wider">Present</div>
-                                <div className="text-2xl font-bold text-emerald-400">{stats.checkedIn}</div>
+                                <div className="text-[10px] md:text-xs text-emerald-400 uppercase tracking-wider">Present</div>
+                                <div className="text-xl md:text-2xl font-bold text-emerald-400">{stats.checkedIn}</div>
                             </div>
                             <div className="h-8 w-px bg-slate-700"></div>
                             <div className="text-center">
-                                <div className="text-xs text-slate-400 uppercase tracking-wider">Rate</div>
-                                <div className="text-2xl font-bold">
+                                <div className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider">Rate</div>
+                                <div className="text-xl md:text-2xl font-bold">
                                     {stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0}%
                                 </div>
                             </div>
@@ -192,7 +192,7 @@ const CheckIn = () => {
                 <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                 <Input
                     placeholder="Search by name, email, or Member ID..."
-                    className="pl-10 h-12 text-lg"
+                    className="pl-10 h-12 text-base md:text-lg"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -206,37 +206,37 @@ const CheckIn = () => {
                 ) : (
                     filteredMembers.map((member) => (
                         <Card key={member.id} className={`transition-colors ${member.checkedIn ? 'bg-emerald-50/50 border-emerald-200' : ''}`}>
-                            <CardContent className="p-4 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className={`h-12 w-12 rounded-full flex items-center justify-center text-lg font-bold ${member.checkedIn ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                            <CardContent className="p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto overflow-hidden">
+                                    <div className={`h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center text-base md:text-lg font-bold shrink-0 ${member.checkedIn ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                                         {member.fullName.charAt(0)}
                                     </div>
-                                    <div>
-                                        <div className="font-bold text-lg flex items-center gap-2">
-                                            {member.fullName}
+                                    <div className="min-w-0 flex-1">
+                                        <div className="font-bold text-base md:text-lg flex items-center gap-2 flex-wrap">
+                                            <span className="truncate">{member.fullName}</span>
                                             {member.memberId && (
-                                                <Badge variant="outline" className="text-xs font-mono">
+                                                <Badge variant="outline" className="text-[10px] md:text-xs font-mono shrink-0">
                                                     {member.memberId}
                                                 </Badge>
                                             )}
                                         </div>
-                                        <div className="text-sm text-muted-foreground">{member.projectCompany}</div>
+                                        <div className="text-xs md:text-sm text-muted-foreground truncate">{member.projectCompany}</div>
                                     </div>
                                 </div>
                                 <Button
-                                    size="lg"
+                                    size="default"
                                     variant={member.checkedIn ? "outline" : "default"}
-                                    className={member.checkedIn ? "border-emerald-500 text-emerald-600 hover:bg-emerald-50" : "bg-slate-900 hover:bg-slate-800"}
+                                    className={`w-full sm:w-auto ${member.checkedIn ? "border-emerald-500 text-emerald-600 hover:bg-emerald-50" : "bg-slate-900 hover:bg-slate-800"}`}
                                     onClick={() => handleCheckIn(member)}
                                 >
                                     {member.checkedIn ? (
                                         <>
-                                            <CheckCircle className="mr-2 h-5 w-5" />
+                                            <CheckCircle className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                                             Checked In
                                         </>
                                     ) : (
                                         <>
-                                            <UserCheck className="mr-2 h-5 w-5" />
+                                            <UserCheck className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                                             Check In
                                         </>
                                     )}

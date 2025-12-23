@@ -68,7 +68,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
                             <div className="flex-grow flex flex-col justify-center">
                                 <div>
                                     <div className="text-[10px] uppercase tracking-[1.5px] text-[#6b7280] mb-2">
-                                        Member
+                                        {role}
                                     </div>
                                     <div className="text-[32px] font-extrabold leading-[1.1] mb-2.5 bg-gradient-to-r from-white to-[#9ca3af] bg-clip-text text-transparent">
                                         {name}

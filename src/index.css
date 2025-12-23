@@ -121,6 +121,23 @@
   .animation-delay-500 {
     animation-delay: 500ms;
   }
+
+  /* 3D Transform Utilities */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
 }
 
 @keyframes fadeUp {
@@ -128,6 +145,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -138,6 +156,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }

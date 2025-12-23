@@ -27,6 +27,14 @@
         ],
         "rewrites": [
             {
+                "source": "/pass/**",
+                "function": "servePass"
+            },
+            {
+                "source": "/p/**",
+                "function": "servePass"
+            },
+            {
                 "source": "**",
                 "destination": "/index.html"
             }

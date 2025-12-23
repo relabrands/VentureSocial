@@ -36,6 +36,8 @@ const App = () => (
 
             {/* Public Pass Route */}
             <Route path="/pass/:id" element={<PassPage />} />
+            {/* Public Share Route */}
+            <Route path="/p/:id" element={<SharePage />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

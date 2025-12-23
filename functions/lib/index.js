@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendAdminEmail = void 0;
+exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendAdminEmail = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
@@ -211,4 +211,60 @@ async function logEmail(appId, to, templateKey, status, error) {
         sentAt: new Date(),
     });
 }
+exports.servePass = (0, https_1.onRequest)(async (req, res) => {
+    var _a;
+    const path = req.path; // e.g. /pass/VS-001
+    const memberId = path.split('/').pop();
+    if (!memberId) {
+        res.status(404).send("Not Found");
+        return;
+    }
+    try {
+        // Fetch member data
+        let memberData = null;
+        if (memberId.startsWith("VS-")) {
+            const q = db.collection("applications").where("memberId", "==", memberId).where("status", "==", "accepted").limit(1);
+            const querySnapshot = await q.get();
+            if (!querySnapshot.empty) {
+                memberData = querySnapshot.docs[0].data();
+            }
+        }
+        else {
+            const docSnap = await db.collection("applications").doc(memberId).get();
+            if (docSnap.exists && ((_a = docSnap.data()) === null || _a === void 0 ? void 0 : _a.status) === "accepted") {
+                memberData = docSnap.data();
+            }
+        }
+        if (!memberData) {
+            res.redirect('/');
+            return;
+        }
+        // Construct OG Tags
+        const title = `${memberData.fullName} | Venture Social Founder Pass`;
+        const description = `Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴`;
+        const image = "https://firebasestorage.googleapis.com/v0/b/venture-social-dr.firebasestorage.app/o/founder-pass-preview.png?alt=media";
+        const url = `https://www.venturesocialdr.com/pass/${memberId}`;
+        // Fetch the live index.html
+        const indexHtmlResponse = await fetch("https://www.venturesocialdr.com/index.html");
+        let html = await indexHtmlResponse.text();
+        // Inject Meta Tags
+        html = html.replace(/<title>.*<\/title>/, `<title>${title}</title>`);
+        html = html.replace('</head>', `
+            <meta property="og:title" content="${title}" />
+            <meta property="og:description" content="${description}" />
+            <meta property="og:image" content="${image}" />
+            <meta property="og:url" content="${url}" />
+            <meta property="og:type" content="website" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content="${title}" />
+            <meta name="twitter:description" content="${description}" />
+            <meta name="twitter:image" content="${image}" />
+        </head>`);
+        res.status(200).send(html);
+    }
+    catch (error) {
+        logger.error("Error serving pass:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
 //# sourceMappingURL=index.js.map

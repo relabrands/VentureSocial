@@ -1,5 +1,5 @@
 import { onDocumentUpdated, onDocumentCreated } from "firebase-functions/v2/firestore";
-import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onCall, HttpsError, onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 
 // ... (existing imports)
@@ -248,3 +248,70 @@ async function logEmail(appId: string, to: string, templateKey: string, status: 
         sentAt: new Date(),
     });
 }
+
+export const servePass = onRequest(async (req, res) => {
+    const path = req.path; // e.g. /pass/VS-001
+    const memberId = path.split('/').pop();
+
+    if (!memberId) {
+        res.status(404).send("Not Found");
+        return;
+    }
+
+    try {
+        // Fetch member data
+        let memberData: any = null;
+        if (memberId.startsWith("VS-")) {
+            const q = db.collection("applications").where("memberId", "==", memberId).where("status", "==", "accepted").limit(1);
+            const querySnapshot = await q.get();
+            if (!querySnapshot.empty) {
+                memberData = querySnapshot.docs[0].data();
+            }
+        } else {
+            const docSnap = await db.collection("applications").doc(memberId).get();
+            if (docSnap.exists && docSnap.data()?.status === "accepted") {
+                memberData = docSnap.data();
+            }
+        }
+
+        if (!memberData) {
+            res.redirect('/');
+            return;
+        }
+
+        // Construct OG Tags
+        const isPublicShare = path.includes('/p/');
+        const title = isPublicShare
+            ? `I am a Member | Venture Social`
+            : `${memberData.fullName} | Venture Social Founder Pass`;
+
+        const description = `Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴`;
+        const image = "https://firebasestorage.googleapis.com/v0/b/venture-social-dr.firebasestorage.app/o/founder-pass-preview.png?alt=media";
+        // Always point OG URL to the public share page if possible, or match request
+        const url = `https://www.venturesocialdr.com${path}`;
+
+        // Fetch the live index.html
+        const indexHtmlResponse = await fetch("https://www.venturesocialdr.com/index.html");
+        let html = await indexHtmlResponse.text();
+
+        // Inject Meta Tags
+        html = html.replace(/<title>.*<\/title>/, `<title>${title}</title>`);
+        html = html.replace('</head>', `
+            <meta property="og:title" content="${title}" />
+            <meta property="og:description" content="${description}" />
+            <meta property="og:image" content="${image}" />
+            <meta property="og:url" content="${url}" />
+            <meta property="og:type" content="website" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content="${title}" />
+            <meta name="twitter:description" content="${description}" />
+            <meta name="twitter:image" content="${image}" />
+        </head>`);
+
+        res.status(200).send(html);
+
+    } catch (error: any) {
+        logger.error("Error serving pass:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});

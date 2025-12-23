@@ -15,6 +15,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 
 interface Application {
     id: string;
+    memberId?: string; // Added memberId
     fullName: string;
     email: string;
     phone: string;
@@ -75,6 +76,7 @@ const Members = () => {
                 const data = doc.data();
                 return {
                     id: doc.id,
+                    memberId: data.memberId, // Map memberId
                     fullName: data.fullName || data.name || "—",
                     email: data.email || "—",
                     phone: data.phone || "—",
@@ -156,12 +158,18 @@ const Members = () => {
         setIsViewModalOpen(true);
     };
 
+    const handleViewPass = (memberId: string) => {
+        if (!memberId) return;
+        window.open(`/pass/${memberId}`, '_blank');
+    };
+
     const handleExport = () => {
-        const headers = ["Date", "Name", "Email", "Phone", "Role", "City", "Project/Company", "LinkedIn", "Revenue", "Position"];
+        const headers = ["Date", "Member ID", "Name", "Email", "Phone", "Role", "City", "Project/Company", "LinkedIn", "Revenue", "Position"];
         const csvContent = [
             headers.join(","),
             ...filteredMembers.map(app => [
                 app.createdAt?.seconds ? format(new Date(app.createdAt.seconds * 1000), "yyyy-MM-dd") : "",
+                app.memberId || "",
                 `"${app.fullName}"`,
                 app.email,
                 app.phone,
@@ -287,12 +295,27 @@ const Members = () => {
                                     <TableCell>
                                         <div className="font-medium">{member.fullName}</div>
                                         <div className="text-xs text-muted-foreground">{member.email}</div>
+                                        {member.memberId && (
+                                            <Badge variant="outline" className="mt-1 text-[10px] h-5">
+                                                {member.memberId}
+                                            </Badge>
+                                        )}
                                     </TableCell>
                                     <TableCell>{member.projectCompany}</TableCell>
                                     <TableCell className="capitalize">{member.role}</TableCell>
                                     <TableCell>{member.city}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
+                                            {member.memberId && (
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => handleViewPass(member.memberId!)}
+                                                    className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                                >
+                                                    Pass 🎫
+                                                </Button>
+                                            )}
                                             <Button variant="ghost" size="icon" onClick={() => handleViewMember(member)}>
                                                 <Eye className="h-4 w-4" />
                                             </Button>

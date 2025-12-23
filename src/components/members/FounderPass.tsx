@@ -178,7 +178,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
 
                             {/* Venue Partner Footer (Back) */}
                             {isVenueMode && (
-                                <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center justify-center animate-fade-in pointer-events-none">
+                                <div className="mt-auto mb-2 flex flex-col items-center justify-center animate-fade-in">
                                     <div className="text-[8px] uppercase tracking-[2px] text-gray-500 mb-1">Official Venue</div>
                                     <img
                                         src="https://barna.edu.do/wp-content/uploads/2025/01/LOGO_BARNA_HORIZONTAL_BLANCO.webp"

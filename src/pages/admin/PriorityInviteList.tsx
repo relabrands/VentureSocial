@@ -235,8 +235,8 @@ const PriorityInviteList = () => {
                                     <div>
                                         <label className="text-sm font-medium text-gray-400">Project / Company</label>
                                         <Input
-                                            value={formData.company}
-                                            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                                            value={formData.projectCompany}
+                                            onChange={(e) => setFormData({ ...formData, projectCompany: e.target.value })}
                                             className="bg-[#1f2937] border-gray-700 text-white mt-1"
                                             placeholder="Ex: Corotos"
                                         />

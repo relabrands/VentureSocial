@@ -93,6 +93,7 @@ const SharePage = () => {
                     memberId={member.memberId || "PENDING"}
                     company={member.projectCompany ? `@${member.projectCompany}` : undefined}
                     variant="public"
+                    shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
                 />
 
                 <div className="flex flex-col gap-4 w-full max-w-[320px]">

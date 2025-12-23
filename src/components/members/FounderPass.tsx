@@ -8,7 +8,7 @@ interface FounderPassProps {
     cohort?: string;
     company?: string;
     variant?: 'private' | 'public';
-    onShare?: () => void;
+    shareUrl?: string;
 }
 
 const FounderPass: React.FC<FounderPassProps> = ({
@@ -17,7 +17,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
     cohort = "JAN 2026",
     company = "@VentureSocial",
     variant = 'private',
-    onShare
+    shareUrl
 }) => {
     // If public, start flipped (showing back side)
     const [isFlipped, setIsFlipped] = useState(variant === 'public');
@@ -29,6 +29,8 @@ const FounderPass: React.FC<FounderPassProps> = ({
         }
     };
 
+    const linkedinShareUrl = shareUrl ? `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`)} ${encodeURIComponent(shareUrl)}` : '#';
+
     return (
         <div
             className={`relative w-[320px] h-[500px] perspective-1000 group ${variant === 'private' ? 'cursor-pointer' : ''}`}
@@ -38,7 +40,10 @@ const FounderPass: React.FC<FounderPassProps> = ({
                 className={`relative w-full h-full transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}
             >
                 {/* FRONT SIDE (Private Pass) */}
-                <div className="absolute w-full h-full backface-hidden">
+                <div
+                    className={`absolute w-full h-full backface-hidden ${isFlipped ? 'pointer-events-none' : ''}`}
+                    style={{ WebkitBackfaceVisibility: 'hidden' }}
+                >
                     <div className="w-full h-full bg-[#0b1120] text-white font-sans p-[30px] rounded-[20px] flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-[#1f2937] overflow-hidden">
                         {/* Background Gradient */}
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_#1e293b_0%,_#0b1120_40%)] pointer-events-none" />
@@ -100,7 +105,10 @@ const FounderPass: React.FC<FounderPassProps> = ({
                 </div>
 
                 {/* BACK SIDE (Public Share Card) */}
-                <div className="absolute w-full h-full backface-hidden rotate-y-180">
+                <div
+                    className={`absolute w-full h-full backface-hidden rotate-y-180 ${!isFlipped ? 'pointer-events-none' : ''}`}
+                    style={{ WebkitBackfaceVisibility: 'hidden' }}
+                >
                     <div className="w-full h-full bg-[#0b1120] text-white font-sans p-[30px] rounded-[20px] flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-[#1f2937] overflow-hidden">
                         {/* Background Gradient */}
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_#10b981_0%,_#0b1120_50%)] pointer-events-none opacity-20" />
@@ -126,17 +134,17 @@ const FounderPass: React.FC<FounderPassProps> = ({
                             </div>
 
                             <div className="w-full mb-8">
-                                {onShare && (
-                                    <Button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onShare();
-                                        }}
-                                        className="w-full bg-[#0077b5] hover:bg-[#006396] text-white font-bold py-6 text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                {shareUrl && (
+                                    <a
+                                        href={linkedinShareUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="w-full bg-[#0077b5] hover:bg-[#006396] text-white font-bold py-6 text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 flex items-center justify-center rounded-md"
                                     >
                                         <Linkedin className="mr-2 h-6 w-6" />
                                         Share on LinkedIn
-                                    </Button>
+                                    </a>
                                 )}
                                 {variant === 'private' && (
                                     <p className="text-[10px] text-gray-500 mt-4 animate-pulse">

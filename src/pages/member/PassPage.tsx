@@ -105,7 +105,7 @@ const PassPage = () => {
                         memberId={member.memberId || "PENDING"}
                         company={member.projectCompany ? `@${member.projectCompany}` : undefined}
                         variant="private"
-                        onShare={handleShareLinkedIn}
+                        shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
                     />
                     <p className="text-xs text-gray-500 animate-pulse">
                         Tap card to flip & share 🔄

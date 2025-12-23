@@ -14,6 +14,7 @@ import AdminLayout from "@/layouts/AdminLayout";
 import Applications from "@/pages/admin/Applications";
 import Members from "@/pages/admin/Members";
 import Templates from "@/pages/admin/Templates";
+import PassPage from "@/pages/member/PassPage";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -32,6 +33,9 @@ const App = () => (
               <Route path="members" element={<Members />} />
               <Route path="templates" element={<Templates />} />
             </Route>
+
+            {/* Public Pass Route */}
+            <Route path="/pass/:id" element={<PassPage />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

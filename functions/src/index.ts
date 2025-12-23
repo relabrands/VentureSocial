@@ -114,6 +114,8 @@ async function sendEmailWithTemplate(applicationId: string, data: any, templateK
             "{{status}}": data.status || "",
             "{{project}}": project,
             "{{role}}": data.role || "",
+            "{{passUrl}}": data.passUrl || "#",
+            "{{memberId}}": data.memberId || "",
         };
 
         for (const [key, value] of Object.entries(replacements)) {
@@ -172,6 +174,8 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
 
     // Map status to template key
     let templateKey = "";
+    let memberId = newData.memberId;
+
     switch (newStatus) {
         case "review":
             templateKey = "application_review";
@@ -185,6 +189,10 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
             break;
         case "accepted":
             templateKey = "application_accepted";
+            // Generate Member ID if not exists
+            if (!memberId) {
+                memberId = await generateMemberId(applicationId);
+            }
             break;
         case "rejected":
             templateKey = "application_rejected";
@@ -195,9 +203,40 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
     }
 
     if (templateKey) {
-        await sendEmailWithTemplate(applicationId, newData, templateKey);
+        const emailData = {
+            ...newData,
+            memberId: memberId,
+            passUrl: memberId ? `https://www.venturesocialdr.com/pass/${memberId}` : ""
+        };
+        await sendEmailWithTemplate(applicationId, emailData, templateKey);
     }
 });
+
+async function generateMemberId(applicationId: string): Promise<string | null> {
+    const counterRef = db.collection("counters").doc("members");
+    const appRef = db.collection("applications").doc(applicationId);
+
+    try {
+        return await db.runTransaction(async (t) => {
+            const counterDoc = await t.get(counterRef);
+            let newCount = 1;
+
+            if (counterDoc.exists) {
+                newCount = (counterDoc.data()?.count || 0) + 1;
+            }
+
+            const memberId = `VS-${String(newCount).padStart(3, '0')}`;
+
+            t.set(counterRef, { count: newCount }, { merge: true });
+            t.update(appRef, { memberId: memberId });
+            logger.info(`Generated Member ID ${memberId} for application ${applicationId}`);
+            return memberId;
+        });
+    } catch (error) {
+        logger.error("Error generating member ID:", error);
+        return null;
+    }
+}
 
 async function logEmail(appId: string, to: string, templateKey: string, status: string, error: string | null) {
     await db.collection("emailLogs").add({

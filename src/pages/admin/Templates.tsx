@@ -74,13 +74,25 @@ const Templates = () => {
             },
             {
                 id: "application_accepted",
-                subject: "Congratulations! Application Accepted",
-                body: `<h1>Application Accepted</h1>
-<p>Hi {{fullName}},</p>
-<p>We are pleased to inform you that your application for <strong>{{project}}</strong> has been accepted!</p>
-<p>We will be sending next steps in a separate email.</p>
-<p>Welcome aboard,</p>
-<p>Venture Social</p>`,
+                subject: "Welcome to Venture Social! 🚀",
+                body: `<div style="font-family: sans-serif; color: #333;">
+  <h1>Congratulations, {{fullName}}!</h1>
+  <p>We are thrilled to accept you into the <strong>Venture Social</strong> community.</p>
+  <p>Your project, <strong>{{project}}</strong>, stood out to us, and we can't wait to see what you build.</p>
+  
+  <div style="margin: 30px 0; padding: 20px; background-color: #0b1120; border-radius: 12px; text-align: center; color: white;">
+    <p style="margin-bottom: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af;">Your Founder Pass is Ready</p>
+    <h2 style="margin: 0 0 20px 0; font-size: 24px; color: white;">{{fullName}}</h2>
+    <a href="{{passUrl}}" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+      View & Share Your Pass 💳
+    </a>
+    <p style="margin-top: 15px; font-size: 12px; color: #6b7280;">Member ID: {{memberId}}</p>
+  </div>
+
+  <p>Click the button above to access your digital Founder Pass. It's your key to upcoming events and perks.</p>
+  <p>Welcome aboard!</p>
+  <p>The Venture Social Team</p>
+</div>`,
                 active: true
             },
             {

@@ -117,106 +117,181 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6">
-            return (
-            <div className="space-y-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border shadow-sm">
-                        <Zap className={`h-4 w-4 ${isVenueMode ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}`} />
-                        <Label htmlFor="venue-mode" className="text-sm font-medium cursor-pointer">
-                            Activate Venue Partner: Barna
-                        </Label>
-                        <Switch
-                            id="venue-mode"
-                            checked={isVenueMode}
-                            onCheckedChange={toggleVenueMode}
-                        />
-                    </div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border shadow-sm">
+                    <Zap className={`h-4 w-4 ${isVenueMode ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}`} />
+                    <Label htmlFor="venue-mode" className="text-sm font-medium cursor-pointer">
+                        Activate Venue Partner: Barna
+                    </Label>
+                    <Switch
+                        id="venue-mode"
+                        checked={isVenueMode}
+                        onCheckedChange={toggleVenueMode}
+                    />
                 </div>
+            </div>
 
-                {/* Key Metrics Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.total}</div>
-                            <p className="text-xs text-muted-foreground">
-                                All time applications
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Accepted Members</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.accepted}</div>
-                            <p className="text-xs text-muted-foreground">
-                                {((stats.accepted / stats.total) * 100 || 0).toFixed(1)}% acceptance rate
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.pending + stats.new + stats.review}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Requires action
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Weekly Growth</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">+{stats.thisWeek}</div>
-                            <p className={`text-xs ${growthPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {growthPercentage > 0 ? '+' : ''}{growthPercentage}% from last week
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
+            {/* Key Metrics Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.total}</div>
+                        <p className="text-xs text-muted-foreground">
+                            All time applications
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Accepted Members</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.accepted}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {((stats.accepted / stats.total) * 100 || 0).toFixed(1)}% acceptance rate
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.pending + stats.new + stats.review}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Requires action
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Weekly Growth</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">+{stats.thisWeek}</div>
+                        <p className={`text-xs ${growthPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {growthPercentage > 0 ? '+' : ''}{growthPercentage}% from last week
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
 
-                {/* Charts Section */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                    <Card className="col-span-4">
+            {/* Charts Section */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="col-span-4">
+                    <CardHeader>
+                        <CardTitle>Application Status Overview</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pl-2">
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis
+                                        dataKey="name"
+                                        stroke="#888888"
+                                        fontSize={12}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <YAxis
+                                        stroke="#888888"
+                                        fontSize={12}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(value) => `${value}`}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'transparent' }}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                    />
+                                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                        {chartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Quick Stats / Breakdown */}
+                <Card className="col-span-3">
+                    <CardHeader>
+                        <CardTitle>Status Breakdown</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {chartData.map((item) => (
+                                <div key={item.name} className="flex items-center">
+                                    <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: item.color }} />
+                                    <div className="flex-1 font-medium text-sm">{item.name}</div>
+                                    <div className="font-bold">{item.value}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Talent Heatmap Section */}
+            <div className="space-y-4">
+                <h2 className="text-xl font-bold tracking-tight">Talent Heatmap 📊</h2>
+                <div className="grid gap-4 md:grid-cols-3">
+                    {/* Industries Chart */}
+                    <Card>
                         <CardHeader>
-                            <CardTitle>Application Status Overview</CardTitle>
+                            <CardTitle className="text-sm font-medium">Industries</CardTitle>
                         </CardHeader>
-                        <CardContent className="pl-2">
-                            <div className="h-[300px]">
+                        <CardContent>
+                            <div className="h-[200px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={chartData}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                        <XAxis
-                                            dataKey="name"
-                                            stroke="#888888"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                        />
-                                        <YAxis
-                                            stroke="#888888"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickFormatter={(value) => `${value}`}
-                                        />
-                                        <Tooltip
-                                            cursor={{ fill: 'transparent' }}
-                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                        />
-                                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                            {chartData.map((entry, index) => (
+                                    <PieChart>
+                                        <Pie
+                                            data={industryData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                        >
+                                            {industryData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Stage Chart */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-medium">Startup Stage</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={stageData} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
+                                        <Tooltip cursor={{ fill: 'transparent' }} />
+                                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
+                                            {stageData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Bar>
@@ -226,114 +301,37 @@ const Dashboard = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Quick Stats / Breakdown */}
-                    <Card className="col-span-3">
+                    {/* Academic Level Chart */}
+                    <Card>
                         <CardHeader>
-                            <CardTitle>Status Breakdown</CardTitle>
+                            <CardTitle className="text-sm font-medium">Academic Level</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {chartData.map((item) => (
-                                    <div key={item.name} className="flex items-center">
-                                        <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: item.color }} />
-                                        <div className="flex-1 font-medium text-sm">{item.name}</div>
-                                        <div className="font-bold">{item.value}</div>
-                                    </div>
-                                ))}
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={academicData}
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={80}
+                                            dataKey="value"
+                                            label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                                        >
+                                            {academicData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
-
-                {/* Talent Heatmap Section */}
-                <div className="space-y-4">
-                    <h2 className="text-xl font-bold tracking-tight">Talent Heatmap 📊</h2>
-                    <div className="grid gap-4 md:grid-cols-3">
-                        {/* Industries Chart */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm font-medium">Industries</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-[200px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={industryData}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={80}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                            >
-                                                {industryData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                            <Legend />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Stage Chart */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm font-medium">Startup Stage</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-[200px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={stageData} layout="vertical">
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
-                                            <Tooltip cursor={{ fill: 'transparent' }} />
-                                            <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
-                                                {stageData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Academic Level Chart */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm font-medium">Academic Level</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-[200px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={academicData}
-                                                cx="50%"
-                                                cy="50%"
-                                                outerRadius={80}
-                                                dataKey="value"
-                                                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                                            >
-                                                {academicData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
             </div>
-            );
+        </div>
+    );
 };
 
-            export default Dashboard;
+export default Dashboard;

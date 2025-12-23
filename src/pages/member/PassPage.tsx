@@ -128,7 +128,7 @@ const PassPage = () => {
                         <FounderPass
                             name={member.fullName || member.name}
                             memberId={member.memberId || "PENDING"}
-                            company={member.projectCompany ? `@${member.projectCompany}` : undefined}
+                            company={member.projectCompany ? `@${member.projectCompany}` : (member.company ? `@${member.company}` : undefined)}
                             role={member.role || "FOUNDER"}
                             variant="private"
                             shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, doc, updateDoc, orderBy, query, writeBatch, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, orderBy, query, writeBatch, deleteDoc, setDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

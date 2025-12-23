@@ -15,6 +15,7 @@ import Applications from "@/pages/admin/Applications";
 import Members from "@/pages/admin/Members";
 import Templates from "@/pages/admin/Templates";
 import PassPage from "@/pages/member/PassPage";
+import SharePage from "@/pages/member/SharePage";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

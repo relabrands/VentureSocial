@@ -240,10 +240,14 @@ exports.servePass = (0, https_1.onRequest)(async (req, res) => {
             return;
         }
         // Construct OG Tags
-        const title = `${memberData.fullName} | Venture Social Founder Pass`;
+        const isPublicShare = path.includes('/p/');
+        const title = isPublicShare
+            ? `I am a Member | Venture Social`
+            : `${memberData.fullName} | Venture Social Founder Pass`;
         const description = `Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴`;
         const image = "https://firebasestorage.googleapis.com/v0/b/venture-social-dr.firebasestorage.app/o/founder-pass-preview.png?alt=media";
-        const url = `https://www.venturesocialdr.com/pass/${memberId}`;
+        // Always point OG URL to the public share page if possible, or match request
+        const url = `https://www.venturesocialdr.com${path}`;
         // Fetch the live index.html
         const indexHtmlResponse = await fetch("https://www.venturesocialdr.com/index.html");
         let html = await indexHtmlResponse.text();

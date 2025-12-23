@@ -13,6 +13,9 @@ interface Application {
     id: string;
     status: string;
     createdAt: any;
+    revenueRange?: string;
+    role?: string;
+    city?: string;
 }
 
 const Dashboard = () => {
@@ -27,28 +30,11 @@ const Dashboard = () => {
         lastWeek: 0,
     });
     const [chartData, setChartData] = useState<any[]>([]);
+    const [revenueData, setRevenueData] = useState<any[]>([]);
+    const [roleData, setRoleData] = useState<any[]>([]);
+    const [cityData, setCityData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { isVenueMode, toggleVenueMode } = useVenueMode();
-
-    // Mock Data for Heatmap
-    const industryData = [
-        { name: "Fintech", value: 40, color: "#3b82f6" },
-        { name: "Proptech", value: 30, color: "#10b981" },
-        { name: "Healthtech", value: 20, color: "#f59e0b" },
-        { name: "Other", value: 10, color: "#6b7280" },
-    ];
-
-    const stageData = [
-        { name: "Idea", value: 15, color: "#9ca3af" },
-        { name: "MVP", value: 50, color: "#3b82f6" },
-        { name: "Facturando", value: 35, color: "#10b981" },
-    ];
-
-    const academicData = [
-        { name: "Profesionales", value: 60, color: "#6366f1" },
-        { name: "Maestrías", value: 20, color: "#ec4899" },
-        { name: "Estudiantes", value: 20, color: "#8b5cf6" },
-    ];
 
     useEffect(() => {
         fetchStats();
@@ -93,7 +79,7 @@ const Dashboard = () => {
                 lastWeek: lastWeekCount
             });
 
-            // Chart Data
+            // Status Chart Data
             setChartData([
                 { name: "New", value: newApps, color: "#3b82f6" },
                 { name: "Pending", value: pending, color: "#9ca3af" },
@@ -101,6 +87,47 @@ const Dashboard = () => {
                 { name: "Accepted", value: accepted, color: "#22c55e" },
                 { name: "Rejected", value: rejected, color: "#ef4444" },
             ]);
+
+            // --- Real Data Aggregation ---
+
+            // 1. Revenue Range (Stage)
+            const revenueCounts: Record<string, number> = {};
+            apps.forEach(app => {
+                const range = app.revenueRange || "Unknown";
+                revenueCounts[range] = (revenueCounts[range] || 0) + 1;
+            });
+            const revenueChart = Object.keys(revenueCounts).map((key, index) => ({
+                name: key === "pre-revenue" ? "Pre-Revenue" : key,
+                value: revenueCounts[key],
+                color: ["#3b82f6", "#10b981", "#f59e0b", "#6366f1"][index % 4]
+            }));
+            setRevenueData(revenueChart);
+
+            // 2. Roles
+            const roleCounts: Record<string, number> = {};
+            apps.forEach(app => {
+                const role = app.role ? app.role.charAt(0).toUpperCase() + app.role.slice(1) : "Unknown";
+                roleCounts[role] = (roleCounts[role] || 0) + 1;
+            });
+            const roleChart = Object.keys(roleCounts).map((key, index) => ({
+                name: key,
+                value: roleCounts[key],
+                color: ["#ec4899", "#8b5cf6", "#14b8a6", "#f97316"][index % 4]
+            }));
+            setRoleData(roleChart);
+
+            // 3. Cities
+            const cityCounts: Record<string, number> = {};
+            apps.forEach(app => {
+                const city = app.city || "Unknown";
+                cityCounts[city] = (cityCounts[city] || 0) + 1;
+            });
+            const cityChart = Object.keys(cityCounts).map((key, index) => ({
+                name: key,
+                value: cityCounts[key],
+                color: ["#06b6d4", "#f43f5e", "#84cc16", "#e11d48"][index % 4]
+            })).slice(0, 5); // Top 5 cities
+            setCityData(cityChart);
 
         } catch (error) {
             console.error("Error fetching stats:", error);
@@ -243,21 +270,21 @@ const Dashboard = () => {
                 </Card>
             </div>
 
-            {/* Talent Heatmap Section */}
+            {/* Talent Heatmap Section (Real Data) */}
             <div className="space-y-4">
-                <h2 className="text-xl font-bold tracking-tight">Talent Heatmap 📊</h2>
+                <h2 className="text-xl font-bold tracking-tight">Talent Heatmap (Real Data) 📊</h2>
                 <div className="grid gap-4 md:grid-cols-3">
-                    {/* Industries Chart */}
+                    {/* Revenue/Stage Chart */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-sm font-medium">Industries</CardTitle>
+                            <CardTitle className="text-sm font-medium">Revenue Stage</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[200px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
-                                            data={industryData}
+                                            data={revenueData}
                                             cx="50%"
                                             cy="50%"
                                             innerRadius={60}
@@ -265,7 +292,7 @@ const Dashboard = () => {
                                             paddingAngle={5}
                                             dataKey="value"
                                         >
-                                            {industryData.map((entry, index) => (
+                                            {revenueData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
@@ -277,53 +304,53 @@ const Dashboard = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Stage Chart */}
+                    {/* Role Chart */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-sm font-medium">Startup Stage</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="h-[200px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={stageData} layout="vertical">
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                        <XAxis type="number" hide />
-                                        <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
-                                        <Tooltip cursor={{ fill: 'transparent' }} />
-                                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
-                                            {stageData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Academic Level Chart */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-sm font-medium">Academic Level</CardTitle>
+                            <CardTitle className="text-sm font-medium">Applicant Roles</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[200px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
-                                            data={academicData}
+                                            data={roleData}
                                             cx="50%"
                                             cy="50%"
                                             outerRadius={80}
                                             dataKey="value"
                                             label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                                         >
-                                            {academicData.map((entry, index) => (
+                                            {roleData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
                                         <Tooltip />
                                     </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* City Chart */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-medium">Top Cities</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={cityData} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
+                                        <Tooltip cursor={{ fill: 'transparent' }} />
+                                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
+                                            {cityData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </CardContent>

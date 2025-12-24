@@ -7,7 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Save } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, parse } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface TimelineItem {
     time: string;
@@ -42,14 +47,32 @@ const DEFAULT_AGENDA: AgendaConfig = {
     ]
 };
 
+const TIME_OPTIONS = Array.from({ length: 48 }).map((_, i) => {
+    const hour = Math.floor(i / 2);
+    const minute = i % 2 === 0 ? "00" : "30";
+    const ampm = hour < 12 ? "AM" : "PM";
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minute} ${ampm}`;
+});
+
 const AgendaEditor = () => {
     const [config, setConfig] = useState<AgendaConfig>(DEFAULT_AGENDA);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [startTime, setStartTime] = useState("7:00 PM");
+    const [endTime, setEndTime] = useState("11:00 PM");
 
     useEffect(() => {
         fetchConfig();
     }, []);
+
+    // Sync time range when start or end time changes
+    useEffect(() => {
+        if (!loading) {
+            updateField("timeRange", `${startTime} - ${endTime}`);
+        }
+    }, [startTime, endTime]);
 
     const fetchConfig = async () => {
         try {
@@ -57,10 +80,32 @@ const AgendaEditor = () => {
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                setConfig(docSnap.data() as AgendaConfig);
+                const data = docSnap.data() as AgendaConfig;
+                setConfig(data);
+
+                // Try to parse existing time range
+                if (data.timeRange) {
+                    const [start, end] = data.timeRange.split(" - ");
+                    if (start) setStartTime(start);
+                    if (end) setEndTime(end);
+                }
+
+                // Try to parse existing date
+                if (data.date) {
+                    // Assuming the date format is "EEEE, MMMM do"
+                    const parsedDate = parse(data.date, "EEEE, MMMM do", new Date());
+                    if (!isNaN(parsedDate.getTime())) {
+                        setSelectedDate(parsedDate);
+                    }
+                }
             } else {
                 // If no config exists, we'll use defaults but not save them yet
                 // or we could save defaults immediately. Let's just use defaults in state.
+                // Initialize selectedDate from DEFAULT_AGENDA if it exists
+                const defaultDate = parse(DEFAULT_AGENDA.date, "EEEE, MMMM do", new Date());
+                if (!isNaN(defaultDate.getTime())) {
+                    setSelectedDate(defaultDate);
+                }
             }
         } catch (error) {
             console.error("Error fetching agenda config:", error);
@@ -88,6 +133,17 @@ const AgendaEditor = () => {
 
     const updateField = (field: keyof AgendaConfig, value: string) => {
         setConfig(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleDateSelect = (date: Date | undefined) => {
+        setSelectedDate(date);
+        if (date) {
+            // Format: "Thursday, February 27th"
+            const formatted = format(date, "EEEE, MMMM do");
+            updateField("date", formatted);
+        } else {
+            updateField("date", ""); // Clear date if undefined
+        }
     };
 
     const updateTimelineItem = (index: number, field: keyof TimelineItem, value: string) => {
@@ -132,19 +188,63 @@ const AgendaEditor = () => {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label>Event Date</Label>
-                            <Input
-                                value={config.date}
-                                onChange={(e) => updateField("date", e.target.value)}
-                                placeholder="e.g. Thursday, February 27th"
-                            />
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !config.date && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {config.date || <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={selectedDate}
+                                        onSelect={handleDateSelect}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Time Range</Label>
-                            <Input
-                                value={config.timeRange}
-                                onChange={(e) => updateField("timeRange", e.target.value)}
-                                placeholder="e.g. 7:00 PM - 11:00 PM"
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Start Time</Label>
+                                <Select value={startTime} onValueChange={setStartTime}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Start Time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {TIME_OPTIONS.map((time) => (
+                                            <SelectItem key={`start-${time}`} value={time}>
+                                                {time}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>End Time</Label>
+                                <Select value={endTime} onValueChange={setEndTime}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="End Time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {TIME_OPTIONS.map((time) => (
+                                            <SelectItem key={`end-${time}`} value={time}>
+                                                {time}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                            Preview: {config.timeRange}
                         </div>
                     </CardContent>
                 </Card>
@@ -213,11 +313,21 @@ const AgendaEditor = () => {
                                 <div className="grid gap-4 flex-1 md:grid-cols-3">
                                     <div className="space-y-2">
                                         <Label>Time</Label>
-                                        <Input
+                                        <Select
                                             value={item.time}
-                                            onChange={(e) => updateTimelineItem(index, "time", e.target.value)}
-                                            placeholder="e.g. 7:00 PM"
-                                        />
+                                            onValueChange={(value) => updateTimelineItem(index, "time", value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Time" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {TIME_OPTIONS.map((time) => (
+                                                    <SelectItem key={`timeline-${index}-${time}`} value={time}>
+                                                        {time}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Title</Label>

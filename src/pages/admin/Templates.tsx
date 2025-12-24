@@ -201,6 +201,22 @@ const Templates = () => {
 <p>Best,</p>
 <p>Venture Social Team</p>`,
                 active: true
+            },
+            {
+                id: "magic_link_login",
+                subject: "Your Venture Social Member Access Link",
+                body: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+    <h1 style="color: #10b981;">Access your Founder Pass</h1>
+    <p>Hello {{name}},</p>
+    <p>Click the button below to access your Venture Social Founder Pass and the Member Panel.</p>
+    <a href="{{magicLink}}" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 16px 0;">
+        Access Member Panel
+    </a>
+    <p style="color: #666; font-size: 14px;">Or copy this link: <a href="{{magicLink}}">{{magicLink}}</a></p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+    <p style="color: #999; font-size: 12px;">If you didn't request this, you can safely ignore this email.</p>
+</div>`,
+                active: true
             }
         ];
 

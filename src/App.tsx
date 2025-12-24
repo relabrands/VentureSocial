@@ -16,6 +16,7 @@ import Applications from "@/pages/admin/Applications";
 import Members from "@/pages/admin/Members";
 import Templates from "@/pages/admin/Templates";
 import PriorityInviteList from "@/pages/admin/PriorityInviteList";
+import AgendaEditor from "@/pages/admin/AgendaEditor";
 import CheckIn from "@/pages/admin/CheckIn";
 import PassPage from "@/pages/member/PassPage";
 import SharePage from "@/pages/member/SharePage";
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="members" element={<Members />} />
               <Route path="templates" element={<Templates />} />
               <Route path="priority-invites" element={<PriorityInviteList />} />
+              <Route path="agenda" element={<AgendaEditor />} />
               <Route path="check-in" element={<CheckIn />} />
             </Route>
 

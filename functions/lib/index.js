@@ -1,11 +1,131 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendMagicLink = exports.sendAdminEmail = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
-// ... (existing imports)
-// ... (existing code)
+const params_1 = require("firebase-functions/params");
+const resend_1 = require("resend");
+const app_1 = require("firebase-admin/app");
+const firestore_2 = require("firebase-admin/firestore");
+(0, app_1.initializeApp)();
+const db = (0, firestore_2.getFirestore)();
+// Define environment variables
+const RESEND_API_KEY = (0, params_1.defineString)("RESEND_API_KEY");
+const FROM_EMAIL = (0, params_1.defineString)("FROM_EMAIL");
+// Export new function
+__exportStar(require("./updateCohortMatches"), exports);
+// Helper to send email using template
+async function sendEmailWithTemplate(applicationId, data, templateKey) {
+    var _a;
+    const email = data.email;
+    const fullName = data.fullName || data.name || "Applicant";
+    const project = data.projectCompany || data.project || "Project";
+    logger.info(`Processing email for application ${applicationId} with template ${templateKey}`);
+    try {
+        // Fetch template
+        const templateDoc = await db.collection("emailTemplates").doc(templateKey).get();
+        if (!templateDoc.exists) {
+            logger.warn(`Template ${templateKey} not found`);
+            return;
+        }
+        const template = templateDoc.data();
+        if (!(template === null || template === void 0 ? void 0 : template.active)) {
+            logger.info(`Template ${templateKey} is inactive`);
+            return;
+        }
+        logger.info(`Fetched template ${templateKey}:`, { subject: template.subject, bodySnippet: (_a = template.body) === null || _a === void 0 ? void 0 : _a.substring(0, 50) });
+        // Initialize Resend with the secret
+        const resend = new resend_1.Resend(RESEND_API_KEY.value());
+        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
+        // If the env var already has the format "Name <email>", use it as is.
+        // Otherwise, wrap it with the default name.
+        const fromAddress = fromEmailRaw.includes("<")
+            ? fromEmailRaw
+            : `Venture Social <${fromEmailRaw}>`;
+        // Replace placeholders
+        let subject = template.subject || "";
+        let body = template.body || "";
+        const replacements = {
+            "{{fullName}}": fullName,
+            "{{status}}": data.status || "",
+            "{{project}}": project,
+            "{{role}}": data.role || "",
+            "{{passUrl}}": data.passUrl || "#",
+            "{{memberId}}": data.memberId || "",
+        };
+        for (const [key, value] of Object.entries(replacements)) {
+            subject = subject.replace(new RegExp(key, "g"), value);
+            body = body.replace(new RegExp(key, "g"), value);
+        }
+        // Send email
+        const { data: resendData, error } = await resend.emails.send({
+            from: fromAddress,
+            to: email,
+            subject: subject,
+            html: body, // Send raw HTML body
+        });
+        if (error) {
+            logger.error("Error sending email:", error);
+            await logEmail(applicationId, email, templateKey, "failed", error.message);
+        }
+        else {
+            logger.info("Email sent successfully:", resendData);
+            await logEmail(applicationId, email, templateKey, "sent", null);
+        }
+    }
+    catch (error) {
+        logger.error(`Error sending email for ${templateKey}:`, error);
+        await logEmail(applicationId, email, templateKey, "error", error.message);
+    }
+}
+async function generateMemberId(applicationId) {
+    const counterRef = db.collection("counters").doc("members");
+    const appRef = db.collection("applications").doc(applicationId);
+    try {
+        return await db.runTransaction(async (t) => {
+            var _a;
+            const counterDoc = await t.get(counterRef);
+            let newCount = 1;
+            if (counterDoc.exists) {
+                newCount = (((_a = counterDoc.data()) === null || _a === void 0 ? void 0 : _a.count) || 0) + 1;
+            }
+            const memberId = `VS-${String(newCount).padStart(3, '0')}`;
+            t.set(counterRef, { count: newCount }, { merge: true });
+            t.update(appRef, { memberId: memberId });
+            logger.info(`Generated Member ID ${memberId} for application ${applicationId}`);
+            return memberId;
+        });
+    }
+    catch (error) {
+        logger.error("Error generating member ID:", error);
+        return null;
+    }
+}
+async function logEmail(appId, to, templateKey, status, error) {
+    await db.collection("emailLogs").add({
+        applicationId: appId,
+        to: to,
+        templateKey: templateKey,
+        status: status,
+        error: error,
+        sentAt: new Date(),
+    });
+}
 // Callable function for Admin to send custom emails
 exports.sendAdminEmail = (0, https_1.onCall)(async (request) => {
     // Ensure the user is authenticated (you might want to add stricter admin checks here)
@@ -134,79 +254,6 @@ exports.sendMagicLink = (0, https_1.onCall)(async (request) => {
         throw new https_1.HttpsError('internal', error.message);
     }
 });
-const params_1 = require("firebase-functions/params");
-const resend_1 = require("resend");
-const app_1 = require("firebase-admin/app");
-const firestore_2 = require("firebase-admin/firestore");
-(0, app_1.initializeApp)();
-const db = (0, firestore_2.getFirestore)();
-// Define environment variables
-const RESEND_API_KEY = (0, params_1.defineString)("RESEND_API_KEY");
-const FROM_EMAIL = (0, params_1.defineString)("FROM_EMAIL");
-// Helper to send email using template
-async function sendEmailWithTemplate(applicationId, data, templateKey) {
-    var _a;
-    const email = data.email;
-    const fullName = data.fullName || data.name || "Applicant";
-    const project = data.projectCompany || data.project || "Project";
-    logger.info(`Processing email for application ${applicationId} with template ${templateKey}`);
-    try {
-        // Fetch template
-        const templateDoc = await db.collection("emailTemplates").doc(templateKey).get();
-        if (!templateDoc.exists) {
-            logger.warn(`Template ${templateKey} not found`);
-            return;
-        }
-        const template = templateDoc.data();
-        if (!(template === null || template === void 0 ? void 0 : template.active)) {
-            logger.info(`Template ${templateKey} is inactive`);
-            return;
-        }
-        logger.info(`Fetched template ${templateKey}:`, { subject: template.subject, bodySnippet: (_a = template.body) === null || _a === void 0 ? void 0 : _a.substring(0, 50) });
-        // Initialize Resend with the secret
-        const resend = new resend_1.Resend(RESEND_API_KEY.value());
-        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
-        // If the env var already has the format "Name <email>", use it as is.
-        // Otherwise, wrap it with the default name.
-        const fromAddress = fromEmailRaw.includes("<")
-            ? fromEmailRaw
-            : `Venture Social <${fromEmailRaw}>`;
-        // Replace placeholders
-        let subject = template.subject || "";
-        let body = template.body || "";
-        const replacements = {
-            "{{fullName}}": fullName,
-            "{{status}}": data.status || "",
-            "{{project}}": project,
-            "{{role}}": data.role || "",
-            "{{passUrl}}": data.passUrl || "#",
-            "{{memberId}}": data.memberId || "",
-        };
-        for (const [key, value] of Object.entries(replacements)) {
-            subject = subject.replace(new RegExp(key, "g"), value);
-            body = body.replace(new RegExp(key, "g"), value);
-        }
-        // Send email
-        const { data: resendData, error } = await resend.emails.send({
-            from: fromAddress,
-            to: email,
-            subject: subject,
-            html: body, // Send raw HTML body
-        });
-        if (error) {
-            logger.error("Error sending email:", error);
-            await logEmail(applicationId, email, templateKey, "failed", error.message);
-        }
-        else {
-            logger.info("Email sent successfully:", resendData);
-            await logEmail(applicationId, email, templateKey, "sent", null);
-        }
-    }
-    catch (error) {
-        logger.error(`Error sending email for ${templateKey}:`, error);
-        await logEmail(applicationId, email, templateKey, "error", error.message);
-    }
-}
 // Trigger: When a new application is created
 exports.onApplicationCreated = (0, firestore_1.onDocumentCreated)("applications/{applicationId}", async (event) => {
     const snapshot = event.data;
@@ -262,39 +309,6 @@ exports.onApplicationStatusChange = (0, firestore_1.onDocumentUpdated)("applicat
         await sendEmailWithTemplate(applicationId, emailData, templateKey);
     }
 });
-async function generateMemberId(applicationId) {
-    const counterRef = db.collection("counters").doc("members");
-    const appRef = db.collection("applications").doc(applicationId);
-    try {
-        return await db.runTransaction(async (t) => {
-            var _a;
-            const counterDoc = await t.get(counterRef);
-            let newCount = 1;
-            if (counterDoc.exists) {
-                newCount = (((_a = counterDoc.data()) === null || _a === void 0 ? void 0 : _a.count) || 0) + 1;
-            }
-            const memberId = `VS-${String(newCount).padStart(3, '0')}`;
-            t.set(counterRef, { count: newCount }, { merge: true });
-            t.update(appRef, { memberId: memberId });
-            logger.info(`Generated Member ID ${memberId} for application ${applicationId}`);
-            return memberId;
-        });
-    }
-    catch (error) {
-        logger.error("Error generating member ID:", error);
-        return null;
-    }
-}
-async function logEmail(appId, to, templateKey, status, error) {
-    await db.collection("emailLogs").add({
-        applicationId: appId,
-        to: to,
-        templateKey: templateKey,
-        status: status,
-        error: error,
-        sentAt: new Date(),
-    });
-}
 exports.servePass = (0, https_1.onRequest)(async (req, res) => {
     var _a;
     const path = req.path; // e.g. /pass/VS-001

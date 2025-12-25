@@ -12,6 +12,8 @@ interface FounderPassProps {
     shareUrl?: string;
     shareText?: string;
     role?: string;
+    matchScore?: number;
+    matchReason?: string;
 }
 
 const FounderPass: React.FC<FounderPassProps> = ({
@@ -22,7 +24,9 @@ const FounderPass: React.FC<FounderPassProps> = ({
     variant = 'private',
     shareUrl,
     shareText,
-    role = "FOUNDER"
+    role = "FOUNDER",
+    matchScore,
+    matchReason
 }) => {
     // If public, start flipped (showing back side)
     const [isFlipped, setIsFlipped] = useState(variant === 'public');
@@ -156,6 +160,19 @@ const FounderPass: React.FC<FounderPassProps> = ({
                                 <div className="text-[16px] text-[#9ca3af]">
                                     {company}
                                 </div>
+
+                                {/* AI Match Display */}
+                                {matchScore && matchReason && (
+                                    <div className="mt-6 w-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-3 animate-in fade-in slide-in-from-bottom-4">
+                                        <div className="flex items-center justify-center gap-2 mb-1">
+                                            <span className="text-xl">🎯</span>
+                                            <span className="text-yellow-400 font-bold text-lg">{matchScore}% Synergy</span>
+                                        </div>
+                                        <p className="text-xs text-gray-300 italic leading-relaxed">
+                                            "{matchReason}"
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="w-full mb-2">

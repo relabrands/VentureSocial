@@ -144,7 +144,10 @@ const PassPage = () => {
                     )}
 
                     {currentTab === 'room' && (
-                        <MemberDirectory currentMemberId={member.memberId} />
+                        <MemberDirectory
+                            currentMemberId={member.memberId}
+                            recommendations={member.aiRecommendations}
+                        />
                     )}
 
                     {currentTab === 'agenda' && (

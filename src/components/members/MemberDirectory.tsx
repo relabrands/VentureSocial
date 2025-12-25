@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
-import { Linkedin } from "lucide-react";
+import { Linkedin, X } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import FounderPass from "./FounderPass";
 
 interface Member {
     id: string;
@@ -12,13 +14,22 @@ interface Member {
     role?: string;
 }
 
-interface MemberDirectoryProps {
-    currentMemberId?: string;
+interface Recommendation {
+    matchUid: string;
+    score: number;
+    reason: string;
+    icebreaker: string;
 }
 
-const MemberDirectory = ({ currentMemberId }: MemberDirectoryProps) => {
+interface MemberDirectoryProps {
+    currentMemberId?: string;
+    recommendations?: Recommendation[];
+}
+
+const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirectoryProps) => {
     const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
     useEffect(() => {
         const fetchMembers = async () => {
@@ -29,9 +40,18 @@ const MemberDirectory = ({ currentMemberId }: MemberDirectoryProps) => {
                     orderBy("createdAt", "desc")
                 );
                 const snapshot = await getDocs(q);
-                const data = snapshot.docs
+                let data = snapshot.docs
                     .map(doc => ({ id: doc.id, ...doc.data() } as Member))
                     .filter(m => m.memberId !== currentMemberId); // Exclude self
+
+                // Sort by Match Score if recommendations exist
+                if (recommendations.length > 0) {
+                    data = data.sort((a, b) => {
+                        const scoreA = recommendations.find(r => r.matchUid === a.id)?.score || 0;
+                        const scoreB = recommendations.find(r => r.matchUid === b.id)?.score || 0;
+                        return scoreB - scoreA; // Descending order
+                    });
+                }
 
                 setMembers(data);
             } catch (error) {
@@ -42,11 +62,15 @@ const MemberDirectory = ({ currentMemberId }: MemberDirectoryProps) => {
         };
 
         fetchMembers();
-    }, [currentMemberId]);
+    }, [currentMemberId, recommendations]);
 
     if (loading) {
         return <div className="text-center py-8 text-gray-500">Loading The Room...</div>;
     }
+
+    const getMatchInfo = (memberId: string) => {
+        return recommendations.find(r => r.matchUid === memberId);
+    };
 
     return (
         <div className="w-full max-w-[320px] mx-auto mt-12 pb-20">
@@ -55,36 +79,89 @@ const MemberDirectory = ({ currentMemberId }: MemberDirectoryProps) => {
                 <h2 className="text-2xl font-bold text-white">{members.length} Founders Selected</h2>
             </div>
 
-            <div className="space-y-1">
-                {members.map((member) => (
-                    <div key={member.id} className="flex items-center p-3 bg-[#111827] rounded-xl border border-[#1f2937] hover:bg-[#1f2937] transition-colors">
-                        {/* Avatar / Initial */}
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-sm mr-3 shadow-lg shrink-0">
-                            {member.fullName.charAt(0)}
-                        </div>
+            <div className="space-y-3">
+                {members.map((member) => {
+                    const match = getMatchInfo(member.id);
+                    const isMatch = !!match;
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                            <h4 className="text-white font-medium text-sm truncate">{member.fullName}</h4>
-                            <p className="text-[#9ca3af] text-xs truncate">
-                                {member.role ? `${member.role} @ ` : ''}{member.projectCompany}
-                            </p>
-                        </div>
+                    return (
+                        <div
+                            key={member.id}
+                            onClick={() => setSelectedMember(member)}
+                            className={`flex items-center p-3 rounded-xl border transition-all cursor-pointer relative overflow-hidden group
+                                ${isMatch
+                                    ? 'bg-[#111827] border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.15)] hover:border-yellow-500'
+                                    : 'bg-[#111827] border-[#1f2937] hover:bg-[#1f2937]'
+                                }
+                            `}
+                        >
+                            {/* Smart Match Badge */}
+                            {isMatch && (
+                                <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">
+                                    🔥 Smart Match
+                                </div>
+                            )}
 
-                        {/* Action */}
-                        {member.linkedin && (
-                            <a
-                                href={member.linkedin}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="h-8 w-8 flex items-center justify-center text-[#0077b5] hover:bg-[#0077b5]/10 rounded-full transition-colors"
-                            >
-                                <Linkedin className="h-4 w-4" />
-                            </a>
-                        )}
-                    </div>
-                ))}
+                            {/* Avatar / Initial */}
+                            <div className={`h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3 shadow-lg shrink-0
+                                ${isMatch
+                                    ? 'bg-gradient-to-br from-yellow-500 to-orange-600 ring-2 ring-yellow-500/30'
+                                    : 'bg-gradient-to-br from-emerald-500 to-emerald-700'
+                                }
+                            `}>
+                                {member.fullName.charAt(0)}
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                                <h4 className="text-white font-medium text-sm truncate">{member.fullName}</h4>
+                                <p className="text-[#9ca3af] text-xs truncate">
+                                    {member.role ? `${member.role} @ ` : ''}{member.projectCompany}
+                                </p>
+                                {isMatch && (
+                                    <p className="text-yellow-500/90 text-[10px] mt-1 italic truncate">
+                                        💡 {match.reason}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Action Icon */}
+                            {!isMatch && member.linkedin && (
+                                <div className="h-8 w-8 flex items-center justify-center text-gray-600 group-hover:text-white transition-colors">
+                                    <Linkedin className="h-4 w-4" />
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
+
+            {/* Member Detail Dialog */}
+            <Dialog open={!!selectedMember} onOpenChange={(open) => !open && setSelectedMember(null)}>
+                <DialogContent className="bg-transparent border-none shadow-none p-0 flex items-center justify-center max-w-fit">
+                    {selectedMember && (
+                        <div className="relative">
+                            <button
+                                onClick={() => setSelectedMember(null)}
+                                className="absolute -top-4 -right-4 z-50 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 backdrop-blur-sm transition-colors"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                            <FounderPass
+                                name={selectedMember.fullName}
+                                memberId={selectedMember.memberId || "PENDING"}
+                                company={selectedMember.projectCompany}
+                                role={selectedMember.role || "FOUNDER"}
+                                variant="private" // Allows flipping
+                                shareUrl={selectedMember.linkedin}
+                                shareText={`Check out ${selectedMember.fullName} from Venture Social!`}
+                                matchScore={getMatchInfo(selectedMember.id)?.score}
+                                matchReason={getMatchInfo(selectedMember.id)?.reason}
+                            />
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

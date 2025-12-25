@@ -182,6 +182,23 @@ export const sendAdminEmail = onCall(async (request) => {
     }
 });
 
+// Callable function to manually trigger matchmaking
+export const triggerMatchmaking = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+
+    logger.info(`Manual matchmaking triggered by ${request.auth.uid}`);
+
+    try {
+        await runMatchmaking();
+        return { success: true, message: "Matchmaking process started." };
+    } catch (error: any) {
+        logger.error("Error in manual matchmaking:", error);
+        throw new HttpsError('internal', error.message);
+    }
+});
+
 // Callable function to send Magic Link for login
 export const sendMagicLink = onCall(async (request) => {
     const { email, memberId, name } = request.data;

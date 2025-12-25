@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendMagicLink = exports.sendAdminEmail = void 0;
+exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendMagicLink = exports.triggerMatchmaking = exports.sendAdminEmail = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
@@ -168,6 +168,21 @@ exports.sendAdminEmail = (0, https_1.onCall)(async (request) => {
     }
     catch (error) {
         logger.error("Error in sendAdminEmail:", error);
+        throw new https_1.HttpsError('internal', error.message);
+    }
+});
+// Callable function to manually trigger matchmaking
+exports.triggerMatchmaking = (0, https_1.onCall)(async (request) => {
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+    logger.info(`Manual matchmaking triggered by ${request.auth.uid}`);
+    try {
+        await (0, updateCohortMatches_1.runMatchmaking)();
+        return { success: true, message: "Matchmaking process started." };
+    }
+    catch (error) {
+        logger.error("Error in manual matchmaking:", error);
         throw new https_1.HttpsError('internal', error.message);
     }
 });

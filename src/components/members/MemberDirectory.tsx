@@ -136,9 +136,10 @@ const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirect
                 })}
             </div>
 
-            {/* Member Detail Dialog */}
             <Dialog open={!!selectedMember} onOpenChange={(open) => !open && setSelectedMember(null)}>
-                <DialogContent className="bg-transparent border-none shadow-none p-0 flex items-center justify-center max-w-fit">
+                <DialogContent className="bg-transparent border-none shadow-none p-0 flex items-center justify-center max-w-fit" aria-describedby="member-dialog-description">
+                    <div className="sr-only" id="member-dialog-title">Member Details</div>
+                    <div className="sr-only" id="member-dialog-description">Details for {selectedMember?.fullName}</div>
                     {selectedMember && (
                         <div className="relative">
                             <button

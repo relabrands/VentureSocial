@@ -56,6 +56,7 @@ const Members = () => {
     const [emailAllSubject, setEmailAllSubject] = useState("");
     const [emailAllBody, setEmailAllBody] = useState("");
     const [sendingEmailAll, setSendingEmailAll] = useState(false);
+    const [triggeringMatchmaking, setTriggeringMatchmaking] = useState(false);
 
     useEffect(() => {
         fetchMembers();
@@ -64,6 +65,23 @@ const Members = () => {
     useEffect(() => {
         filterMembers();
     }, [search, members]);
+
+    const handleTriggerMatchmaking = async () => {
+        if (!confirm("Are you sure you want to manually trigger the AI Matchmaking process? This will update recommendations for all accepted members.")) return;
+
+        setTriggeringMatchmaking(true);
+        try {
+            const functions = getFunctions();
+            const triggerMatchmaking = httpsCallable(functions, 'triggerMatchmaking');
+            await triggerMatchmaking();
+            toast.success("Matchmaking process started! It may take a minute to update.");
+        } catch (error) {
+            console.error("Error triggering matchmaking:", error);
+            toast.error("Failed to trigger matchmaking.");
+        } finally {
+            setTriggeringMatchmaking(false);
+        }
+    };
 
     const fetchMembers = async () => {
         try {
@@ -267,6 +285,16 @@ const Members = () => {
                     <Button onClick={handleOpenEmailAllModal}>
                         <Send className="mr-2 h-4 w-4" />
                         Email All
+                    </Button>
+                    <Button variant="secondary" onClick={handleTriggerMatchmaking} disabled={triggeringMatchmaking}>
+                        {triggeringMatchmaking ? (
+                            <>Running...</>
+                        ) : (
+                            <>
+                                <span className="mr-2">🧠</span>
+                                Run Matchmaking
+                            </>
+                        )}
                     </Button>
                 </div>
             </div>

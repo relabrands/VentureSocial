@@ -1,7 +1,7 @@
 import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, LogOut, Users, QrCode, Menu, Calendar } from "lucide-react";
+import { LayoutDashboard, FileText, LogOut, Users, QrCode, Menu, Calendar, Gift } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const AdminLayout = () => {
@@ -61,6 +61,12 @@ const AdminLayout = () => {
                         <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
                             <Calendar className="mr-2 h-4 w-4" />
                             Agenda
+                        </Button>
+                    </Link>
+                    <Link to="/admin/perks">
+                        <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                            <Gift className="mr-2 h-4 w-4" />
+                            Perks
                         </Button>
                     </Link>
                     <Link to="/admin/check-in">
@@ -127,6 +133,12 @@ const AdminLayout = () => {
                                     <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
                                         <Calendar className="mr-2 h-4 w-4" />
                                         Agenda
+                                    </Button>
+                                </Link>
+                                <Link to="/admin/perks">
+                                    <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                                        <Gift className="mr-2 h-4 w-4" />
+                                        Perks
                                     </Button>
                                 </Link>
                                 <Link to="/admin/check-in">

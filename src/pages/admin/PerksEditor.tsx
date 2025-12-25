@@ -16,7 +16,7 @@ interface Perk {
     id: string;
     title: string;
     description: string;
-    status: "active" | "coming_soon";
+    status: "active" | "coming_soon" | "disabled";
     link: string;
     color: string;
 }
@@ -185,8 +185,10 @@ const PerksEditor = () => {
                                     <h3 className="font-semibold text-lg">{item.title}</h3>
                                     {item.status === "active" ? (
                                         <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>
-                                    ) : (
+                                    ) : item.status === "coming_soon" ? (
                                         <Badge variant="outline">Coming Soon</Badge>
+                                    ) : (
+                                        <Badge variant="secondary" className="bg-gray-200 text-gray-600">Disabled</Badge>
                                     )}
                                 </div>
                                 <p className="text-muted-foreground">{item.description}</p>
@@ -242,7 +244,7 @@ const PerksEditor = () => {
                                 <Label>Status</Label>
                                 <Select
                                     value={formData.status}
-                                    onValueChange={(val: "active" | "coming_soon") => setFormData({ ...formData, status: val })}
+                                    onValueChange={(val: "active" | "coming_soon" | "disabled") => setFormData({ ...formData, status: val })}
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
@@ -250,6 +252,7 @@ const PerksEditor = () => {
                                     <SelectContent>
                                         <SelectItem value="active">Active</SelectItem>
                                         <SelectItem value="coming_soon">Coming Soon</SelectItem>
+                                        <SelectItem value="disabled">Disabled</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

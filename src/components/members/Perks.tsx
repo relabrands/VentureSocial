@@ -9,7 +9,7 @@ interface Perk {
     id: string;
     title: string;
     description: string;
-    status: "active" | "coming_soon";
+    status: "active" | "coming_soon" | "disabled";
     link: string;
     color: string;
 }
@@ -53,12 +53,12 @@ const Perks = () => {
             </div>
 
             <div className="grid gap-4">
-                {perks.length === 0 ? (
+                {perks.filter(p => p.status !== 'disabled').length === 0 ? (
                     <div className="text-center py-8 text-gray-500 border border-gray-800 rounded-lg border-dashed">
                         No perks available at the moment.
                     </div>
                 ) : (
-                    perks.map((perk) => (
+                    perks.filter(p => p.status !== 'disabled').map((perk) => (
                         <Card key={perk.id} className="bg-[#111827] border-gray-800 overflow-hidden relative group hover:border-gray-700 transition-all">
                             <div className={`absolute top-0 left-0 w-1 h-full ${perk.color}`} />
                             <CardHeader className="pb-2">

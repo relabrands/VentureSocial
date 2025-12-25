@@ -4,7 +4,7 @@ import { VertexAI } from "@google-cloud/vertexai";
 
 // Initialize Vertex AI
 const vertexAI = new VertexAI({ project: "venture-social-dr", location: "us-central1" });
-const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+const model = vertexAI.getGenerativeModel({ model: "gemini-1.0-pro" });
 
 const db = admin.firestore();
 

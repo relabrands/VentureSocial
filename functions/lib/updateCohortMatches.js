@@ -7,7 +7,7 @@ const admin = require("firebase-admin");
 const vertexai_1 = require("@google-cloud/vertexai");
 // Initialize Vertex AI
 const vertexAI = new vertexai_1.VertexAI({ project: "venture-social-dr", location: "us-central1" });
-const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+const model = vertexAI.getGenerativeModel({ model: "gemini-1.0-pro" });
 const db = admin.firestore();
 // Reusable function to run matchmaking
 async function runMatchmaking() {

@@ -15,6 +15,7 @@ const FROM_EMAIL = defineString("FROM_EMAIL");
 
 // Export new function
 export * from "./updateCohortMatches";
+import { runMatchmaking } from "./updateCohortMatches";
 
 // Helper to send email using template
 async function sendEmailWithTemplate(applicationId: string, data: any, templateKey: string) {
@@ -322,6 +323,8 @@ export const onApplicationStatusChange = onDocumentUpdated("applications/{applic
             if (!memberId) {
                 memberId = await generateMemberId(applicationId);
             }
+            // Trigger Matchmaking
+            await runMatchmaking();
             break;
         case "rejected":
             templateKey = "application_rejected";

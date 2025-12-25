@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateCohortMatches = void 0;
+exports.runMatchmaking = runMatchmaking;
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const vertexai_1 = require("@google-cloud/vertexai");
@@ -8,13 +9,10 @@ const vertexai_1 = require("@google-cloud/vertexai");
 const vertexAI = new vertexai_1.VertexAI({ project: "venture-social-dr", location: "us-central1" });
 const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 const db = admin.firestore();
-exports.updateCohortMatches = (0, scheduler_1.onSchedule)({
-    schedule: "every 24 hours",
-    timeoutSeconds: 540,
-    memory: "1GiB",
-}, async (event) => {
+// Reusable function to run matchmaking
+async function runMatchmaking() {
     var _a;
-    console.log("Starting updateCohortMatches...");
+    console.log("Starting matchmaking process...");
     try {
         // 1. Fetch all accepted users
         const usersSnapshot = await db
@@ -91,7 +89,14 @@ exports.updateCohortMatches = (0, scheduler_1.onSchedule)({
         console.log(`Successfully updated matches for ${operationCount} users.`);
     }
     catch (error) {
-        console.error("Error in updateCohortMatches:", error);
+        console.error("Error in matchmaking:", error);
     }
+}
+exports.updateCohortMatches = (0, scheduler_1.onSchedule)({
+    schedule: "every 24 hours",
+    timeoutSeconds: 540,
+    memory: "1GiB",
+}, async (event) => {
+    await runMatchmaking();
 });
 //# sourceMappingURL=updateCohortMatches.js.map

@@ -29,6 +29,7 @@ const RESEND_API_KEY = (0, params_1.defineString)("RESEND_API_KEY");
 const FROM_EMAIL = (0, params_1.defineString)("FROM_EMAIL");
 // Export new function
 __exportStar(require("./updateCohortMatches"), exports);
+const updateCohortMatches_1 = require("./updateCohortMatches");
 // Helper to send email using template
 async function sendEmailWithTemplate(applicationId, data, templateKey) {
     var _a;
@@ -296,6 +297,8 @@ exports.onApplicationStatusChange = (0, firestore_1.onDocumentUpdated)("applicat
             if (!memberId) {
                 memberId = await generateMemberId(applicationId);
             }
+            // Trigger Matchmaking
+            await (0, updateCohortMatches_1.runMatchmaking)();
             break;
         case "rejected":
             templateKey = "application_rejected";

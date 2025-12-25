@@ -8,44 +8,39 @@ const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const db = admin.firestore();
 
-export const updateCohortMatches = onSchedule(
-    {
-        schedule: "every 24 hours",
-        timeoutSeconds: 540,
-        memory: "1GiB",
-    },
-    async (event) => {
-        console.log("Starting updateCohortMatches...");
+// Reusable function to run matchmaking
+export async function runMatchmaking() {
+    console.log("Starting matchmaking process...");
 
-        try {
-            // 1. Fetch all accepted users
-            const usersSnapshot = await db
-                .collection("applications")
-                .where("status", "==", "accepted")
-                .get();
+    try {
+        // 1. Fetch all accepted users
+        const usersSnapshot = await db
+            .collection("applications")
+            .where("status", "==", "accepted")
+            .get();
 
-            if (usersSnapshot.empty) {
-                console.log("No accepted users found.");
-                return;
-            }
+        if (usersSnapshot.empty) {
+            console.log("No accepted users found.");
+            return;
+        }
 
-            const users = usersSnapshot.docs.map((doc) => {
-                const data = doc.data();
-                return {
-                    uid: doc.id,
-                    name: data.fullName || data.name,
-                    role: data.role,
-                    company: data.projectCompany || data.company,
-                    bio: data.message || "", // Using message as bio/context
-                    superpower: data.superpower || "",
-                    challenge: data.biggestChallenge || "",
-                };
-            });
+        const users = usersSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+                uid: doc.id,
+                name: data.fullName || data.name,
+                role: data.role,
+                company: data.projectCompany || data.company,
+                bio: data.message || "", // Using message as bio/context
+                superpower: data.superpower || "",
+                challenge: data.biggestChallenge || "",
+            };
+        });
 
-            console.log(`Processing ${users.length} users for matchmaking.`);
+        console.log(`Processing ${users.length} users for matchmaking.`);
 
-            // 2. Prepare Prompt for Gemini
-            const prompt = `
+        // 2. Prepare Prompt for Gemini
+        const prompt = `
         Act as an expert in VC Networking and Startup Ecosystems.
         
         I have a list of community members. Your goal is to find the Top 3 Matches for EACH user based on their profile, "superpower" (what they offer), and "challenge" (what they need).
@@ -73,37 +68,47 @@ export const updateCohortMatches = onSchedule(
         - Return ONLY valid JSON.
       `;
 
-            // 3. Call Gemini
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.candidates?.[0].content.parts[0].text;
+        // 3. Call Gemini
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.candidates?.[0].content.parts[0].text;
 
-            if (!text) {
-                throw new Error("Empty response from Gemini.");
-            }
-
-            // Clean and Parse JSON
-            const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
-            const matchesMap = JSON.parse(jsonString);
-
-            // 4. Update Firestore
-            const batch = db.batch();
-            let operationCount = 0;
-
-            for (const [uid, matches] of Object.entries(matchesMap)) {
-                const userRef = db.collection("applications").doc(uid);
-                batch.update(userRef, {
-                    aiRecommendations: matches,
-                    lastMatchUpdate: admin.firestore.FieldValue.serverTimestamp(),
-                });
-                operationCount++;
-            }
-
-            await batch.commit();
-            console.log(`Successfully updated matches for ${operationCount} users.`);
-
-        } catch (error) {
-            console.error("Error in updateCohortMatches:", error);
+        if (!text) {
+            throw new Error("Empty response from Gemini.");
         }
+
+        // Clean and Parse JSON
+        const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        const matchesMap = JSON.parse(jsonString);
+
+        // 4. Update Firestore
+        const batch = db.batch();
+        let operationCount = 0;
+
+        for (const [uid, matches] of Object.entries(matchesMap)) {
+            const userRef = db.collection("applications").doc(uid);
+            batch.update(userRef, {
+                aiRecommendations: matches,
+                lastMatchUpdate: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            operationCount++;
+        }
+
+        await batch.commit();
+        console.log(`Successfully updated matches for ${operationCount} users.`);
+
+    } catch (error) {
+        console.error("Error in matchmaking:", error);
+    }
+}
+
+export const updateCohortMatches = onSchedule(
+    {
+        schedule: "every 24 hours",
+        timeoutSeconds: 540,
+        memory: "1GiB",
+    },
+    async (event) => {
+        await runMatchmaking();
     }
 );

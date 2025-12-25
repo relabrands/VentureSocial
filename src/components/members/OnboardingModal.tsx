@@ -19,7 +19,8 @@ interface OnboardingModalProps {
 const OnboardingModal = ({ isOpen, memberId, role, onComplete }: OnboardingModalProps) => {
     const [formData, setFormData] = useState({
         superpower: "",
-        biggestChallenge: ""
+        biggestChallenge: "",
+        email: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,8 +29,8 @@ const OnboardingModal = ({ isOpen, memberId, role, onComplete }: OnboardingModal
     const config = roleConfig[normalizedRole] || roleConfig["founder"];
 
     const handleSubmit = async () => {
-        if (!formData.superpower || !formData.biggestChallenge) {
-            toast.error("Please fill in both fields to continue.");
+        if (!formData.superpower || !formData.biggestChallenge || !formData.email) {
+            toast.error("Please fill in all fields to continue.");
             return;
         }
 
@@ -38,7 +39,8 @@ const OnboardingModal = ({ isOpen, memberId, role, onComplete }: OnboardingModal
             const docRef = doc(db, "applications", memberId);
             await updateDoc(docRef, {
                 superpower: formData.superpower,
-                biggestChallenge: formData.biggestChallenge
+                biggestChallenge: formData.biggestChallenge,
+                email: formData.email // Update email
             });
             toast.success("Profile updated! Welcome to the network.");
             onComplete();
@@ -58,11 +60,25 @@ const OnboardingModal = ({ isOpen, memberId, role, onComplete }: OnboardingModal
                         Activate your Networking AI 🧠
                     </DialogTitle>
                     <DialogDescription className="text-gray-400">
-                        To connect you with the right people, we need 2 quick details about what you offer and what you need.
+                        To connect you with the right people, we need a few details.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6 mt-4">
+                    <div className="space-y-3">
+                        <Label htmlFor="email" className="text-[#10b981] font-medium text-base">
+                            Email Address
+                        </Label>
+                        <input
+                            id="email"
+                            type="email"
+                            placeholder="you@example.com"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="flex h-10 w-full rounded-md border border-gray-700 bg-[#1f2937] px-3 py-2 text-sm text-white ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                    </div>
+
                     <div className="space-y-3">
                         <Label htmlFor="superpower" className="text-[#10b981] font-medium text-base">
                             {config.offerLabel}

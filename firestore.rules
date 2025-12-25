@@ -11,9 +11,10 @@ service cloud.firestore {
     match /applications/{applicationId} {
       // Public can create (submit application)
       allow create: if true;
-      // Only admins can update/delete. Public can read if accepted.
-      allow read: if isAdmin() || resource.data.status == 'accepted';
-      allow update, delete: if isAdmin();
+      // Only admins can update/delete. Public can read if accepted OR if it has an invite token (for claiming).
+      allow read: if isAdmin() || resource.data.status == 'accepted' || (resource.data.inviteToken != null && resource.data.inviteToken != "");
+      allow update: if isAdmin() || (resource.data.inviteToken != null && resource.data.inviteToken != ""); // Allow update during claim (setting status to accepted)
+      allow delete: if isAdmin();
     }
 
     // Email Templates collection

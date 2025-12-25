@@ -22,43 +22,36 @@ import { toast } from "@/hooks/use-toast";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 
-const revenueOptions = [
-  { value: "pre-revenue", label: "Pre-Revenue" },
-  { value: "10k-100k", label: "$10k - $100k / año" },
-  { value: "100k-1m", label: "$100k - $1M / año" },
-  { value: "1m-plus", label: "$1M+ / año" },
-];
-
-const roleConfig: Record<string, { offerLabel: string; offerPlaceholder: string; seekLabel: string; seekPlaceholder: string }> = {
+export const roleConfig: Record<string, { offerLabel: string; offerPlaceholder: string; seekLabel: string; seekPlaceholder: string }> = {
   founder: {
-    offerLabel: "¿Cuál es tu Superpoder actual?",
-    offerPlaceholder: "Ej: Growth Hacking, Producto Técnico...",
-    seekLabel: "¿Cuál es tu mayor obstáculo hoy?",
-    seekPlaceholder: "Ej: Capital Semilla, Un CTO, Intros..."
+    offerLabel: "What is your current Superpower?",
+    offerPlaceholder: "Ex: Growth Hacking, Technical Product Building...",
+    seekLabel: "What is your biggest obstacle today?",
+    seekPlaceholder: "Ex: Seed Capital, Finding a CTO, Intros..."
   },
   investor: {
-    offerLabel: "¿Cuál es tu \"Value Add\" (además del cheque)?",
-    offerPlaceholder: "Ej: Red en Retail, Experiencia Operativa...",
-    seekLabel: "¿Cuál es tu Tesis de Inversión actual?",
-    seekPlaceholder: "Ej: SaaS B2B en etapa Seed, Fintech..."
+    offerLabel: "What is your 'Value Add' (besides the check)?",
+    offerPlaceholder: "Ex: Retail Network, Operational Experience...",
+    seekLabel: "What is your current Investment Thesis?",
+    seekPlaceholder: "Ex: B2B SaaS Seed Stage, Fintech..."
   },
   partner: {
-    offerLabel: "¿Qué recurso o acceso único aportas?",
-    offerPlaceholder: "Ej: Créditos de AWS, Espacios, Asesoría Legal...",
-    seekLabel: "¿Con quién buscas alianzas estratégicas?",
-    seekPlaceholder: "Ej: Startups en Serie A, Nuevos Fondos..."
+    offerLabel: "What unique resource or access do you bring?",
+    offerPlaceholder: "Ex: AWS Credits, Office Space, Legal Advice...",
+    seekLabel: "Who are you looking to partner with?",
+    seekPlaceholder: "Ex: Series A Startups, New Funds..."
   },
   corporate: {
-    offerLabel: "¿Qué oportunidades de Piloto/Contrato ofreces?",
-    offerPlaceholder: "Ej: Canales de distribución, Validación técnica...",
-    seekLabel: "¿Qué innovación o solución estás cazando?",
-    seekPlaceholder: "Ej: Automatización de procesos, AI para Clientes..."
+    offerLabel: "What Pilot/Contract opportunities do you offer?",
+    offerPlaceholder: "Ex: Distribution Channels, Technical Validation...",
+    seekLabel: "What innovation or solution are you hunting for?",
+    seekPlaceholder: "Ex: Process Automation, AI for Customer Service..."
   },
   creative: {
-    offerLabel: "¿Cuál es tu magia creativa / técnica?",
-    offerPlaceholder: "Ej: Branding de alto nivel, UX/UI, Storytelling...",
-    seekLabel: "¿En qué tipo de visión quieres impactar?",
-    seekPlaceholder: "Ej: Founders visionarios, Proyectos de impacto social..."
+    offerLabel: "What is your creative / technical magic?",
+    offerPlaceholder: "Ex: High-level Branding, UX/UI, Storytelling...",
+    seekLabel: "What kind of vision do you want to impact?",
+    seekPlaceholder: "Ex: Visionary Founders, Social Impact Projects..."
   }
 };
 
@@ -71,7 +64,6 @@ const ApplicationForm = () => {
     linkedin: "",
     projectCompany: "",
     message: "",
-    revenueRange: "",
     phone: "",
     email: "",
     city: "",
@@ -89,7 +81,6 @@ const ApplicationForm = () => {
       !formData.position ||
       !formData.linkedin ||
       !formData.projectCompany ||
-      !formData.revenueRange ||
       !formData.phone ||
       !formData.email ||
       !formData.city
@@ -116,7 +107,6 @@ const ApplicationForm = () => {
       message: formData.message, // Keeping message as optional or secondary
       superpower: formData.superpower,
       biggestChallenge: formData.biggestChallenge,
-      revenueRange: formData.revenueRange,
       status: "new",
       source: "Web",
       notes: "",
@@ -144,7 +134,6 @@ const ApplicationForm = () => {
         linkedin: "",
         projectCompany: "",
         message: "",
-        revenueRange: "",
         phone: "",
         email: "",
         city: "",
@@ -211,9 +200,13 @@ const ApplicationForm = () => {
           </div>
 
           {currentRoleConfig && (
-            <>
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                <Label htmlFor="superpower" className="text-primary">{currentRoleConfig.offerLabel}</Label>
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 bg-muted/30 p-4 rounded-lg border border-dashed border-muted-foreground/20">
+              <p className="text-xs text-muted-foreground italic mb-2">
+                * These questions help us match you with the right opportunities and members in the community.
+              </p>
+
+              <div className="space-y-2">
+                <Label htmlFor="superpower" className="text-primary font-medium">{currentRoleConfig.offerLabel}</Label>
                 <Textarea
                   id="superpower"
                   placeholder={currentRoleConfig.offerPlaceholder}
@@ -223,8 +216,8 @@ const ApplicationForm = () => {
                 />
               </div>
 
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                <Label htmlFor="biggestChallenge" className="text-primary">{currentRoleConfig.seekLabel}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="biggestChallenge" className="text-primary font-medium">{currentRoleConfig.seekLabel}</Label>
                 <Textarea
                   id="biggestChallenge"
                   placeholder={currentRoleConfig.seekPlaceholder}
@@ -233,7 +226,7 @@ const ApplicationForm = () => {
                   className="bg-background border-border min-h-[80px]"
                 />
               </div>
-            </>
+            </div>
           )}
 
           <div className="space-y-2">
@@ -267,24 +260,6 @@ const ApplicationForm = () => {
               onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
               className="bg-background border-border"
             />
-          </div>
-
-          <div className="space-y-3">
-            <Label>Current Revenue Range</Label>
-            <RadioGroup
-              value={formData.revenueRange}
-              onValueChange={(value) => setFormData({ ...formData, revenueRange: value })}
-              className="space-y-2"
-            >
-              {revenueOptions.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3">
-                  <RadioGroupItem value={option.value} id={option.value} />
-                  <Label htmlFor={option.value} className="font-normal cursor-pointer">
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
           </div>
 
           <div className="space-y-2">

@@ -27,8 +27,9 @@ interface Application {
     notes: string;
     createdAt: any;
     linkedin: string;
-    revenueRange: string;
     positionRole: string;
+    superpower?: string;
+    biggestChallenge?: string;
 }
 
 const Applications = () => {
@@ -77,8 +78,9 @@ const Applications = () => {
                     notes: data.notes || "",
                     createdAt: data.createdAt,
                     linkedin: data.linkedin || data.linkedinProfile || "—",
-                    revenueRange: data.revenueRange || "—",
                     positionRole: data.positionRole || data.position || "—",
+                    superpower: data.superpower || "",
+                    biggestChallenge: data.biggestChallenge || "",
                 };
             }) as Application[];
             setApplications(apps);
@@ -196,7 +198,7 @@ const Applications = () => {
     };
 
     const handleExport = () => {
-        const headers = ["Date", "Name", "Email", "Phone", "Role", "City", "Project/Company", "Status", "Source", "LinkedIn", "Revenue"];
+        const headers = ["Date", "Name", "Email", "Phone", "Role", "City", "Project/Company", "Status", "Source", "LinkedIn", "Superpower", "Challenge"];
         const csvContent = [
             headers.join(","),
             ...applications.map(app => [
@@ -210,7 +212,8 @@ const Applications = () => {
                 `"${app.status}"`,
                 `"${app.source}"`,
                 `"${app.linkedin}"`,
-                `"${app.revenueRange}"`
+                `"${app.superpower || ""}"`,
+                `"${app.biggestChallenge || ""}"`
             ].join(","))
         ].join("\n");
 
@@ -298,10 +301,6 @@ const Applications = () => {
                                         <span className="capitalize">{app.role}</span>
                                     </div>
                                     <div>
-                                        <span className="text-muted-foreground text-xs block">Revenue</span>
-                                        <span>{app.revenueRange}</span>
-                                    </div>
-                                    <div>
                                         <span className="text-muted-foreground text-xs block">Date</span>
                                         <span>{app.createdAt?.seconds ? format(new Date(app.createdAt.seconds * 1000), "MMM d, yyyy") : "N/A"}</span>
                                     </div>
@@ -328,7 +327,6 @@ const Applications = () => {
                             <TableHead>Name</TableHead>
                             <TableHead>Project / Company</TableHead>
                             <TableHead>Role</TableHead>
-                            <TableHead>Revenue</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -336,11 +334,11 @@ const Applications = () => {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-10">Loading...</TableCell>
+                                <TableCell colSpan={6} className="text-center py-10">Loading...</TableCell>
                             </TableRow>
                         ) : filteredApps.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-10">No applications found</TableCell>
+                                <TableCell colSpan={6} className="text-center py-10">No applications found</TableCell>
                             </TableRow>
                         ) : (
                             filteredApps.map((app) => (
@@ -352,7 +350,6 @@ const Applications = () => {
                                     </TableCell>
                                     <TableCell>{app.projectCompany}</TableCell>
                                     <TableCell className="capitalize">{app.role}</TableCell>
-                                    <TableCell>{app.revenueRange}</TableCell>
                                     <TableCell>
                                         <Badge variant="secondary" className={getStatusColor(app.status)}>
                                             {app.status}
@@ -403,10 +400,6 @@ const Applications = () => {
                                     <p>{selectedApp.positionRole}</p>
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-medium text-muted-foreground">Revenue Range</h4>
-                                    <p>{selectedApp.revenueRange}</p>
-                                </div>
-                                <div>
                                     <h4 className="text-sm font-medium text-muted-foreground">Source</h4>
                                     <p className="capitalize">{selectedApp.source}</p>
                                 </div>
@@ -424,6 +417,20 @@ const Applications = () => {
                                 <h4 className="text-sm font-medium text-muted-foreground">Project / Company</h4>
                                 <p className="font-medium">{selectedApp.projectCompany}</p>
                             </div>
+
+                            {selectedApp.superpower && (
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-muted-foreground">Superpower / Offer</h4>
+                                    <p className="text-sm bg-blue-50 p-3 rounded-md border border-blue-100">{selectedApp.superpower}</p>
+                                </div>
+                            )}
+
+                            {selectedApp.biggestChallenge && (
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-muted-foreground">Biggest Challenge / Seek</h4>
+                                    <p className="text-sm bg-orange-50 p-3 rounded-md border border-orange-100">{selectedApp.biggestChallenge}</p>
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 <h4 className="text-sm font-medium text-muted-foreground">Message</h4>

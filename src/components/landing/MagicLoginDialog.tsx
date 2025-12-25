@@ -51,11 +51,12 @@ const MagicLoginDialog = ({ children }: MagicLoginDialogProps) => {
 
             try {
                 const sendMagicLink = httpsCallable(functions, 'sendMagicLink');
-                await sendMagicLink({
+                const result = await sendMagicLink({
                     email: email.toLowerCase().trim(),
                     memberId: memberId,
                     name: memberData.fullName || memberData.name
                 });
+                console.log("Magic Link Result:", result.data);
                 setSent(true);
                 toast.success("Magic link sent! Check your inbox.");
             } catch (fnError) {

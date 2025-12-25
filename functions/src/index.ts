@@ -69,16 +69,11 @@ export const sendMagicLink = onCall(async (request) => {
 
     logger.info(`Sending magic link to ${email} for member ${memberId}`);
 
-    try {
-        const resend = new Resend(RESEND_API_KEY.value());
-        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
-        const fromAddress = fromEmailRaw.includes("<")
-            ? fromEmailRaw
-            : `Venture Social <${fromEmailRaw}>`;
+    let templateDoc: any = null;
+    let subject = "Your Venture Social Member Access Link";
+    const magicLink = `https://www.venturesocialdr.com/pass/${memberId}`;
 
-        const magicLink = `https://www.venturesocialdr.com/pass/${memberId}`;
-
-        const html = `
+    let html = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                 <h1 style="color: #10b981;">Access your Founder Pass</h1>
                 <p>Hello ${name || 'Member'},</p>
@@ -92,10 +87,48 @@ export const sendMagicLink = onCall(async (request) => {
             </div>
         `;
 
+    try {
+        const resend = new Resend(RESEND_API_KEY.value());
+        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
+        const fromAddress = fromEmailRaw.includes("<")
+            ? fromEmailRaw
+            : `Venture Social <${fromEmailRaw}>`;
+
+        try {
+            templateDoc = await db.collection("emailTemplates").doc("magic_link_login").get();
+            if (templateDoc.exists) {
+                const template = templateDoc.data();
+                logger.info("Found magic link template:", { active: template?.active, subject: template?.subject });
+
+                if (template?.active) {
+                    subject = template.subject || subject;
+                    let body = template.body || html;
+
+                    // Replace variables
+                    const replacements: Record<string, string> = {
+                        "{{name}}": name || "Member",
+                        "{{fullName}}": name || "Member",
+                        "{{magicLink}}": magicLink,
+                        "{{memberId}}": memberId
+                    };
+
+                    for (const [key, value] of Object.entries(replacements)) {
+                        subject = subject.replace(new RegExp(key, "g"), value);
+                        body = body.replace(new RegExp(key, "g"), value);
+                    }
+                    html = body;
+                }
+            } else {
+                logger.warn("Magic link template not found in Firestore");
+            }
+        } catch (tmplError) {
+            logger.warn("Failed to fetch magic link template, using default.", tmplError);
+        }
+
         const { data, error } = await resend.emails.send({
             from: fromAddress,
             to: email,
-            subject: "Your Venture Social Member Access Link",
+            subject: subject,
             html: html,
         });
 
@@ -104,7 +137,15 @@ export const sendMagicLink = onCall(async (request) => {
             throw new HttpsError('internal', error.message);
         }
 
-        return { success: true, data };
+        return {
+            success: true,
+            data,
+            debug: {
+                templateSource: templateDoc?.exists ? "firestore" : "default",
+                templateActive: templateDoc?.exists ? templateDoc.data()?.active : false,
+                subjectUsed: subject
+            }
+        };
     } catch (error: any) {
         logger.error("Error in sendMagicLink:", error);
         throw new HttpsError('internal', error.message);

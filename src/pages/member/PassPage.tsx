@@ -5,6 +5,7 @@ import { db } from "@/firebase/firebase";
 import FounderPass from "@/components/members/FounderPass";
 import MemberDirectory from "@/components/members/MemberDirectory";
 import Agenda from "@/components/members/Agenda";
+import Perks from "@/components/members/Perks";
 import { Button } from "@/components/ui/button";
 import { Linkedin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -14,7 +15,7 @@ const PassPage = () => {
     const { id } = useParams<{ id: string }>();
     const [member, setMember] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [currentTab, setCurrentTab] = useState<'pass' | 'room' | 'agenda'>('pass');
+    const [currentTab, setCurrentTab] = useState<'pass' | 'room' | 'agenda' | 'perks'>('pass');
 
     useEffect(() => {
         const fetchMember = async () => {
@@ -118,10 +119,14 @@ const PassPage = () => {
                     {currentTab === 'agenda' && (
                         <Agenda />
                     )}
+
+                    {currentTab === 'perks' && (
+                        <Perks />
+                    )}
                 </div>
 
                 {/* Bottom Navigation */}
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-[#111827]/90 backdrop-blur-lg border border-gray-800 rounded-full p-1.5 shadow-2xl z-50 flex justify-between items-center">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-md bg-[#111827]/90 backdrop-blur-lg border border-gray-800 rounded-full p-1.5 shadow-2xl z-50 flex justify-between items-center">
                     <button
                         onClick={() => setCurrentTab('pass')}
                         className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all ${currentTab === 'pass' ? 'bg-[#10b981] text-white shadow-lg' : 'text-gray-400 hover:text-white'
@@ -147,6 +152,15 @@ const PassPage = () => {
                     >
                         <span className="text-lg">📅</span>
                         <span className="text-[10px] font-medium mt-0.5">Agenda</span>
+                    </button>
+
+                    <button
+                        onClick={() => setCurrentTab('perks')}
+                        className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all ${currentTab === 'perks' ? 'bg-[#10b981] text-white shadow-lg' : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        <span className="text-lg">🎁</span>
+                        <span className="text-[10px] font-medium mt-0.5">Perks</span>
                     </button>
                 </div>
             </div>

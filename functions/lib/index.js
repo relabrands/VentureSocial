@@ -52,19 +52,16 @@ exports.sendAdminEmail = (0, https_1.onCall)(async (request) => {
 });
 // Callable function to send Magic Link for login
 exports.sendMagicLink = (0, https_1.onCall)(async (request) => {
+    var _a;
     const { email, memberId, name } = request.data;
     if (!email || !memberId) {
         throw new https_1.HttpsError('invalid-argument', 'Missing required fields: email, memberId');
     }
     logger.info(`Sending magic link to ${email} for member ${memberId}`);
-    try {
-        const resend = new resend_1.Resend(RESEND_API_KEY.value());
-        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
-        const fromAddress = fromEmailRaw.includes("<")
-            ? fromEmailRaw
-            : `Venture Social <${fromEmailRaw}>`;
-        const magicLink = `https://www.venturesocialdr.com/pass/${memberId}`;
-        const html = `
+    let templateDoc = null;
+    let subject = "Your Venture Social Member Access Link";
+    const magicLink = `https://www.venturesocialdr.com/pass/${memberId}`;
+    let html = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                 <h1 style="color: #10b981;">Access your Founder Pass</h1>
                 <p>Hello ${name || 'Member'},</p>
@@ -77,17 +74,60 @@ exports.sendMagicLink = (0, https_1.onCall)(async (request) => {
                 <p style="color: #999; font-size: 12px;">If you didn't request this, you can safely ignore this email.</p>
             </div>
         `;
+    try {
+        const resend = new resend_1.Resend(RESEND_API_KEY.value());
+        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
+        const fromAddress = fromEmailRaw.includes("<")
+            ? fromEmailRaw
+            : `Venture Social <${fromEmailRaw}>`;
+        try {
+            templateDoc = await db.collection("emailTemplates").doc("magic_link_login").get();
+            if (templateDoc.exists) {
+                const template = templateDoc.data();
+                logger.info("Found magic link template:", { active: template === null || template === void 0 ? void 0 : template.active, subject: template === null || template === void 0 ? void 0 : template.subject });
+                if (template === null || template === void 0 ? void 0 : template.active) {
+                    subject = template.subject || subject;
+                    let body = template.body || html;
+                    // Replace variables
+                    const replacements = {
+                        "{{name}}": name || "Member",
+                        "{{fullName}}": name || "Member",
+                        "{{magicLink}}": magicLink,
+                        "{{memberId}}": memberId
+                    };
+                    for (const [key, value] of Object.entries(replacements)) {
+                        subject = subject.replace(new RegExp(key, "g"), value);
+                        body = body.replace(new RegExp(key, "g"), value);
+                    }
+                    html = body;
+                }
+            }
+            else {
+                logger.warn("Magic link template not found in Firestore");
+            }
+        }
+        catch (tmplError) {
+            logger.warn("Failed to fetch magic link template, using default.", tmplError);
+        }
         const { data, error } = await resend.emails.send({
             from: fromAddress,
             to: email,
-            subject: "Your Venture Social Member Access Link",
+            subject: subject,
             html: html,
         });
         if (error) {
             logger.error("Error sending magic link:", error);
             throw new https_1.HttpsError('internal', error.message);
         }
-        return { success: true, data };
+        return {
+            success: true,
+            data,
+            debug: {
+                templateSource: (templateDoc === null || templateDoc === void 0 ? void 0 : templateDoc.exists) ? "firestore" : "default",
+                templateActive: (templateDoc === null || templateDoc === void 0 ? void 0 : templateDoc.exists) ? (_a = templateDoc.data()) === null || _a === void 0 ? void 0 : _a.active : false,
+                subjectUsed: subject
+            }
+        };
     }
     catch (error) {
         logger.error("Error in sendMagicLink:", error);

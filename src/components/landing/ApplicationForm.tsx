@@ -29,6 +29,39 @@ const revenueOptions = [
   { value: "1m-plus", label: "$1M+ / año" },
 ];
 
+const roleConfig: Record<string, { offerLabel: string; offerPlaceholder: string; seekLabel: string; seekPlaceholder: string }> = {
+  founder: {
+    offerLabel: "¿Cuál es tu Superpoder actual?",
+    offerPlaceholder: "Ej: Growth Hacking, Producto Técnico...",
+    seekLabel: "¿Cuál es tu mayor obstáculo hoy?",
+    seekPlaceholder: "Ej: Capital Semilla, Un CTO, Intros..."
+  },
+  investor: {
+    offerLabel: "¿Cuál es tu \"Value Add\" (además del cheque)?",
+    offerPlaceholder: "Ej: Red en Retail, Experiencia Operativa...",
+    seekLabel: "¿Cuál es tu Tesis de Inversión actual?",
+    seekPlaceholder: "Ej: SaaS B2B en etapa Seed, Fintech..."
+  },
+  partner: {
+    offerLabel: "¿Qué recurso o acceso único aportas?",
+    offerPlaceholder: "Ej: Créditos de AWS, Espacios, Asesoría Legal...",
+    seekLabel: "¿Con quién buscas alianzas estratégicas?",
+    seekPlaceholder: "Ej: Startups en Serie A, Nuevos Fondos..."
+  },
+  corporate: {
+    offerLabel: "¿Qué oportunidades de Piloto/Contrato ofreces?",
+    offerPlaceholder: "Ej: Canales de distribución, Validación técnica...",
+    seekLabel: "¿Qué innovación o solución estás cazando?",
+    seekPlaceholder: "Ej: Automatización de procesos, AI para Clientes..."
+  },
+  creative: {
+    offerLabel: "¿Cuál es tu magia creativa / técnica?",
+    offerPlaceholder: "Ej: Branding de alto nivel, UX/UI, Storytelling...",
+    seekLabel: "¿En qué tipo de visión quieres impactar?",
+    seekPlaceholder: "Ej: Founders visionarios, Proyectos de impacto social..."
+  }
+};
+
 const ApplicationForm = () => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,6 +75,8 @@ const ApplicationForm = () => {
     phone: "",
     email: "",
     city: "",
+    superpower: "",
+    biggestChallenge: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,7 +89,6 @@ const ApplicationForm = () => {
       !formData.position ||
       !formData.linkedin ||
       !formData.projectCompany ||
-      !formData.message ||
       !formData.revenueRange ||
       !formData.phone ||
       !formData.email ||
@@ -79,7 +113,9 @@ const ApplicationForm = () => {
       positionRole: formData.position,
       linkedin: formData.linkedin,
       projectCompany: formData.projectCompany,
-      message: formData.message,
+      message: formData.message, // Keeping message as optional or secondary
+      superpower: formData.superpower,
+      biggestChallenge: formData.biggestChallenge,
       revenueRange: formData.revenueRange,
       status: "new",
       source: "Web",
@@ -112,6 +148,8 @@ const ApplicationForm = () => {
         phone: "",
         email: "",
         city: "",
+        superpower: "",
+        biggestChallenge: ""
       });
       setOpen(false);
     } catch (error) {
@@ -125,6 +163,8 @@ const ApplicationForm = () => {
       setIsSubmitting(false);
     }
   };
+
+  const currentRoleConfig = formData.role ? roleConfig[formData.role] : null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -164,10 +204,37 @@ const ApplicationForm = () => {
                 <SelectItem value="founder">Founder</SelectItem>
                 <SelectItem value="investor">Investor</SelectItem>
                 <SelectItem value="partner">Partner</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="corporate">Corporate</SelectItem>
+                <SelectItem value="creative">Creative</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {currentRoleConfig && (
+            <>
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <Label htmlFor="superpower" className="text-primary">{currentRoleConfig.offerLabel}</Label>
+                <Textarea
+                  id="superpower"
+                  placeholder={currentRoleConfig.offerPlaceholder}
+                  value={formData.superpower}
+                  onChange={(e) => setFormData({ ...formData, superpower: e.target.value })}
+                  className="bg-background border-border min-h-[80px]"
+                />
+              </div>
+
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <Label htmlFor="biggestChallenge" className="text-primary">{currentRoleConfig.seekLabel}</Label>
+                <Textarea
+                  id="biggestChallenge"
+                  placeholder={currentRoleConfig.seekPlaceholder}
+                  value={formData.biggestChallenge}
+                  onChange={(e) => setFormData({ ...formData, biggestChallenge: e.target.value })}
+                  className="bg-background border-border min-h-[80px]"
+                />
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="position">Position / Role Title</Label>
@@ -256,10 +323,10 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="message">Message / Pitch</Label>
+            <Label htmlFor="message">Anything else? (Optional)</Label>
             <Textarea
               id="message"
-              placeholder="Tell us about your project..."
+              placeholder="Tell us more about your project..."
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               className="bg-background border-border"

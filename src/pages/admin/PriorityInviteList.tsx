@@ -149,7 +149,9 @@ const PriorityInviteList = () => {
         switch (category.toLowerCase()) {
             case 'founder': return 'bg-blue-500';
             case 'investor': return 'bg-purple-500';
-            case 'corporate': return 'bg-gray-500';
+            case 'partner': return 'bg-indigo-500';
+            case 'corporate': return 'bg-slate-500';
+            case 'creative': return 'bg-pink-500';
             default: return 'bg-gray-500';
         }
     };
@@ -217,6 +219,7 @@ const PriorityInviteList = () => {
                                         <SelectContent className="bg-[#1f2937] border-gray-700 text-white">
                                             <SelectItem value="founder">Founder</SelectItem>
                                             <SelectItem value="investor">Investor</SelectItem>
+                                            <SelectItem value="partner">Partner</SelectItem>
                                             <SelectItem value="corporate">Corporate</SelectItem>
                                             <SelectItem value="creative">Creative</SelectItem>
                                         </SelectContent>

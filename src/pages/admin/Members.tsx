@@ -16,7 +16,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 
 interface Application {
     id: string;
-    memberId?: string; // Added memberId
+    memberId?: string;
     fullName: string;
     email: string;
     phone: string;
@@ -29,8 +29,9 @@ interface Application {
     notes: string;
     createdAt: any;
     linkedin: string;
-    revenueRange: string;
     positionRole: string;
+    superpower?: string;
+    biggestChallenge?: string;
 }
 
 const Members = () => {
@@ -77,7 +78,7 @@ const Members = () => {
                 const data = doc.data();
                 return {
                     id: doc.id,
-                    memberId: data.memberId, // Map memberId
+                    memberId: data.memberId,
                     fullName: data.fullName || data.name || "—",
                     email: data.email || "—",
                     phone: data.phone || "—",
@@ -90,8 +91,9 @@ const Members = () => {
                     notes: data.notes || "",
                     createdAt: data.createdAt,
                     linkedin: data.linkedin || data.linkedinProfile || "—",
-                    revenueRange: data.revenueRange || "—",
                     positionRole: data.positionRole || data.position || "—",
+                    superpower: data.superpower || "",
+                    biggestChallenge: data.biggestChallenge || "",
                 };
             }) as Application[];
             setMembers(apps);
@@ -165,7 +167,7 @@ const Members = () => {
     };
 
     const handleExport = () => {
-        const headers = ["Date", "Member ID", "Name", "Email", "Phone", "Role", "City", "Project/Company", "LinkedIn", "Revenue", "Position"];
+        const headers = ["Date", "Member ID", "Name", "Email", "Phone", "Role", "City", "Project/Company", "LinkedIn", "Position", "Superpower", "Biggest Challenge"];
         const csvContent = [
             headers.join(","),
             ...filteredMembers.map(app => [
@@ -178,8 +180,9 @@ const Members = () => {
                 `"${app.city}"`,
                 `"${app.projectCompany}"`,
                 app.linkedin,
-                `"${app.revenueRange}"`,
-                `"${app.positionRole}"`
+                `"${app.positionRole}"`,
+                `"${app.superpower || ''}"`,
+                `"${app.biggestChallenge || ''}"`
             ].join(","))
         ].join("\n");
 
@@ -514,10 +517,6 @@ const Members = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground">Revenue Range</label>
-                                    <div className="text-sm">{viewMember.revenueRange}</div>
-                                </div>
-                                <div>
                                     <label className="text-xs font-medium text-muted-foreground">Position</label>
                                     <div className="text-sm">{viewMember.positionRole}</div>
                                 </div>
@@ -526,6 +525,23 @@ const Members = () => {
                                     <div className="text-sm">{viewMember.source}</div>
                                 </div>
                             </div>
+
+                            {/* Dynamic Fields */}
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Superpower / Value Add</label>
+                                    <div className="text-sm p-3 bg-blue-50/50 border border-blue-100 rounded-md mt-1">
+                                        {viewMember.superpower || "—"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground">Biggest Challenge / Needs</label>
+                                    <div className="text-sm p-3 bg-orange-50/50 border border-orange-100 rounded-md mt-1">
+                                        {viewMember.biggestChallenge || "—"}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="text-xs font-medium text-muted-foreground">Message</label>
                                 <div className="text-sm p-3 bg-muted rounded-md mt-1 whitespace-pre-wrap">{viewMember.message}</div>

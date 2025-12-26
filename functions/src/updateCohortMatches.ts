@@ -84,8 +84,14 @@ export async function runMatchmaking() {
         // 4. Update Firestore
         const batch = db.batch();
         let operationCount = 0;
+        const validUserIds = new Set(users.map(u => u.uid));
 
         for (const [uid, matches] of Object.entries(matchesMap)) {
+            if (!validUserIds.has(uid)) {
+                console.warn(`Skipping update for unknown UID returned by AI: ${uid}`);
+                continue;
+            }
+
             const userRef = db.collection("applications").doc(uid);
             batch.update(userRef, {
                 aiRecommendations: matches,

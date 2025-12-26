@@ -153,7 +153,7 @@ const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirect
                                 memberId={selectedMember.memberId || "PENDING"}
                                 company={selectedMember.projectCompany}
                                 role={selectedMember.role || "FOUNDER"}
-                                variant="private" // Allows flipping
+                                variant="directory"
                                 shareUrl={selectedMember.linkedin}
                                 shareText={`Check out ${selectedMember.fullName} from Venture Social!`}
                                 matchScore={getMatchInfo(selectedMember.id)?.score}

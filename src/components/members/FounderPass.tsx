@@ -8,7 +8,7 @@ interface FounderPassProps {
     memberId: string;
     cohort?: string;
     company?: string;
-    variant?: 'private' | 'public';
+    variant?: 'private' | 'public' | 'directory';
     shareUrl?: string;
     shareText?: string;
     role?: string;
@@ -84,6 +84,19 @@ const FounderPass: React.FC<FounderPassProps> = ({
                                     <div className="text-[18px] font-medium text-[#10b981]">
                                         {company}
                                     </div>
+
+                                    {/* Match Info for Directory Variant */}
+                                    {variant === 'directory' && matchScore && matchReason && (
+                                        <div className="mt-4 bg-white/5 border border-white/10 rounded-lg p-3 backdrop-blur-sm">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-lg">🎯</span>
+                                                <span className="text-[#10b981] font-bold text-sm">{matchScore}% Synergy</span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-300 italic leading-relaxed line-clamp-3">
+                                                "{matchReason}"
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -161,8 +174,8 @@ const FounderPass: React.FC<FounderPassProps> = ({
                                     {company}
                                 </div>
 
-                                {/* AI Match Display */}
-                                {matchScore && matchReason && (
+                                {/* AI Match Display - Only show on back if NOT directory (though directory won't flip anyway) */}
+                                {variant !== 'directory' && matchScore && matchReason && (
                                     <div className="mt-6 w-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-3 animate-in fade-in slide-in-from-bottom-4">
                                         <div className="flex items-center justify-center gap-2 mb-1">
                                             <span className="text-xl">🎯</span>

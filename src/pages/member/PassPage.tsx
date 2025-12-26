@@ -55,10 +55,10 @@ const PassPage = () => {
                     // Inject the actual document ID into the member object for the modal to use
                     setMember({ ...memberData, id: docId });
 
-                    // Check for Soft Gate (Missing Superpower or Challenge)
+                    // Check for Soft Gate (Missing Superpower, Challenge, or LinkedIn)
                     // Only if viewing their own pass (private view) - inferred by using Document ID or if we had auth
-                    // For now, we'll check if superpower/biggestChallenge are missing
-                    if (!memberData.superpower || !memberData.biggestChallenge) {
+                    // For now, we'll check if superpower/biggestChallenge/linkedin are missing
+                    if (!memberData.superpower || !memberData.biggestChallenge || !memberData.linkedin) {
                         setShowOnboarding(true);
                     }
                 } else {
@@ -82,7 +82,8 @@ const PassPage = () => {
         setMember((prev: any) => ({
             ...prev,
             superpower: "Updated", // Just to satisfy the check if we re-ran it, but we won't
-            biggestChallenge: "Updated"
+            biggestChallenge: "Updated",
+            linkedin: prev.linkedin || "Updated"
         }));
     };
 
@@ -121,6 +122,7 @@ const PassPage = () => {
                     isOpen={showOnboarding}
                     memberId={member.id}
                     role={member.role}
+                    existingLinkedin={member.linkedin}
                     onComplete={handleOnboardingComplete}
                 />
 

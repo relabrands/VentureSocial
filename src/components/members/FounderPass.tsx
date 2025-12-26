@@ -87,14 +87,26 @@ const FounderPass: React.FC<FounderPassProps> = ({
 
                                     {/* Match Info for Directory Variant */}
                                     {variant === 'directory' && matchScore && matchReason && (
-                                        <div className="mt-4 bg-white/5 border border-white/10 rounded-lg p-3 backdrop-blur-sm">
+                                        <div className="mt-4 w-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-3 backdrop-blur-sm">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-lg">🎯</span>
-                                                <span className="text-[#10b981] font-bold text-sm">{matchScore}% Synergy</span>
+                                                <span className="text-yellow-400 font-bold text-sm">{matchScore}% Synergy</span>
                                             </div>
                                             <p className="text-[10px] text-gray-300 italic leading-relaxed line-clamp-3">
                                                 "{matchReason}"
                                             </p>
+
+                                            {shareUrl && (
+                                                <a
+                                                    href={shareUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="mt-3 flex items-center justify-center gap-2 w-full bg-[#0077b5] hover:bg-[#006396] text-white text-[10px] font-bold py-2 rounded transition-colors"
+                                                >
+                                                    <Linkedin className="h-3 w-3" />
+                                                    Visit LinkedIn
+                                                </a>
+                                            )}
                                         </div>
                                     )}
                                 </div>

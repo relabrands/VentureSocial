@@ -13,14 +13,16 @@ interface OnboardingModalProps {
     isOpen: boolean;
     memberId: string; // Document ID
     role: string;
+    existingLinkedin?: string; // Add existingLinkedin prop
     onComplete: () => void;
 }
 
-const OnboardingModal = ({ isOpen, memberId, role, onComplete }: OnboardingModalProps) => {
+const OnboardingModal = ({ isOpen, memberId, role, existingLinkedin, onComplete }: OnboardingModalProps) => {
     const [formData, setFormData] = useState({
         superpower: "",
         biggestChallenge: "",
-        email: ""
+        email: "",
+        linkedin: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,8 +30,10 @@ const OnboardingModal = ({ isOpen, memberId, role, onComplete }: OnboardingModal
     const normalizedRole = role?.toLowerCase() || "founder";
     const config = roleConfig[normalizedRole] || roleConfig["founder"];
 
+    const showLinkedinInput = !existingLinkedin;
+
     const handleSubmit = async () => {
-        if (!formData.superpower || !formData.biggestChallenge || !formData.email) {
+        if (!formData.superpower || !formData.biggestChallenge || !formData.email || (showLinkedinInput && !formData.linkedin)) {
             toast.error("Please fill in all fields to continue.");
             return;
         }
@@ -37,11 +41,17 @@ const OnboardingModal = ({ isOpen, memberId, role, onComplete }: OnboardingModal
         setIsSubmitting(true);
         try {
             const docRef = doc(db, "applications", memberId);
-            await updateDoc(docRef, {
+            const updateData: any = {
                 superpower: formData.superpower,
                 biggestChallenge: formData.biggestChallenge,
-                email: formData.email // Update email
-            });
+                email: formData.email
+            };
+
+            if (showLinkedinInput) {
+                updateData.linkedin = formData.linkedin;
+            }
+
+            await updateDoc(docRef, updateData);
             toast.success("Profile updated! Welcome to the network.");
             onComplete();
         } catch (error) {
@@ -78,6 +88,22 @@ const OnboardingModal = ({ isOpen, memberId, role, onComplete }: OnboardingModal
                             className="flex h-10 w-full rounded-md border border-gray-700 bg-[#1f2937] px-3 py-2 text-sm text-white ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         />
                     </div>
+
+                    {showLinkedinInput && (
+                        <div className="space-y-3">
+                            <Label htmlFor="linkedin" className="text-[#10b981] font-medium text-base">
+                                LinkedIn Profile
+                            </Label>
+                            <input
+                                id="linkedin"
+                                type="text"
+                                placeholder="linkedin.com/in/username"
+                                value={formData.linkedin}
+                                onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                                className="flex h-10 w-full rounded-md border border-gray-700 bg-[#1f2937] px-3 py-2 text-sm text-white ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                        </div>
+                    )}
 
                     <div className="space-y-3">
                         <Label htmlFor="superpower" className="text-[#10b981] font-medium text-base">

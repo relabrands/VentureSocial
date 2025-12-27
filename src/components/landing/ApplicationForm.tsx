@@ -21,6 +21,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
+import { v4 as uuidv4 } from 'uuid';
 
 export const roleConfig: Record<string, { offerLabel: string; offerPlaceholder: string; seekLabel: string; seekPlaceholder: string }> = {
   founder: {
@@ -55,8 +56,18 @@ export const roleConfig: Record<string, { offerLabel: string; offerPlaceholder: 
   }
 };
 
-const ApplicationForm = () => {
-  const [open, setOpen] = useState(false);
+interface ApplicationFormProps {
+  isInternal?: boolean;
+  trigger?: React.ReactNode;
+  onSuccess?: () => void;
+  defaultOpen?: boolean;
+}
+
+const ApplicationForm = ({ isInternal = false, trigger, onSuccess, defaultOpen = false }: ApplicationFormProps) => {
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const open = internalOpen;
+  const setOpen = setInternalOpen;
+
   const [formData, setFormData] = useState({
     name: "",
     role: "",
@@ -75,22 +86,25 @@ const ApplicationForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !formData.name ||
-      !formData.role ||
-      !formData.position ||
-      !formData.linkedin ||
-      !formData.projectCompany ||
-      !formData.phone ||
-      !formData.email ||
-      !formData.city
-    ) {
-      toast({
-        title: "Please fill all fields",
-        description: "All fields are required to submit your application.",
-        variant: "destructive",
-      });
-      return;
+    // Skip validation if internal
+    if (!isInternal) {
+      if (
+        !formData.name ||
+        !formData.role ||
+        !formData.position ||
+        !formData.linkedin ||
+        !formData.projectCompany ||
+        !formData.phone ||
+        !formData.email ||
+        !formData.city
+      ) {
+        toast({
+          title: "Please fill all fields",
+          description: "All fields are required to submit your application.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -104,11 +118,12 @@ const ApplicationForm = () => {
       positionRole: formData.position,
       linkedin: formData.linkedin,
       projectCompany: formData.projectCompany,
-      message: formData.message, // Keeping message as optional or secondary
+      message: formData.message,
       superpower: formData.superpower,
       biggestChallenge: formData.biggestChallenge,
-      status: "new",
-      source: "Web",
+      status: isInternal ? "pending_venue" : "new",
+      source: isInternal ? "admin_crm" : "Web",
+      inviteToken: isInternal ? uuidv4() : null,
       notes: "",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -117,14 +132,11 @@ const ApplicationForm = () => {
     console.log("Submitting Payload:", payload);
 
     try {
-      // Save to Firestore
       await addDoc(collection(db, "applications"), payload);
 
-      // Email is now sent via Cloud Function trigger on document creation
-
       toast({
-        title: "Application Received",
-        description: "We'll review your application and be in touch within 48 hours.",
+        title: isInternal ? "VIP Added" : "Application Received",
+        description: isInternal ? "The user has been added to the priority list." : "We'll review your application and be in touch within 48 hours.",
       });
 
       setFormData({
@@ -141,6 +153,7 @@ const ApplicationForm = () => {
         biggestChallenge: ""
       });
       setOpen(false);
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error submitting application:", error);
       toast({
@@ -158,19 +171,21 @@ const ApplicationForm = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="hero" size="xl" className="w-full sm:w-auto bg-white text-black hover:bg-zinc-200 rounded-full font-medium px-8 py-6 text-lg transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]">
-          Apply for January Cohort
-        </Button>
+        {trigger ? trigger : (
+          <Button variant="hero" size="xl" className="w-full sm:w-auto bg-white text-black hover:bg-zinc-200 rounded-full font-medium px-8 py-6 text-lg transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]">
+            Apply for January Cohort
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto bg-background border-border">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight">
-            Apply for Access
+            {isInternal ? "Add VIP to List" : "Apply for Access"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Full Name {isInternal ? "(Optional)" : ""}</Label>
             <Input
               id="name"
               placeholder="John Doe"
@@ -181,7 +196,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">I am a...</Label>
+            <Label htmlFor="role">I am a... {isInternal ? "(Optional)" : ""}</Label>
             <Select
               value={formData.role}
               onValueChange={(value) => setFormData({ ...formData, role: value })}
@@ -230,7 +245,7 @@ const ApplicationForm = () => {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="position">Position / Role Title</Label>
+            <Label htmlFor="position">Position / Role Title {isInternal ? "(Optional)" : ""}</Label>
             <Input
               id="position"
               placeholder="CEO, Founder, Investor..."
@@ -241,7 +256,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="projectCompany">Project / Company Name</Label>
+            <Label htmlFor="projectCompany">Project / Company Name {isInternal ? "(Optional)" : ""}</Label>
             <Input
               id="projectCompany"
               placeholder="My Startup Inc."
@@ -252,7 +267,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="linkedin">LinkedIn Profile / Name</Label>
+            <Label htmlFor="linkedin">LinkedIn Profile / Name {isInternal ? "(Optional)" : ""}</Label>
             <Input
               id="linkedin"
               placeholder="linkedin.com/in/johndoe or John Doe"
@@ -263,7 +278,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone">Phone Number {isInternal ? "(Optional)" : ""}</Label>
             <Input
               id="phone"
               type="tel"
@@ -275,7 +290,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email {isInternal ? "(Optional)" : ""}</Label>
             <Input
               id="email"
               type="email"
@@ -287,7 +302,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
+            <Label htmlFor="city">City {isInternal ? "(Optional)" : ""}</Label>
             <Input
               id="city"
               placeholder="Santo Domingo"
@@ -309,7 +324,7 @@ const ApplicationForm = () => {
           </div>
 
           <Button type="submit" variant="hero" size="lg" className="w-full mt-6" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit Application"}
+            {isSubmitting ? "Submitting..." : (isInternal ? "Add to CRM" : "Submit Application")}
           </Button>
         </form>
       </DialogContent>

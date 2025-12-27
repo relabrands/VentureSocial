@@ -30,20 +30,12 @@ import { toast } from "sonner";
 import { Loader2, Plus, Copy, Rocket, ExternalLink } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 
+import ApplicationForm from "@/components/landing/ApplicationForm";
+
 const PriorityInviteList = () => {
     const [invites, setInvites] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isAddOpen, setIsAddOpen] = useState(false);
     const [isLaunching, setIsLaunching] = useState(false);
-
-    // Form State
-    const [formData, setFormData] = useState({
-        fullName: "",
-        category: "founder",
-        role: "",
-        projectCompany: "",
-        linkedin: ""
-    });
 
     const fetchInvites = async () => {
         try {
@@ -74,38 +66,6 @@ const PriorityInviteList = () => {
     useEffect(() => {
         fetchInvites();
     }, []);
-
-    const handleAddVIP = async () => {
-        if (!formData.fullName || !formData.role || !formData.projectCompany) {
-            toast.error("Please fill in all required fields");
-            return;
-        }
-
-        try {
-            const newInvite = {
-                ...formData,
-                status: "pending_venue",
-                inviteToken: uuidv4(),
-                createdAt: serverTimestamp(),
-                source: "admin_crm"
-            };
-
-            await addDoc(collection(db, "applications"), newInvite);
-            toast.success("VIP added successfully");
-            setIsAddOpen(false);
-            setFormData({
-                fullName: "",
-                category: "founder",
-                role: "",
-                projectCompany: "",
-                linkedin: ""
-            });
-            fetchInvites();
-        } catch (error) {
-            console.error("Error adding VIP:", error);
-            toast.error("Failed to add VIP");
-        }
-    };
 
     const handleLaunchBatch = async () => {
         if (!confirm("Are you sure you want to activate ALL pending invites? This will enable the copy invite buttons.")) return;
@@ -186,80 +146,16 @@ const PriorityInviteList = () => {
                         Launch Batch Jan-2026 (Activate All)
                     </Button>
 
-                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                        <DialogTrigger asChild>
+                    <ApplicationForm
+                        isInternal={true}
+                        onSuccess={fetchInvites}
+                        trigger={
                             <Button className="bg-[#10b981] hover:bg-[#059669] text-white">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add New Person
                             </Button>
-                        </DialogTrigger>
-                        <DialogContent className="bg-[#111827] border-[#1f2937] text-white">
-                            <DialogHeader>
-                                <DialogTitle>Add VIP to List</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4 mt-4">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-400">Full Name</label>
-                                    <Input
-                                        value={formData.fullName}
-                                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                        className="bg-[#1f2937] border-gray-700 text-white mt-1"
-                                        placeholder="Ex: Javier Piña"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-400">I am a...</label>
-                                    <Select
-                                        value={formData.category}
-                                        onValueChange={(v) => setFormData({ ...formData, category: v })}
-                                    >
-                                        <SelectTrigger className="bg-[#1f2937] border-gray-700 text-white mt-1">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-[#1f2937] border-gray-700 text-white">
-                                            <SelectItem value="founder">Founder</SelectItem>
-                                            <SelectItem value="investor">Investor</SelectItem>
-                                            <SelectItem value="partner">Partner</SelectItem>
-                                            <SelectItem value="corporate">Corporate</SelectItem>
-                                            <SelectItem value="creative">Creative</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-400">Position / Role Title</label>
-                                        <Input
-                                            value={formData.role}
-                                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                            className="bg-[#1f2937] border-gray-700 text-white mt-1"
-                                            placeholder="Ex: CEO"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-400">Project / Company</label>
-                                        <Input
-                                            value={formData.projectCompany}
-                                            onChange={(e) => setFormData({ ...formData, projectCompany: e.target.value })}
-                                            className="bg-[#1f2937] border-gray-700 text-white mt-1"
-                                            placeholder="Ex: Corotos"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-400">LinkedIn Profile (URL)</label>
-                                    <Input
-                                        value={formData.linkedin}
-                                        onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                                        className="bg-[#1f2937] border-gray-700 text-white mt-1"
-                                        placeholder="https://linkedin.com/in/..."
-                                    />
-                                </div>
-                                <Button onClick={handleAddVIP} className="w-full bg-[#10b981] hover:bg-[#059669] mt-2">
-                                    Add to CRM
-                                </Button>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+                        }
+                    />
                 </div>
             </div>
 

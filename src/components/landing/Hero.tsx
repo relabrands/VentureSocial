@@ -41,7 +41,7 @@ const Hero = () => {
           <div className="mt-10 opacity-0 animate-fade-up animation-delay-400 flex flex-col items-center lg:items-start w-full sm:w-auto">
             <ApplicationForm />
             <p className="mt-4 text-[10px] uppercase tracking-widest text-zinc-600">
-              Limited to 40 seats per cohort
+              Limited to 20 seats per cohort
             </p>
           </div>
         </div>
@@ -53,9 +53,9 @@ const Hero = () => {
           <div className="relative transform transition-transform duration-700 hover:scale-105 hover:rotate-y-12">
             <div className="scale-[0.85] sm:scale-100 origin-center pointer-events-none border border-yellow-500/30 rounded-[20px] shadow-[0_0_50px_rgba(234,179,8,0.1)]">
               <FounderPass
-                name="Robinson Sanchez"
+                name="Robinson Sánchez"
                 memberId="001"
-                company="@VentureSocial"
+                company="@VentureSocialDR"
                 role="FOUNDER"
                 variant="private"
                 cohort="JAN 2026"

@@ -12,6 +12,7 @@ interface FounderPassProps {
     shareUrl?: string;
     shareText?: string;
     role?: string;
+    positionRole?: string;
     matchScore?: number;
     matchReason?: string;
 }
@@ -25,6 +26,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
     shareUrl,
     shareText,
     role = "FOUNDER",
+    positionRole,
     matchScore,
     matchReason
 }) => {
@@ -82,7 +84,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
                                         {name}
                                     </div>
                                     <div className="text-[18px] font-medium text-[#10b981]">
-                                        {company}
+                                        {positionRole ? `${positionRole} ` : ''}{company}
                                     </div>
 
                                     {/* Match Info for Directory Variant */}
@@ -183,7 +185,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
                                     {role}
                                 </div>
                                 <div className="text-[16px] text-[#9ca3af]">
-                                    {company}
+                                    {positionRole ? `${positionRole} ` : ''}{company}
                                 </div>
 
                                 {/* AI Match Display - Only show on back if NOT directory (though directory won't flip anyway) */}

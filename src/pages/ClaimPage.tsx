@@ -125,11 +125,11 @@ const ClaimPage = () => {
                     </div>
 
                     <h1 className="text-3xl font-bold text-white mb-2">
-                        Hola, {invite.fullName.split(' ')[0]} 👋
+                        Hello, {invite.fullName.split(' ')[0]} 👋
                     </h1>
 
                     <p className="text-gray-400 mb-8 leading-relaxed">
-                        Hemos reservado una credencial de <span className="text-white font-semibold capitalize">{invite.role || invite.category}</span> para ti en representación de <span className="text-white font-semibold">{invite.projectCompany || invite.company}</span>.
+                        We have reserved a <span className="text-white font-semibold capitalize">{invite.role || invite.category}</span> credential for you on behalf of <span className="text-white font-semibold">{invite.projectCompany || invite.company}</span>.
                     </p>
 
                     <div className="space-y-4">
@@ -144,12 +144,12 @@ const ClaimPage = () => {
                                     Activating...
                                 </>
                             ) : (
-                                "Confirmar Asistencia y Activar Pase"
+                                "Confirm Attendance & Activate Pass"
                             )}
                         </Button>
 
                         <p className="text-xs text-gray-500">
-                            Al confirmar, obtendrás acceso inmediato a tu Founder Pass y al directorio de miembros.
+                            By confirming, you will get immediate access to your Founder Pass and the member directory.
                         </p>
                     </div>
                 </div>

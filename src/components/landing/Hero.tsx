@@ -57,6 +57,7 @@ const Hero = () => {
                 memberId="001"
                 company="@VentureSocialDR"
                 role="FOUNDER"
+                positionRole="Founder"
                 variant="private"
                 cohort="JAN 2026"
               />

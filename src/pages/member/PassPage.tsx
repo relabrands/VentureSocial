@@ -135,6 +135,7 @@ const PassPage = () => {
                                 memberId={member.memberId || "PENDING"}
                                 company={member.projectCompany ? `@${member.projectCompany}` : (member.company ? `@${member.company}` : undefined)}
                                 role={member.role || "FOUNDER"}
+                                positionRole={member.positionRole}
                                 variant="private"
                                 shareUrl={`https://www.venturesocialdr.com/p/${member.memberId || id}`}
                                 shareText={`Proud to be selected for the first cohort of @VentureSocialDR. Building the future of tech in Santo Domingo alongside the best. 🇩🇴 #VentureSocialdr`}

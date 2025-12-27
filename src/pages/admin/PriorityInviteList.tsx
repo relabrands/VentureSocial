@@ -106,6 +106,7 @@ const PriorityInviteList = () => {
     };
 
     const getCategoryColor = (category: string) => {
+        if (!category) return 'bg-gray-500';
         switch (category.toLowerCase()) {
             case 'founder': return 'bg-blue-500';
             case 'investor': return 'bg-purple-500';
@@ -204,13 +205,13 @@ const PriorityInviteList = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className="text-sm">
-                                            <span className="font-bold text-white">{invite.role}</span>
+                                            <span className="font-bold text-white">{invite.positionRole || invite.role}</span>
                                             <span className="text-gray-400"> @ {invite.projectCompany}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge className={`${getCategoryColor(invite.category)} text-white border-0`}>
-                                            {invite.category}
+                                        <Badge className={`${getCategoryColor(invite.role || invite.category)} text-white border-0`}>
+                                            {invite.role || invite.category || 'Unknown'}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>

@@ -5,7 +5,8 @@ const Footer = () => {
         <div className="flex flex-col items-center text-center">
           <p className="text-sm text-muted-foreground mb-6">
             Powered by{" "}
-            <span className="font-medium text-foreground/70">NOMI</span>
+            <span className="font-medium text-foreground/70">NOMI,</span>
+            <span className="font-medium text-foreground/70">RELA Brands</span>
             {" & "}
             <span className="font-medium text-foreground/70">DOKTAP</span>
           </p>

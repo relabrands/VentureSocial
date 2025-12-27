@@ -38,7 +38,6 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const { isVenueMode, toggleVenueMode } = useVenueMode();
     const { isGatekeeperEnabled, toggleGatekeeperMode } = useGatekeeperMode();
-    const { isGatekeeperEnabled, toggleGatekeeperMode } = useGatekeeperMode();
 
     useEffect(() => {
         fetchStats();

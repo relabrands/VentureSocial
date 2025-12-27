@@ -1,4 +1,3 @@
-```
 const Gallery = () => {
   const placeholders = [1, 2, 3];
 
@@ -32,4 +31,3 @@ const Gallery = () => {
 };
 
 export default Gallery;
-```

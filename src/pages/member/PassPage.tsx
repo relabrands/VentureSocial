@@ -14,6 +14,8 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 
 import OnboardingModal from "@/components/members/OnboardingModal";
 
+import { useGatekeeperMode } from "@/hooks/useGatekeeperMode";
+
 const PassPage = () => {
     const { id } = useParams<{ id: string }>();
     const [member, setMember] = useState<any>(null);
@@ -27,11 +29,15 @@ const PassPage = () => {
     const [isVerifying, setIsVerifying] = useState(false);
     const [authError, setAuthError] = useState("");
 
+    const { isGatekeeperEnabled, loading: gatekeeperLoading } = useGatekeeperMode();
+
     useEffect(() => {
         const checkAuthAndFetch = async () => {
+            if (gatekeeperLoading) return;
+
             const storedAuth = localStorage.getItem('vs_member_authenticated');
 
-            if (storedAuth === 'true') {
+            if (!isGatekeeperEnabled || storedAuth === 'true') {
                 setIsAuthenticated(true);
                 await fetchMemberById(id || "");
             } else {
@@ -40,7 +46,7 @@ const PassPage = () => {
         };
 
         checkAuthAndFetch();
-    }, [id]);
+    }, [id, isGatekeeperEnabled, gatekeeperLoading]);
 
     const fetchMemberById = async (memberId: string) => {
         if (!memberId) return;

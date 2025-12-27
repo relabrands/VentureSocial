@@ -12,6 +12,7 @@ interface Member {
     projectCompany: string;
     linkedin?: string;
     role?: string;
+    positionRole?: string;
 }
 
 interface Recommendation {
@@ -116,7 +117,7 @@ const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirect
                             <div className="flex-1 min-w-0">
                                 <h4 className="text-white font-medium text-sm truncate">{member.fullName}</h4>
                                 <p className="text-[#9ca3af] text-xs truncate">
-                                    {member.role ? `${member.role} @ ` : ''}{member.projectCompany}
+                                    {member.positionRole || member.role ? `${member.positionRole || member.role} @ ` : ''}{member.projectCompany}
                                 </p>
                                 {isMatch && (
                                     <p className="text-yellow-500/90 text-[10px] mt-1 italic truncate">
@@ -153,6 +154,7 @@ const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirect
                                 memberId={selectedMember.memberId || "PENDING"}
                                 company={selectedMember.projectCompany}
                                 role={selectedMember.role || "FOUNDER"}
+                                positionRole={selectedMember.positionRole}
                                 variant="directory"
                                 shareUrl={selectedMember.linkedin}
                                 shareText={`Check out ${selectedMember.fullName} from Venture Social!`}

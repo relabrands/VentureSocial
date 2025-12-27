@@ -3,11 +3,13 @@ import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
-import { Users, FileText, CheckCircle, Clock, TrendingUp, Zap } from "lucide-react";
+import { Users, FileText, CheckCircle, Clock, TrendingUp, Zap, ShieldCheck } from "lucide-react";
 import { format, subDays, isAfter } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useVenueMode } from "@/hooks/useVenueMode";
+import { useGatekeeperMode } from "@/hooks/useGatekeeperMode";
+import { useGatekeeperMode } from "@/hooks/useGatekeeperMode";
 
 interface Application {
     id: string;
@@ -35,6 +37,8 @@ const Dashboard = () => {
     const [cityData, setCityData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { isVenueMode, toggleVenueMode } = useVenueMode();
+    const { isGatekeeperEnabled, toggleGatekeeperMode } = useGatekeeperMode();
+    const { isGatekeeperEnabled, toggleGatekeeperMode } = useGatekeeperMode();
 
     useEffect(() => {
         fetchStats();
@@ -146,16 +150,32 @@ const Dashboard = () => {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border shadow-sm">
-                    <Zap className={`h-4 w-4 ${isVenueMode ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}`} />
-                    <Label htmlFor="venue-mode" className="text-sm font-medium cursor-pointer">
-                        Activate Venue Partner: Barna
-                    </Label>
-                    <Switch
-                        id="venue-mode"
-                        checked={isVenueMode}
-                        onCheckedChange={toggleVenueMode}
-                    />
+                <div className="flex flex-col sm:flex-row gap-4">
+                    {/* Gatekeeper Toggle */}
+                    <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border shadow-sm">
+                        <ShieldCheck className={`h-4 w-4 ${isGatekeeperEnabled ? "text-emerald-500 fill-emerald-500" : "text-gray-400"}`} />
+                        <Label htmlFor="gatekeeper-mode" className="text-sm font-medium cursor-pointer">
+                            Secure Pass
+                        </Label>
+                        <Switch
+                            id="gatekeeper-mode"
+                            checked={isGatekeeperEnabled}
+                            onCheckedChange={toggleGatekeeperMode}
+                        />
+                    </div>
+
+                    {/* Venue Mode Toggle */}
+                    <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border shadow-sm">
+                        <Zap className={`h-4 w-4 ${isVenueMode ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}`} />
+                        <Label htmlFor="venue-mode" className="text-sm font-medium cursor-pointer">
+                            Venue Partner
+                        </Label>
+                        <Switch
+                            id="venue-mode"
+                            checked={isVenueMode}
+                            onCheckedChange={toggleVenueMode}
+                        />
+                    </div>
                 </div>
             </div>
 

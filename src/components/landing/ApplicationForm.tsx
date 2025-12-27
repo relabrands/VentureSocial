@@ -74,10 +74,8 @@ const ApplicationForm = ({ isInternal = false, trigger, onSuccess, defaultOpen =
     position: "",
     linkedin: "",
     projectCompany: "",
-    message: "",
     phone: "",
     email: "",
-    city: "",
     superpower: "",
     biggestChallenge: ""
   });
@@ -95,8 +93,7 @@ const ApplicationForm = ({ isInternal = false, trigger, onSuccess, defaultOpen =
         !formData.linkedin ||
         !formData.projectCompany ||
         !formData.phone ||
-        !formData.email ||
-        !formData.city
+        !formData.email
       ) {
         toast({
           title: "Please fill all fields",
@@ -113,12 +110,7 @@ const ApplicationForm = ({ isInternal = false, trigger, onSuccess, defaultOpen =
       fullName: formData.name,
       email: formData.email,
       phone: formData.phone,
-      city: formData.city,
-      role: formData.role || "Unknown",
-      positionRole: formData.position,
-      linkedin: formData.linkedin,
       projectCompany: formData.projectCompany,
-      message: formData.message,
       superpower: formData.superpower,
       biggestChallenge: formData.biggestChallenge,
       status: isInternal ? "pending_venue" : "new",
@@ -145,10 +137,8 @@ const ApplicationForm = ({ isInternal = false, trigger, onSuccess, defaultOpen =
         position: "",
         linkedin: "",
         projectCompany: "",
-        message: "",
         phone: "",
         email: "",
-        city: "",
         superpower: "",
         biggestChallenge: ""
       });
@@ -301,27 +291,7 @@ const ApplicationForm = ({ isInternal = false, trigger, onSuccess, defaultOpen =
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="city">City {isInternal ? "(Optional)" : ""}</Label>
-            <Input
-              id="city"
-              placeholder="Santo Domingo"
-              value={formData.city}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              className="bg-background border-border"
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="message">Anything else? (Optional)</Label>
-            <Textarea
-              id="message"
-              placeholder="Tell us more about your project..."
-              value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              className="bg-background border-border"
-            />
-          </div>
 
           <Button type="submit" variant="hero" size="lg" className="w-full mt-6" disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : (isInternal ? "Add to CRM" : "Submit Application")}

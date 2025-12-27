@@ -15,9 +15,9 @@ interface Application {
     id: string;
     status: string;
     createdAt: any;
-    revenueRange?: string;
     role?: string;
-    city?: string;
+    positionRole?: string;
+    role?: string;
 }
 
 const Dashboard = () => {
@@ -32,9 +32,8 @@ const Dashboard = () => {
         lastWeek: 0,
     });
     const [chartData, setChartData] = useState<any[]>([]);
-    const [revenueData, setRevenueData] = useState<any[]>([]);
+    const [positionData, setPositionData] = useState<any[]>([]);
     const [roleData, setRoleData] = useState<any[]>([]);
-    const [cityData, setCityData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { isVenueMode, toggleVenueMode } = useVenueMode();
     const { isGatekeeperEnabled, toggleGatekeeperMode } = useGatekeeperMode();
@@ -93,18 +92,24 @@ const Dashboard = () => {
 
             // --- Real Data Aggregation ---
 
-            // 1. Revenue Range (Stage)
-            const revenueCounts: Record<string, number> = {};
+            // 1. Positions (Top 5)
+            const positionCounts: Record<string, number> = {};
             apps.forEach(app => {
-                const range = app.revenueRange || "Unknown";
-                revenueCounts[range] = (revenueCounts[range] || 0) + 1;
+                const pos = app.positionRole ? app.positionRole.trim() : "Unknown";
+                // Simple normalization (Capitalize first letter)
+                const normalizedPos = pos.charAt(0).toUpperCase() + pos.slice(1);
+                positionCounts[normalizedPos] = (positionCounts[normalizedPos] || 0) + 1;
             });
-            const revenueChart = Object.keys(revenueCounts).map((key, index) => ({
-                name: key === "pre-revenue" ? "Pre-Revenue" : key,
-                value: revenueCounts[key],
-                color: ["#3b82f6", "#10b981", "#f59e0b", "#6366f1"][index % 4]
-            }));
-            setRevenueData(revenueChart);
+
+            const positionChart = Object.entries(positionCounts)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 5)
+                .map(([key, value], index) => ({
+                    name: key,
+                    value: value,
+                    color: ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088fe"][index % 5]
+                }));
+            setPositionData(positionChart);
 
             // 2. Roles
             const roleCounts: Record<string, number> = {};
@@ -118,19 +123,6 @@ const Dashboard = () => {
                 color: ["#ec4899", "#8b5cf6", "#14b8a6", "#f97316"][index % 4]
             }));
             setRoleData(roleChart);
-
-            // 3. Cities
-            const cityCounts: Record<string, number> = {};
-            apps.forEach(app => {
-                const city = app.city || "Unknown";
-                cityCounts[city] = (cityCounts[city] || 0) + 1;
-            });
-            const cityChart = Object.keys(cityCounts).map((key, index) => ({
-                name: key,
-                value: cityCounts[key],
-                color: ["#06b6d4", "#f43f5e", "#84cc16", "#e11d48"][index % 4]
-            })).slice(0, 5); // Top 5 cities
-            setCityData(cityChart);
 
         } catch (error) {
             console.error("Error fetching stats:", error);
@@ -292,32 +284,26 @@ const Dashboard = () => {
             {/* Talent Heatmap Section (Real Data) */}
             <div className="space-y-4">
                 <h2 className="text-xl font-bold tracking-tight">Talent Heatmap (Real Data) 📊</h2>
-                <div className="grid gap-4 md:grid-cols-3">
-                    {/* Revenue/Stage Chart */}
+                <div className="grid gap-4 md:grid-cols-2">
+                    {/* Positions Chart */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-sm font-medium">Revenue Stage</CardTitle>
+                            <CardTitle className="text-sm font-medium">Top Positions</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[200px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={revenueData}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={80}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                        >
-                                            {revenueData.map((entry, index) => (
+                                    <BarChart data={positionData} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11 }} />
+                                        <Tooltip cursor={{ fill: 'transparent' }} />
+                                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                                            {positionData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
-                                        </Pie>
-                                        <Tooltip />
-                                        <Legend />
-                                    </PieChart>
+                                        </Bar>
+                                    </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </CardContent>
@@ -351,29 +337,7 @@ const Dashboard = () => {
                         </CardContent>
                     </Card>
 
-                    {/* City Chart */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-sm font-medium">Top Cities</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="h-[200px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={cityData} layout="vertical">
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                        <XAxis type="number" hide />
-                                        <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
-                                        <Tooltip cursor={{ fill: 'transparent' }} />
-                                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
-                                            {cityData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </CardContent>
-                    </Card>
+
                 </div>
             </div>
         </div>

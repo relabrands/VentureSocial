@@ -19,9 +19,7 @@ interface Application {
     email: string;
     phone: string;
     role: string;
-    city: string;
     projectCompany: string;
-    message: string;
     status: "pending" | "new" | "review" | "accepted" | "rejected";
     source: string;
     notes: string;
@@ -70,9 +68,7 @@ const Applications = () => {
                     email: data.email || "—",
                     phone: data.phone || "—",
                     role: data.role || "Unknown",
-                    city: data.city || "—",
                     projectCompany: data.projectCompany || data.project || "—",
-                    message: data.message || "—",
                     status: data.status || "pending",
                     source: data.source || "Web",
                     notes: data.notes || "",
@@ -198,7 +194,7 @@ const Applications = () => {
     };
 
     const handleExport = () => {
-        const headers = ["Date", "Name", "Email", "Phone", "Role", "City", "Project/Company", "Status", "Source", "LinkedIn", "Superpower", "Challenge"];
+        const headers = ["Date", "Name", "Email", "Phone", "Role", "Project/Company", "Status", "Source", "LinkedIn", "Superpower", "Challenge"];
         const csvContent = [
             headers.join(","),
             ...applications.map(app => [
@@ -207,7 +203,6 @@ const Applications = () => {
                 `"${app.email}"`,
                 `"${app.phone}"`,
                 `"${app.role}"`,
-                `"${app.city}"`,
                 `"${app.projectCompany}"`,
                 `"${app.status}"`,
                 `"${app.source}"`,
@@ -387,10 +382,7 @@ const Applications = () => {
                                     <h4 className="text-sm font-medium text-muted-foreground">Phone</h4>
                                     <p>{selectedApp.phone}</p>
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-medium text-muted-foreground">City</h4>
-                                    <p>{selectedApp.city}</p>
-                                </div>
+
                                 <div>
                                     <h4 className="text-sm font-medium text-muted-foreground">Role</h4>
                                     <p className="capitalize">{selectedApp.role}</p>
@@ -432,10 +424,7 @@ const Applications = () => {
                                 </div>
                             )}
 
-                            <div className="space-y-2">
-                                <h4 className="text-sm font-medium text-muted-foreground">Message</h4>
-                                <p className="text-sm bg-gray-50 p-3 rounded-md">{selectedApp.message}</p>
-                            </div>
+
 
                             <div className="border-t pt-4 mt-2 space-y-4">
                                 <div className="grid gap-2">

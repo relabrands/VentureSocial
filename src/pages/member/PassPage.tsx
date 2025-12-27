@@ -182,15 +182,7 @@ const PassPage = () => {
         }));
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-black text-white">
-                <Loader2 className="h-8 w-8 animate-spin text-[#10b981]" />
-            </div>
-        );
-    }
-
-    if (loading) {
+    if (loading || gatekeeperLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
                 <Loader2 className="h-8 w-8 animate-spin text-[#10b981]" />
@@ -199,7 +191,7 @@ const PassPage = () => {
     }
 
     // GATEKEEPER UI
-    if (!isAuthenticated) {
+    if (isGatekeeperEnabled && !isAuthenticated) {
         return (
             <HelmetProvider>
                 <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">

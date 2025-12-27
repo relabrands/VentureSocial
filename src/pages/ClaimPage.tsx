@@ -129,7 +129,7 @@ const ClaimPage = () => {
                     </h1>
 
                     <p className="text-gray-400 mb-8 leading-relaxed">
-                        Hemos reservado una credencial de <span className="text-white font-semibold">{invite.category}</span> para ti en representación de <span className="text-white font-semibold">{invite.projectCompany || invite.company}</span>.
+                        Hemos reservado una credencial de <span className="text-white font-semibold capitalize">{invite.role || invite.category}</span> para ti en representación de <span className="text-white font-semibold">{invite.projectCompany || invite.company}</span>.
                     </p>
 
                     <div className="space-y-4">

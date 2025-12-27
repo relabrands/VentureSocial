@@ -152,7 +152,7 @@ const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirect
                             <FounderPass
                                 name={selectedMember.fullName}
                                 memberId={selectedMember.memberId || "PENDING"}
-                                company={selectedMember.projectCompany}
+                                company={`@${selectedMember.projectCompany}`}
                                 role={selectedMember.role || "FOUNDER"}
                                 positionRole={selectedMember.positionRole}
                                 variant="directory"

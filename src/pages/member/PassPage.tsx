@@ -190,13 +190,10 @@ const PassPage = () => {
         );
     }
 
-    if (!member) {
+    if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-2">Member Not Found</h1>
-                    <p className="text-gray-400">The requested founder pass does not exist.</p>
-                </div>
+                <Loader2 className="h-8 w-8 animate-spin text-[#10b981]" />
             </div>
         );
     }
@@ -263,6 +260,17 @@ const PassPage = () => {
                     </div>
                 </div>
             </HelmetProvider>
+        );
+    }
+
+    if (!member) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-black text-white">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-2">Member Not Found</h1>
+                    <p className="text-gray-400">The requested founder pass does not exist.</p>
+                </div>
+            </div>
         );
     }
 

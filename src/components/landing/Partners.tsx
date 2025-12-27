@@ -4,9 +4,9 @@ const partners = [
 
 const Partners = () => {
   return (
-    <section className="py-24 px-6 border-t border-border">
+    <section className="py-24 px-6 border-t border-white/5">
       <div className="container mx-auto">
-        <p className="text-center text-xs tracking-[0.3em] text-muted-foreground uppercase mb-12 opacity-0 animate-fade-in">
+        <p className="text-center text-xs tracking-[0.3em] text-zinc-500 uppercase mb-12 opacity-0 animate-fade-in">
           Trusted by members from
         </p>
 
@@ -20,7 +20,7 @@ const Partners = () => {
               <img
                 src={partner.logo}
                 alt={partner.name}
-                className="h-10 sm:h-14 w-auto grayscale opacity-40 hover:opacity-60 transition-opacity duration-300"
+                className="h-10 sm:h-14 w-auto grayscale opacity-40 hover:opacity-80 transition-opacity duration-300 invert"
               />
             </div>
           ))}

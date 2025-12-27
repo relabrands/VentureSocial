@@ -42,7 +42,7 @@ const BentoGrid = () => {
                                     <AvatarFallback>JD</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <div className="text-zinc-200 text-sm font-medium">John Doe</div>
+                                    <div className="text-zinc-200 text-sm font-medium">Javier Mendez</div>
                                     <div className="text-emerald-500 text-[10px] font-bold">CEO @ TechCorp</div>
                                 </div>
                             </div>

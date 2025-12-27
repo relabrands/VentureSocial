@@ -1,14 +1,15 @@
+```
 const Gallery = () => {
   const placeholders = [1, 2, 3];
 
   return (
-    <section className="py-24 md:py-32 bg-background">
+    <section className="py-24 md:py-32">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <p className="text-muted-foreground text-xs tracking-[0.3em] uppercase mb-4">
+          <p className="text-zinc-500 text-xs tracking-[0.3em] uppercase mb-4">
             Past Events
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-bold text-zinc-100 tracking-tight">
             Moments from the Community.
           </h2>
         </div>
@@ -17,9 +18,9 @@ const Gallery = () => {
           {placeholders.map((i) => (
             <div
               key={i}
-              className="aspect-[3/2] bg-muted/30 border border-border flex items-center justify-center"
+              className="aspect-[3/2] bg-white/5 border border-white/10 flex items-center justify-center rounded-xl"
             >
-              <p className="text-muted-foreground font-light tracking-widest uppercase text-sm">
+              <p className="text-zinc-600 font-light tracking-widest uppercase text-sm">
                 Coming Soon
               </p>
             </div>
@@ -28,7 +29,7 @@ const Gallery = () => {
       </div>
     </section>
   );
-
 };
 
 export default Gallery;
+```

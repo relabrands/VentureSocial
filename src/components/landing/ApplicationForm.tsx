@@ -158,8 +158,8 @@ const ApplicationForm = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="hero" size="xl" className="w-full sm:w-auto">
-          Apply for Access
+        <Button variant="hero" size="xl" className="w-full sm:w-auto bg-white text-black hover:bg-zinc-200 rounded-full font-medium px-8 py-6 text-lg transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]">
+          Apply for January Cohort
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto bg-background border-border">

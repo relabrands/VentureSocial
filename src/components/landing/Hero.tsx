@@ -1,38 +1,66 @@
 import ApplicationForm from "@/components/landing/ApplicationForm";
 import { useVenueMode } from "@/hooks/useVenueMode";
+import FounderPass from "@/components/members/FounderPass";
 
 const Hero = () => {
   const { isVenueMode } = useVenueMode();
   return (
-    <section className="min-h-screen flex items-center justify-center px-6 pt-20">
-      <div className="max-w-3xl mx-auto text-center">
-        <div className="opacity-0 animate-fade-up">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.1] text-balance">
-            The Gathering for Santo Domingo's Tech Ecosystem.
+    <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-6 pt-32 pb-12 overflow-hidden">
+
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-900/50 via-zinc-950 to-zinc-950 pointer-events-none" />
+
+      <div className="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center">
+
+        {/* Floating Founder Pass Visual */}
+        <div className="mb-12 opacity-0 animate-fade-up relative group perspective-1000">
+          <div className="absolute -inset-4 bg-yellow-500/20 rounded-full blur-3xl opacity-50 group-hover:opacity-75 transition-opacity duration-700" />
+          <div className="relative transform transition-transform duration-700 hover:scale-105 hover:rotate-y-12">
+            <div className="scale-[0.8] sm:scale-100 origin-center pointer-events-none border border-yellow-500/30 rounded-[20px] shadow-[0_0_50px_rgba(234,179,8,0.1)]">
+              <FounderPass
+                name="Robinson Sanchez"
+                memberId="001"
+                company="@VentureSocial"
+                role="FOUNDER"
+                variant="private"
+                cohort="JAN 2026"
+              />
+            </div>
+            {/* Gold Member Badge */}
+            <div className="absolute -top-6 -right-6 bg-yellow-500 text-black font-bold text-xs px-3 py-1 rounded-full shadow-lg border border-yellow-300 animate-bounce">
+              GOLD MEMBER
+            </div>
+          </div>
+        </div>
+
+        <div className="opacity-0 animate-fade-up animation-delay-200">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-zinc-100 leading-[1.1] text-balance mb-6">
+            Where Santo Domingo's <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">Founders Build the Future.</span>
           </h1>
 
           {isVenueMode && (
-            <div className="mt-4 flex items-center justify-center gap-3 animate-fade-in transition-all duration-700">
-              <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Hosted by</span>
+            <div className="mt-4 flex items-center justify-center gap-3 animate-fade-in transition-all duration-700 mb-6">
+              <span className="text-xs font-medium tracking-[0.2em] uppercase text-zinc-500">Hosted by</span>
               <img
                 src="https://barna.edu.do/wp-content/uploads/2025/01/LOGO_BARNA_HORIZONTAL_BLANCO.webp"
                 alt="Barna Management School"
-                className="h-8 object-contain invert dark:invert-0"
+                className="h-6 object-contain opacity-70 hover:opacity-100 transition-opacity"
               />
             </div>
           )}
         </div>
 
-        <div className="opacity-0 animate-fade-up animation-delay-200">
-          <p className="mt-8 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Founders. Operators. Investors. A curated monthly event for high-density networking. No sales pitches, just connection.
+        <div className="opacity-0 animate-fade-up animation-delay-300">
+          <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-light">
+            A curated monthly gathering for high-impact founders and investors. <span className="text-zinc-200 font-medium">Powered by AI to ensure zero wasted time.</span>
           </p>
         </div>
 
-        <div className="mt-12 opacity-0 animate-fade-up animation-delay-400">
+        <div className="mt-10 opacity-0 animate-fade-up animation-delay-400 flex flex-col items-center">
           <ApplicationForm />
-          <p className="mt-4 text-xs text-muted-foreground">
-            Applications reviewed within 48 hours
+          <p className="mt-4 text-[10px] uppercase tracking-widest text-zinc-600">
+            Limited to 40 seats per cohort
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
-import { Linkedin, X } from "lucide-react";
+import { Linkedin, X, Eye } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import FounderPass from "./FounderPass";
 
@@ -150,6 +150,11 @@ const MemberDirectory = ({ currentMemberId, recommendations = [], liveMode = fal
                                 {isMatch && (
                                     <p className="text-yellow-500/90 text-[10px] mt-1 italic truncate">
                                         💡 {match.reason}
+                                    </p>
+                                )}
+                                {liveMode && (member as any).how_to_spot_me && (
+                                    <p className="text-purple-400/90 text-[10px] mt-1 italic truncate flex items-center gap-1">
+                                        <Eye className="h-3 w-3" /> {(member as any).how_to_spot_me}
                                     </p>
                                 )}
                             </div>

@@ -44,9 +44,10 @@ interface AgendaProps {
     memberId?: string;
     onEnterRoomLive?: () => void;
     eventStatus?: 'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED';
+    onEditSpotMe?: () => void;
 }
 
-const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING' }: AgendaProps) => {
+const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpotMe }: AgendaProps) => {
     const [config, setConfig] = useState<AgendaConfig | null>(null);
     const [loading, setLoading] = useState(true);
     const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
@@ -145,6 +146,14 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING' }: AgendaP
                         >
                             Enter Room
                         </Button>
+                        {onEditSpotMe && (
+                            <button
+                                onClick={onEditSpotMe}
+                                className="text-[10px] text-gray-400 hover:text-white underline text-center mt-2 w-full block"
+                            >
+                                Edit Spot Info
+                            </button>
+                        )}
                     </div>
                 )}
 

@@ -382,6 +382,11 @@ const PassPage = () => {
                         <Agenda
                             memberId={member.id} // Pass Firestore Document ID for RSVP updates
                             onEnterRoomLive={() => setCurrentTab('room_live')}
+                            eventStatus={eventStatus}
+                            onEditSpotMe={() => {
+                                setSpotMeText(member.how_to_spot_me || "");
+                                setShowSpotMeModal(true);
+                            }}
                         />
                     )}
 
@@ -442,6 +447,64 @@ const PassPage = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Spot Me Modal */}
+            <Dialog open={showSpotMeModal} onOpenChange={setShowSpotMeModal}>
+                <DialogContent className="sm:max-w-md bg-[#111827] border-gray-800 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-xl">
+                            <Eye className="h-5 w-5 text-purple-400" />
+                            Help others recognize you
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                            This helps other founders identify you in the room. Be specific about how you look or where you are.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Textarea
+                                placeholder="e.g. Blue blazer, near the entrance..."
+                                value={spotMeText}
+                                onChange={(e) => setSpotMeText(e.target.value)}
+                                className="bg-gray-900 border-gray-700 min-h-[100px] text-white placeholder:text-gray-500"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter className="flex gap-2 sm:gap-0">
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                setShowSpotMeModal(false);
+                                sessionStorage.setItem(`spot_me_dismissed_${member?.id}`, 'true');
+                            }}
+                            className="text-gray-400 hover:text-white hover:bg-white/10"
+                        >
+                            Skip
+                        </Button>
+                        <Button
+                            onClick={async () => {
+                                if (!member?.id) return;
+                                setSavingSpotMe(true);
+                                try {
+                                    await updateDoc(doc(db, "applications", member.id), {
+                                        how_to_spot_me: spotMeText
+                                    });
+                                    toast.success("Saved! You are now easier to find.");
+                                    setShowSpotMeModal(false);
+                                } catch (e) {
+                                    toast.error("Failed to save");
+                                } finally {
+                                    setSavingSpotMe(false);
+                                }
+                            }}
+                            disabled={!spotMeText.trim() || savingSpotMe}
+                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                            {savingSpotMe ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </HelmetProvider>
     );
 };

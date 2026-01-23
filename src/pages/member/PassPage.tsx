@@ -59,7 +59,36 @@ const PassPage = () => {
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    setEventStatus(data.status || 'UPCOMING');
+
+                    // Check for manual override first
+                    if (data.status) {
+                        setEventStatus(data.status);
+                        return;
+                    }
+
+                    // Auto-calculate based on timestamps
+                    if (data.startTimestamp && data.endTimestamp) {
+                        const now = new Date();
+                        const start = new Date(data.startTimestamp);
+                        const end = new Date(data.endTimestamp);
+
+                        if (now >= start && now <= end) {
+                            setEventStatus('LIVE');
+                        } else if (now > end) {
+                            // Check if ended recently (within 24 hours)
+                            const twentyFourHoursAfter = new Date(end.getTime() + (24 * 60 * 60 * 1000));
+                            if (now < twentyFourHoursAfter) {
+                                setEventStatus('ENDED_RECENTLY');
+                            } else {
+                                setEventStatus('ENDED');
+                            }
+                        } else {
+                            setEventStatus('UPCOMING');
+                        }
+                    } else {
+                        // Fallback
+                        setEventStatus('UPCOMING');
+                    }
                 }
             } catch (e) {
                 console.error("Error fetching event status", e);

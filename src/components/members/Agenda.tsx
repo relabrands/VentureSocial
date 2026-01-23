@@ -43,9 +43,10 @@ const DEFAULT_AGENDA: AgendaConfig = {
 interface AgendaProps {
     memberId?: string;
     onEnterRoomLive?: () => void;
+    eventStatus?: 'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED';
 }
 
-const Agenda = ({ memberId, onEnterRoomLive }: AgendaProps) => {
+const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING' }: AgendaProps) => {
     const [config, setConfig] = useState<AgendaConfig | null>(null);
     const [loading, setLoading] = useState(true);
     const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
@@ -131,7 +132,7 @@ const Agenda = ({ memberId, onEnterRoomLive }: AgendaProps) => {
                 </div>
 
                 {/* The Room Live Access - Only if Event is LIVE (or manually enabled for testing) */}
-                {(data.status === 'LIVE' || data.status === 'ENDED_RECENTLY') && attendanceStatus === 'PRESENT' && onEnterRoomLive && (
+                {(eventStatus === 'LIVE' || eventStatus === 'ENDED_RECENTLY') && attendanceStatus === 'PRESENT' && onEnterRoomLive && (
                     <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-xl p-4 flex items-center justify-between">
                         <div>
                             <h3 className="text-white font-bold text-sm">The Room Live</h3>

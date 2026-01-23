@@ -118,8 +118,42 @@ const AgendaEditor = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
+            // Calculate ISO timestamps for auto-status
+            let startTimestamp = null;
+            let endTimestamp = null;
+
+            if (selectedDate && startTime && endTime) {
+                // Helper to combine date + time string into Date
+                const combineDateTime = (date: Date, timeStr: string) => {
+                    // timeStr is like "7:00 PM"
+                    const time = parse(timeStr, "h:mm a", date);
+                    // We need to ensure the date part matches selectedDate (parse might default to today if not careful, but passed ref date helps)
+                    // Better: set hours/minutes manually on a clone
+                    const hours = time.getHours();
+                    const minutes = time.getMinutes();
+
+                    const newDate = new Date(date);
+                    newDate.setHours(hours, minutes, 0, 0);
+                    return newDate;
+                };
+
+                const start = combineDateTime(selectedDate, startTime);
+                const end = combineDateTime(selectedDate, endTime);
+
+                // Adjust if end is before start (next day assumption? or just error? assume same day for now per UI)
+                // If end < start, maybe it ends next day.
+                if (end < start) {
+                    end.setDate(end.getDate() + 1);
+                }
+
+                startTimestamp = start.toISOString();
+                endTimestamp = end.toISOString();
+            }
+
             await setDoc(doc(db, "config", "agenda"), {
                 ...config,
+                startTimestamp,
+                endTimestamp,
                 updatedAt: serverTimestamp()
             });
             toast.success("Agenda updated successfully");

@@ -24,8 +24,8 @@ const Hero = () => {
               <div className="mt-4 flex items-center justify-center lg:justify-start gap-3 animate-fade-in transition-all duration-700 mb-6">
                 <span className="text-xs font-medium tracking-[0.2em] uppercase text-zinc-500">Partner oficial</span>
                 <img
-                  src="https://barna.edu.do/wp-content/uploads/2025/01/LOGO_BARNA_HORIZONTAL_BLANCO.webp"
-                  alt="Barna Management School"
+                  src="https://cef.edu.do/wp-content/uploads/2023/08/logo-cef-santo-domingo.png"
+                  alt="CEF. - Santo Domingo"
                   className="h-6 object-contain opacity-70 hover:opacity-100 transition-opacity"
                 />
               </div>

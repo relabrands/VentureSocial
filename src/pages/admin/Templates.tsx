@@ -120,7 +120,7 @@ const Templates = () => {
                                     </tr>
                                     <tr>
                                         <td style="padding-bottom: 8px; color: #6b7280; font-size: 13px;">Location:</td>
-                                        <td align="right" style="padding-bottom: 8px; color: #111827; font-weight: bold; font-size: 13px;">Barna Management School</td>
+                                        <td align="right" style="padding-bottom: 8px; color: #111827; font-weight: bold; font-size: 13px;">CEF. - Santo Domingo</td>
                                     </tr>
                                     <tr>
                                         <td style="border-top: 1px solid #e5e7eb; padding-top: 8px; color: #10b981; font-weight: bold; font-size: 15px;">Status:</td>

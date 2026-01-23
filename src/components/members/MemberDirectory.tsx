@@ -25,9 +25,10 @@ interface Recommendation {
 interface MemberDirectoryProps {
     currentMemberId?: string;
     recommendations?: Recommendation[];
+    liveMode?: boolean;
 }
 
-const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirectoryProps) => {
+const MemberDirectory = ({ currentMemberId, recommendations = [], liveMode = false }: MemberDirectoryProps) => {
     const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -35,15 +36,27 @@ const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirect
     useEffect(() => {
         const fetchMembers = async () => {
             try {
+                // If Live Mode, we only want people marked as PRESENT
+                // Note: Firestore query requires composite index if we do multiple where clauses + orderBy
+                // For simplicity/speed without index issues, we might filter client side if list is small (<100)
+                // Or try to query simply.
+                // Let's query accepted first, then filter client side for maximum compatibility without deploying indexes mid-session
+
                 const q = query(
                     collection(db, "applications"),
                     where("status", "==", "accepted"),
                     orderBy("createdAt", "desc")
                 );
+
                 const snapshot = await getDocs(q);
                 let data = snapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() } as Member))
+                    .map(doc => ({ id: doc.id, ...doc.data() } as Member & { attendance_status?: string }))
                     .filter(m => m.memberId !== currentMemberId); // Exclude self
+
+                // LIVE MODE FILTER
+                if (liveMode) {
+                    data = data.filter(m => m.attendance_status === 'PRESENT');
+                }
 
                 // Sort by Match Score if recommendations exist
                 if (recommendations.length > 0) {
@@ -63,7 +76,7 @@ const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirect
         };
 
         fetchMembers();
-    }, [currentMemberId, recommendations]);
+    }, [currentMemberId, recommendations, liveMode]);
 
     if (loading) {
         return <div className="text-center py-8 text-gray-500">Loading The Room...</div>;
@@ -76,8 +89,23 @@ const MemberDirectory = ({ currentMemberId, recommendations = [] }: MemberDirect
     return (
         <div className="w-full max-w-[320px] mx-auto mt-12 pb-20">
             <div className="mb-6">
-                <h3 className="text-xs font-extrabold tracking-[2px] uppercase text-[#9ca3af] mb-1">The Cohort - Jan 2026</h3>
-                <h2 className="text-2xl font-bold text-white">{members.length} Founders Selected</h2>
+                <h3 className="text-xs font-extrabold tracking-[2px] uppercase text-[#9ca3af] mb-1">
+                    {liveMode ? (
+                        <span className="text-red-500 animate-pulse flex items-center gap-1">
+                            ● LIVE ROOM
+                        </span>
+                    ) : (
+                        "The Cohort - Jan 2026"
+                    )}
+                </h3>
+                <h2 className="text-2xl font-bold text-white">
+                    {liveMode ? `${members.length} Checked In` : `${members.length} Founders Selected`}
+                </h2>
+                {liveMode && members.length === 0 && (
+                    <p className="text-gray-500 text-sm mt-2">
+                        No one has checked in yet. Be the first!
+                    </p>
+                )}
             </div>
 
             <div className="space-y-3">

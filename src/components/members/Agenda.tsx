@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { MapPin, Clock, Shirt, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
+import { toast } from "sonner";
 
 interface TimelineItem {
     time: string;
@@ -19,6 +20,7 @@ interface AgendaConfig {
     dressCodeTitle: string;
     dressCodeDescription: string;
     timeline: TimelineItem[];
+    status?: 'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED';
 }
 
 const DEFAULT_AGENDA: AgendaConfig = {
@@ -34,16 +36,25 @@ const DEFAULT_AGENDA: AgendaConfig = {
         { time: "8:00 PM", title: "Welcome Remarks", description: "Short intro from the hosts" },
         { time: "8:30 PM", title: "Open Networking", description: "Connect with other founders" },
         { time: "11:00 PM", title: "Event Ends", description: "See you at the next one!" }
-    ]
+    ],
+    status: 'UPCOMING'
 };
 
-const Agenda = () => {
+interface AgendaProps {
+    memberId?: string;
+    onEnterRoomLive?: () => void;
+}
+
+const Agenda = ({ memberId, onEnterRoomLive }: AgendaProps) => {
     const [config, setConfig] = useState<AgendaConfig | null>(null);
     const [loading, setLoading] = useState(true);
+    const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
+    const [rsvpLoading, setRsvpLoading] = useState(false);
 
     useEffect(() => {
-        const fetchConfig = async () => {
+        const fetchConfigAndStatus = async () => {
             try {
+                // Fetch Config
                 const docRef = doc(db, "config", "agenda");
                 const docSnap = await getDoc(docRef);
 
@@ -52,16 +63,25 @@ const Agenda = () => {
                 } else {
                     setConfig(DEFAULT_AGENDA);
                 }
+
+                // Fetch User Status if memberId provided
+                if (memberId) {
+                    const memberDoc = await getDoc(doc(db, "applications", memberId));
+                    if (memberDoc.exists()) {
+                        setAttendanceStatus(memberDoc.data().attendance_status);
+                    }
+                }
+
             } catch (error) {
-                console.error("Error fetching agenda:", error);
+                console.error("Error fetching agenda/status:", error);
                 setConfig(DEFAULT_AGENDA);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchConfig();
-    }, []);
+        fetchConfigAndStatus();
+    }, [memberId]);
 
     if (loading) {
         return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-[#10b981]" /></div>;
@@ -69,15 +89,63 @@ const Agenda = () => {
 
     const data = config || DEFAULT_AGENDA;
 
+    const handleConfirmAttendance = async () => {
+        if (!memberId) return;
+        setRsvpLoading(true);
+        try {
+            const memberRef = doc(db, "applications", memberId);
+            await updateDoc(memberRef, {
+                attendance_status: "CONFIRMED"
+            });
+            setAttendanceStatus("CONFIRMED");
+            toast.success("Attendance Confirmed! See you there.");
+        } catch (error) {
+            console.error("Error confirming attendance:", error);
+            toast.error("Failed to confirm attendance");
+        } finally {
+            setRsvpLoading(false);
+        }
+    };
+
     return (
         <div className="w-full max-w-md mx-auto space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-white">Event Details</h2>
-                    <span className="px-3 py-1 bg-[#10b981]/10 text-[#10b981] text-xs font-medium rounded-full border border-[#10b981]/20">
-                        Confirmed
-                    </span>
+                    {attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT' ? (
+                        <span className="px-3 py-1 bg-[#10b981]/10 text-[#10b981] text-xs font-medium rounded-full border border-[#10b981]/20">
+                            Confirmed
+                        </span>
+                    ) : (
+                        <Button
+                            size="sm"
+                            variant="default"
+                            className="bg-white text-black hover:bg-gray-200 text-xs h-7"
+                            onClick={handleConfirmAttendance}
+                            disabled={rsvpLoading}
+                        >
+                            {rsvpLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                            Confirm RSVP
+                        </Button>
+                    )}
                 </div>
+
+                {/* The Room Live Access - Only if Event is LIVE (or manually enabled for testing) */}
+                {(data.status === 'LIVE' || data.status === 'ENDED_RECENTLY') && attendanceStatus === 'PRESENT' && onEnterRoomLive && (
+                    <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-xl p-4 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-white font-bold text-sm">The Room Live</h3>
+                            <p className="text-xs text-gray-400">See who is here right now.</p>
+                        </div>
+                        <Button
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                            onClick={onEnterRoomLive}
+                        >
+                            Enter Room
+                        </Button>
+                    </div>
+                )}
 
                 <div className="space-y-6">
                     {/* Date & Time */}

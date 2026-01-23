@@ -85,14 +85,25 @@ const CheckIn = () => {
             const newStatus = !member.checkedIn;
             const memberRef = doc(db, "applications", member.id);
 
+            // If checking in, set to PRESENT. If un-checking in, revert to CONFIRMED (default assumption for RSVP'd) 
+            // or just remove PRESENT. Let's set to details.
+            // Requirement: "attendance_status = PRESENT"
+
             await updateDoc(memberRef, {
                 checkedIn: newStatus,
-                checkInTime: newStatus ? new Date() : null
+                checkInTime: newStatus ? new Date() : null,
+                attendance_status: newStatus ? 'PRESENT' : 'CONFIRMED' // Fallback to CONFIRMED when undoing
             });
 
             const updatedMembers = members.map(m =>
                 m.id === member.id
-                    ? { ...m, checkedIn: newStatus, checkInTime: newStatus ? new Date() : null }
+                    ? {
+                        ...m,
+                        checkedIn: newStatus,
+                        checkInTime: newStatus ? new Date() : null,
+                        // Update local state too if we were tracking it, though interface Member doesn't have it yet.
+                        // Ideally we update the interface too, but for this generic update it works.
+                    }
                     : m
             );
 

@@ -20,7 +20,7 @@ const PassPage = () => {
     const { id } = useParams<{ id: string }>();
     const [member, setMember] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [currentTab, setCurrentTab] = useState<'pass' | 'room' | 'agenda' | 'perks'>('pass');
+    const [currentTab, setCurrentTab] = useState<'pass' | 'room' | 'agenda' | 'perks' | 'room_live'>('pass');
     const [showOnboarding, setShowOnboarding] = useState(false);
 
     // Gatekeeper State
@@ -320,8 +320,19 @@ const PassPage = () => {
                         />
                     )}
 
+                    {currentTab === 'room_live' && (
+                        <MemberDirectory
+                            currentMemberId={member.memberId}
+                            recommendations={member.aiRecommendations}
+                            liveMode={true}
+                        />
+                    )}
+
                     {currentTab === 'agenda' && (
-                        <Agenda />
+                        <Agenda
+                            memberId={member.id} // Pass Firestore Document ID for RSVP updates
+                            onEnterRoomLive={() => setCurrentTab('room_live')}
+                        />
                     )}
 
                     {currentTab === 'perks' && (

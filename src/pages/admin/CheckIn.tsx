@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where, orderBy, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, orderBy, doc, updateDoc, writeBatch, deleteField } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Search, QrCode, CheckCircle, XCircle, UserCheck, Camera } from "lucide-react";
+import { Search, QrCode, CheckCircle, XCircle, UserCheck, Camera, Trash2, RefreshCcw } from "lucide-react";
 import { Scanner } from '@yudiel/react-qr-scanner';
 
 interface Member {
@@ -18,6 +18,7 @@ interface Member {
     projectCompany: string;
     checkedIn?: boolean;
     checkInTime?: any;
+    attendance_status?: string;
 }
 
 const CheckIn = () => {
@@ -164,6 +165,49 @@ const CheckIn = () => {
         }
     };
 
+    const handleResetEvent = async () => {
+        if (!window.confirm("ARE YOU SURE? This will RESET ALL RSVPs and Check-ins. Users will have to confirm attendance again.")) return;
+
+        setLoading(true);
+        try {
+            const batch = writeBatch(db);
+            let count = 0;
+
+            // Note: In a real large app, we'd query only those who need resetting or use a cloud function.
+            // For now, iterating the loaded members is safest as we have them.
+            // Or better, query firestore to be sure we get everyone even if pagination existed (it doesn't yet).
+
+            const q = query(collection(db, "applications"), where("status", "==", "accepted"));
+            const snapshot = await getDocs(q);
+
+            snapshot.docs.forEach((doc) => {
+                const data = doc.data();
+                if (data.attendance_status || data.checkedIn) {
+                    batch.update(doc.ref, {
+                        attendance_status: deleteField(),
+                        checkedIn: false,
+                        checkInTime: null
+                    });
+                    count++;
+                }
+            });
+
+            if (count > 0) {
+                await batch.commit();
+                toast.success(`Reset complete. ${count} members reset.`);
+                fetchMembers(); // Reload list
+            } else {
+                toast.info("No members with active RSVP/Check-in found.");
+            }
+
+        } catch (error) {
+            console.error("Error resetting event:", error);
+            toast.error("Failed to reset event data");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -172,6 +216,10 @@ const CheckIn = () => {
                     <p className="text-sm md:text-base text-muted-foreground">Manage guest attendance</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <Button variant="destructive" onClick={handleResetEvent} className="w-full sm:w-auto flex-1 md:flex-none">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Reset Event
+                    </Button>
                     <Button onClick={() => setIsScannerOpen(true)} className="w-full sm:w-auto flex-1 md:flex-none">
                         <Camera className="mr-2 h-4 w-4" />
                         Scan QR

@@ -48,6 +48,26 @@ const PassPage = () => {
         checkAuthAndFetch();
     }, [id, isGatekeeperEnabled, gatekeeperLoading]);
 
+    const [eventStatus, setEventStatus] = useState<'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED'>('UPCOMING');
+    const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
+
+    // Fetch Event Status
+    useEffect(() => {
+        const fetchEventStatus = async () => {
+            try {
+                const docRef = doc(db, "config", "agenda");
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setEventStatus(data.status || 'UPCOMING');
+                }
+            } catch (e) {
+                console.error("Error fetching event status", e);
+            }
+        };
+        fetchEventStatus();
+    }, []);
+
     const fetchMemberById = async (memberId: string) => {
         if (!memberId) return;
         setLoading(true);
@@ -76,6 +96,7 @@ const PassPage = () => {
 
             if (memberData) {
                 setMember({ ...memberData, id: docId });
+                setAttendanceStatus(memberData.attendance_status);
                 if (!memberData.superpower || !memberData.biggestChallenge || !memberData.linkedin) {
                     setShowOnboarding(true);
                 }
@@ -359,6 +380,19 @@ const PassPage = () => {
                         <span className="text-lg">👥</span>
                         <span className="text-[10px] font-medium mt-0.5">The Room</span>
                     </button>
+
+                    {/* ROOM LIVE NAV ITEM */}
+                    {(eventStatus === 'LIVE' || eventStatus === 'ENDED_RECENTLY') && attendanceStatus === 'PRESENT' && (
+                        <button
+                            onClick={() => setCurrentTab('room_live')}
+                            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all relative ${currentTab === 'room_live' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'
+                                }`}
+                        >
+                            <span className="text-lg animate-pulse">📡</span>
+                            <span className="text-[10px] font-bold mt-0.5">LIVE</span>
+                            <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                        </button>
+                    )}
 
                     <button
                         onClick={() => setCurrentTab('agenda')}

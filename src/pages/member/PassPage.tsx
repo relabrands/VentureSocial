@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import FounderPass from "@/components/members/FounderPass";
 import MemberDirectory from "@/components/members/MemberDirectory";
@@ -8,9 +8,11 @@ import Agenda from "@/components/members/Agenda";
 import Perks from "@/components/members/Perks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Linkedin, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea"
+import { Linkedin, Loader2, Lock, ShieldCheck, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 import OnboardingModal from "@/components/members/OnboardingModal";
 
@@ -22,6 +24,11 @@ const PassPage = () => {
     const [loading, setLoading] = useState(true);
     const [currentTab, setCurrentTab] = useState<'pass' | 'room' | 'agenda' | 'perks' | 'room_live'>('pass');
     const [showOnboarding, setShowOnboarding] = useState(false);
+
+    // Spot Me State
+    const [showSpotMeModal, setShowSpotMeModal] = useState(false);
+    const [spotMeText, setSpotMeText] = useState("");
+    const [savingSpotMe, setSavingSpotMe] = useState(false);
 
     // Gatekeeper State
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -39,7 +46,8 @@ const PassPage = () => {
 
             if (!isGatekeeperEnabled || storedAuth === 'true') {
                 setIsAuthenticated(true);
-                await fetchMemberById(id || "");
+                // Start listening to member changes
+                subscribeToMember(id || "");
             } else {
                 setLoading(false);
             }
@@ -97,48 +105,61 @@ const PassPage = () => {
         fetchEventStatus();
     }, []);
 
-    const fetchMemberById = async (memberId: string) => {
+    const subscribeToMember = (memberId: string) => {
         if (!memberId) return;
         setLoading(true);
-        try {
-            let memberData = null;
-            let docId = memberId;
 
+        try {
             if (memberId.startsWith("VS-")) {
                 const q = query(
                     collection(db, "applications"),
                     where("memberId", "==", memberId),
                     where("status", "==", "accepted")
                 );
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    memberData = querySnapshot.docs[0].data();
-                    docId = querySnapshot.docs[0].id;
-                }
-            } else {
-                const docRef = doc(db, "applications", memberId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    memberData = docSnap.data();
-                }
-            }
 
-            if (memberData) {
-                setMember({ ...memberData, id: docId });
-                setAttendanceStatus(memberData.attendance_status);
-                if (!memberData.superpower || !memberData.biggestChallenge || !memberData.linkedin) {
-                    setShowOnboarding(true);
-                }
+                getDocs(q).then(snapshot => {
+                    if (!snapshot.empty) {
+                        const foundDoc = snapshot.docs[0];
+                        setupDocListener(foundDoc.id);
+                    } else {
+                        setLoading(false);
+                    }
+                });
             } else {
-                // If auth was true but member not found, maybe invalid ID or deleted.
-                // We don't necessarily want to logout, just show not found.
+                setupDocListener(memberId);
             }
         } catch (error) {
-            console.error("Error fetching member:", error);
-            toast.error("Failed to load member data");
-        } finally {
+            console.error("Error setting up subscription:", error);
             setLoading(false);
         }
+    };
+
+    const setupDocListener = (docId: string) => {
+        const docRef = doc(db, "applications", docId);
+
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setMember({ ...data, id: docSnap.id });
+                setAttendanceStatus(data.attendance_status);
+
+                // Spot Me Modal Trigger
+                if (data.attendance_status === 'PRESENT' && !data.how_to_spot_me) {
+                    if (!sessionStorage.getItem(`spot_me_dismissed_${docId}`)) {
+                        setShowSpotMeModal(true);
+                    }
+                }
+
+                if (!data.superpower || !data.biggestChallenge || !data.linkedin) {
+                    setShowOnboarding(true);
+                }
+            }
+            setLoading(false);
+        }, (error) => {
+            console.error("Snapshot error:", error);
+            setLoading(false);
+        });
+        return unsubscribe;
     };
 
     const handleVerify = async (e?: React.FormEvent) => {

@@ -534,7 +534,10 @@ export const verifyMemberCode = onCall(async (request) => {
         }
 
         // Check code
-        if (otpData?.code !== cleanCode) {
+        const storedCode = String(otpData?.code || "").trim();
+
+        if (storedCode !== cleanCode) {
+            logger.warn(`Code mismatch for ${cleanEmail}. Input: ${cleanCode}, Stored: ${storedCode}`);
             // Increment attempts could be added here for security
             throw new HttpsError('permission-denied', 'Invalid code.');
         }

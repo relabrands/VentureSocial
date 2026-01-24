@@ -17,11 +17,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import OnboardingModal from "@/components/members/OnboardingModal";
 
 import { useGatekeeperMode } from "@/hooks/useGatekeeperMode";
+import { auth } from "@/firebase/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 const PassPage = () => {
     const { id } = useParams<{ id: string }>();
     const [member, setMember] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [accessDenied, setAccessDenied] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
     const [currentTab, setCurrentTab] = useState<'pass' | 'room' | 'agenda' | 'perks' | 'room_live'>('pass');
     const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -30,31 +35,21 @@ const PassPage = () => {
     const [spotMeText, setSpotMeText] = useState("");
     const [savingSpotMe, setSavingSpotMe] = useState(false);
 
-    // Gatekeeper State
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [emailInput, setEmailInput] = useState("");
-    const [isVerifying, setIsVerifying] = useState(false);
-    const [authError, setAuthError] = useState("");
-
-    const { isGatekeeperEnabled, loading: gatekeeperLoading } = useGatekeeperMode();
-
+    // Monitor Auth State
     useEffect(() => {
-        const checkAuthAndFetch = async () => {
-            if (gatekeeperLoading) return;
-
-            const storedAuth = localStorage.getItem('vs_member_authenticated');
-
-            if (!isGatekeeperEnabled || storedAuth === 'true') {
-                setIsAuthenticated(true);
-                // Start listening to member changes
-                subscribeToMember(id || "");
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setCurrentUser(user);
+            if (user) {
+                // If logged in, try to fetch/subscribe
+                subscribeToMember(id || "", user.uid);
             } else {
+                // Not logged in -> Redirect to Access/Login or show locked
+                // We'll wait a bit or prompt
                 setLoading(false);
             }
-        };
-
-        checkAuthAndFetch();
-    }, [id, isGatekeeperEnabled, gatekeeperLoading]);
+        });
+        return () => unsubscribe();
+    }, [id]);
 
     const [eventStatus, setEventStatus] = useState<'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED'>('UPCOMING');
     const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
@@ -344,6 +339,36 @@ const PassPage = () => {
     }
 
     // AUTHENTICATED UI
+    // Auth redirect logic
+    if (!loading && !currentUser) {
+        window.location.href = '/access';
+        return null;
+    }
+
+    if (accessDenied) {
+        return (
+            <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 text-center">
+                <div className="max-w-md space-y-4">
+                    <Lock className="w-12 h-12 text-red-500 mx-auto" />
+                    <h1 className="text-2xl font-bold text-white">Access Denied</h1>
+                    <p className="text-gray-400">
+                        This Founder Pass belongs to another member.
+                        Please log in with the correct email address.
+                    </p>
+                    <Button
+                        onClick={() => {
+                            auth.signOut();
+                            window.location.href = '/access';
+                        }}
+                        variant="outline"
+                    >
+                        Switch Account
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <HelmetProvider>
             <div className="min-h-[100dvh] w-full bg-black flex flex-col items-center pt-8 p-4 pb-24 gap-6 relative">

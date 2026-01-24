@@ -475,7 +475,9 @@ exports.verifyMemberCode = (0, https_1.onCall)(async (request) => {
             throw new https_1.HttpsError('failed-precondition', 'Code has expired. Please request a new one.');
         }
         // Check code
-        if ((otpData === null || otpData === void 0 ? void 0 : otpData.code) !== cleanCode) {
+        const storedCode = String((otpData === null || otpData === void 0 ? void 0 : otpData.code) || "").trim();
+        if (storedCode !== cleanCode) {
+            logger.warn(`Code mismatch for ${cleanEmail}. Input: ${cleanCode}, Stored: ${storedCode}`);
             // Increment attempts could be added here for security
             throw new https_1.HttpsError('permission-denied', 'Invalid code.');
         }

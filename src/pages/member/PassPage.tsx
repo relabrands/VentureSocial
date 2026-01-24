@@ -15,9 +15,6 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 import OnboardingModal from "@/components/members/OnboardingModal";
-
-import OnboardingModal from "@/components/members/OnboardingModal";
-// Removed useGatekeeperMode
 import { auth } from "@/firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -282,7 +279,7 @@ const PassPage = () => {
         }));
     };
 
-    if (loading || gatekeeperLoading) {
+    if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
                 <Loader2 className="h-8 w-8 animate-spin text-[#10b981]" />
@@ -290,70 +287,7 @@ const PassPage = () => {
         );
     }
 
-    // GATEKEEPER UI
-    if (isGatekeeperEnabled && !isAuthenticated) {
-        return (
-            <HelmetProvider>
-                <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-                    <Helmet>
-                        <title>Identity Verification | Venture Social</title>
-                    </Helmet>
 
-                    {/* Background Effects */}
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#10b981_0%,_#000000_70%)] opacity-10 pointer-events-none" />
-
-                    <div className="relative z-10 max-w-md w-full bg-[#111827] border border-[#1f2937] rounded-2xl p-8 shadow-2xl text-center">
-                        <div className="mb-6 flex justify-center">
-                            <div className="h-16 w-16 bg-[#10b981]/10 rounded-full flex items-center justify-center border border-[#10b981]/20">
-                                <ShieldCheck className="h-8 w-8 text-[#10b981]" />
-                            </div>
-                        </div>
-
-                        <h1 className="text-2xl font-bold text-white mb-2">
-                            Identity Verification
-                        </h1>
-
-                        <p className="text-gray-400 mb-8 leading-relaxed text-sm">
-                            For security, please enter the email address associated with this Founder Pass.
-                        </p>
-
-                        <form onSubmit={handleVerify} className="space-y-4">
-                            <div className="space-y-2 text-left">
-                                <Input
-                                    type="email"
-                                    placeholder="Enter your email..."
-                                    value={emailInput}
-                                    onChange={(e) => setEmailInput(e.target.value)}
-                                    className="bg-[#1f2937] border-gray-700 text-white placeholder:text-gray-500 h-12"
-                                    autoFocus
-                                />
-                                {authError && (
-                                    <p className="text-red-500 text-xs flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                                        <Lock className="h-3 w-3" /> {authError}
-                                    </p>
-                                )}
-                            </div>
-
-                            <Button
-                                type="submit"
-                                disabled={isVerifying}
-                                className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold py-6 text-lg shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all hover:scale-[1.02]"
-                            >
-                                {isVerifying ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        Verifying...
-                                    </>
-                                ) : (
-                                    "Verify Access"
-                                )}
-                            </Button>
-                        </form>
-                    </div>
-                </div>
-            </HelmetProvider>
-        );
-    }
 
     if (!member) {
         return (

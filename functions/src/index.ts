@@ -460,7 +460,7 @@ export const sendMemberCode = onCall(async (request) => {
         }
 
         const memberDoc = snapshot.docs[0];
-        const memberData = memberDoc.data();
+        // const memberData = memberDoc.data(); // Unused
 
         // 2. Generate Code
         const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits via random
@@ -540,7 +540,12 @@ export const verifyMemberCode = onCall(async (request) => {
         }
 
         // Success! Generate Custom Token
-        const uid = otpData.uid; // This is the Firestore Document ID of the application
+        const uid = otpData?.uid; // This is the Firestore Document ID of the application
+
+        if (!uid) {
+            throw new HttpsError('internal', 'User ID not found in OTP record.');
+        }
+
         const token = await getAuth().createCustomToken(uid, {
             memberAccess: true
         });

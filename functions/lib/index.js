@@ -499,7 +499,7 @@ exports.verifyMemberCode = (0, https_1.onCall)(async (request) => {
         if (error instanceof https_1.HttpsError || ((_a = error.code) === null || _a === void 0 ? void 0 : _a.startsWith('functions/'))) {
             throw error;
         }
-        throw new https_1.HttpsError('internal', "Verification failed");
+        throw new https_1.HttpsError('internal', `Verification failed: ${error.message}`);
     }
 });
 //# sourceMappingURL=index.js.map

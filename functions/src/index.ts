@@ -565,6 +565,6 @@ export const verifyMemberCode = onCall(async (request) => {
         if (error instanceof HttpsError || error.code?.startsWith('functions/')) {
             throw error;
         }
-        throw new HttpsError('internal', "Verification failed");
+        throw new HttpsError('internal', `Verification failed: ${error.message}`);
     }
 });

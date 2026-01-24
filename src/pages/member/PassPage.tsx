@@ -16,7 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 import OnboardingModal from "@/components/members/OnboardingModal";
 
-import { useGatekeeperMode } from "@/hooks/useGatekeeperMode";
+importOnboardingModal from "@/components/members/OnboardingModal";
+// Removed useGatekeeperMode
 import { auth } from "@/firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 

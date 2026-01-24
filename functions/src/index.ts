@@ -427,3 +427,136 @@ export const servePass = onRequest(async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 });
+// Member Access System
+
+import { getAuth } from "firebase-admin/auth";
+
+export const sendMemberCode = onCall(async (request) => {
+    const { email } = request.data;
+
+    // Normalize email
+    const cleanEmail = email?.toLowerCase().trim();
+
+    if (!cleanEmail) {
+        throw new HttpsError('invalid-argument', 'Email is required');
+    }
+
+    logger.info(`Attempting to send access code to ${cleanEmail}`);
+
+    try {
+        // 1. Verify Member Exists
+        const appsRef = db.collection("applications");
+        const snapshot = await appsRef
+            .where("email", "==", cleanEmail)
+            .where("status", "==", "accepted")
+            .limit(1)
+            .get();
+
+        if (snapshot.empty) {
+            logger.warn(`Access denied for ${cleanEmail}: Not found or not accepted`);
+            // We return success to prevent email enumeration/fishing, or specific error if requested.
+            // User requested: "Devuelve error Access Denied / Apply First"
+            throw new HttpsError('not-found', 'Access Denied: Membership not found or not active. Please apply first.');
+        }
+
+        const memberDoc = snapshot.docs[0];
+        const memberData = memberDoc.data();
+
+        // 2. Generate Code
+        const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits via random
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+        // 3. Save Code
+        await db.collection("otp_codes").doc(cleanEmail).set({
+            code,
+            expiresAt,
+            attempts: 0,
+            uid: memberDoc.id // Store doc ID to link later
+        });
+
+        // 4. Send Email
+        const resend = new Resend(RESEND_API_KEY.value());
+        const fromEmailRaw = FROM_EMAIL.value() || "onboarding@resend.dev";
+        const fromAddress = fromEmailRaw.includes("<") ? fromEmailRaw : `Venture Social <${fromEmailRaw}>`;
+
+        const html = `
+            <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #111827; text-align: center;">Your Access Code</h2>
+                <div style="background: #f3f4f6; padding: 16px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; border-radius: 8px; margin: 20px 0;">
+                    ${code}
+                </div>
+                <p style="color: #6b7280; font-size: 14px; text-align: center;">This code will expire in 15 minutes.</p>
+            </div>
+        `;
+
+        await resend.emails.send({
+            from: fromAddress,
+            to: cleanEmail,
+            subject: "Your Venture Social Access Code",
+            html: html
+        });
+
+        logger.info(`Access code sent to ${cleanEmail}`);
+        return { success: true };
+
+    } catch (error: any) {
+        logger.error("Error in sendMemberCode:", error);
+        // Re-throw if it's already an HttpsError
+        if (error instanceof HttpsError || error.code?.startsWith('functions/')) {
+            throw error;
+        }
+        throw new HttpsError('internal', 'Failed to process request');
+    }
+});
+
+export const verifyMemberCode = onCall(async (request) => {
+    const { email, code } = request.data;
+    const cleanEmail = email?.toLowerCase().trim();
+    const cleanCode = code?.trim();
+
+    if (!cleanEmail || !cleanCode) {
+        throw new HttpsError('invalid-argument', 'Email and code are required');
+    }
+
+    try {
+        const otpRef = db.collection("otp_codes").doc(cleanEmail);
+        const otpDoc = await otpRef.get();
+
+        if (!otpDoc.exists) {
+            throw new HttpsError('not-found', 'Invalid or expired code request.');
+        }
+
+        const otpData = otpDoc.data();
+
+        // Check expiration
+        if (otpData?.expiresAt.toDate() < new Date()) {
+            throw new HttpsError('failed-precondition', 'Code has expired. Please request a new one.');
+        }
+
+        // Check code
+        if (otpData?.code !== cleanCode) {
+            // Increment attempts could be added here for security
+            throw new HttpsError('permission-denied', 'Invalid code.');
+        }
+
+        // Success! Generate Custom Token
+        const uid = otpData.uid; // This is the Firestore Document ID of the application
+        const token = await getAuth().createCustomToken(uid, {
+            memberAccess: true
+        });
+
+        // Cleanup used code
+        await otpRef.delete();
+
+        logger.info(`Generated access token for member ${uid}`);
+
+        return { token, uid };
+
+    } catch (error: any) {
+        logger.error("Error in verifyMemberCode:", error);
+        if (error instanceof HttpsError || error.code?.startsWith('functions/')) {
+            throw error;
+        }
+        throw new HttpsError('internal', "Verification failed");
+    }
+});

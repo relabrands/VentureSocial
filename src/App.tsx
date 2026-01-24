@@ -23,6 +23,8 @@ import PassPage from "@/pages/member/PassPage";
 import SharePage from "@/pages/member/SharePage";
 import ClaimPage from "@/pages/ClaimPage";
 
+import AccessPage from "@/pages/member/AccessPage";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -33,6 +35,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/access" element={<AccessPage />} />
 
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/dashboard" replace />} />

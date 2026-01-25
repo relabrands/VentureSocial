@@ -81,8 +81,8 @@ const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfile
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
-            <SheetContent className="w-full sm:max-w-md bg-[#0a0a0a] border-l border-gray-800 text-white overflow-y-auto">
-                <SheetHeader className="mb-6">
+            <SheetContent className="w-full sm:max-w-md bg-[#0a0a0a] border-l border-gray-800 text-white p-0 flex flex-col h-full">
+                <SheetHeader className="p-6 pb-2 border-b border-gray-800/50">
                     <SheetTitle className="text-xl font-bold text-white flex items-center gap-2">
                         <User className="w-5 h-5 text-purple-500" />
                         Edit Profile
@@ -92,7 +92,7 @@ const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfile
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-6 pb-20">
+                <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6">
                     {/* Public Info Section */}
                     <div className="space-y-4">
                         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Public Info</h3>
@@ -184,7 +184,7 @@ const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfile
                     </div>
                 </div>
 
-                <SheetFooter className="absolute bottom-0 left-0 right-0 p-6 bg-[#0a0a0a]/95 backdrop-blur border-t border-gray-800">
+                <SheetFooter className="p-6 bg-[#0a0a0a]/95 backdrop-blur border-t border-gray-800">
                     <Button variant="ghost" onClick={onClose} className="mr-auto text-gray-400 hover:text-white">
                         Cancel
                     </Button>

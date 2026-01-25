@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { collection, query, where, getDocs, doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import FounderPass from "@/components/members/FounderPass";
@@ -21,6 +21,7 @@ import { onAuthStateChanged } from "firebase/auth";
 
 const PassPage = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [member, setMember] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [accessDenied, setAccessDenied] = useState(false);
@@ -199,7 +200,7 @@ const PassPage = () => {
         // Small delay to allow toast to show? No, just redirect, toast usually persists or we can use a query param
         // Actually, window.location.href is hard refresh. Navigate is better.
         // But since we used window.location before, let's stick to it but maybe adding a query param for the login page to show the error
-        window.location.href = '/access?error=auth_required';
+        navigate('/access?error=auth_required');
         return null;
     }
 
@@ -216,7 +217,7 @@ const PassPage = () => {
                     <Button
                         onClick={() => {
                             auth.signOut();
-                            window.location.href = '/access';
+                            navigate('/access');
                         }}
                         variant="outline"
                     >

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVenueMode } from "@/hooks/useVenueMode";
-import { useEvents } from "@/hooks/useEvents";
 
 interface FounderPassProps {
     name: string;

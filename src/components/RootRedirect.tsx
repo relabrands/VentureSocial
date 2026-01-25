@@ -13,32 +13,46 @@ const RootRedirect = () => {
     const [showLanding, setShowLanding] = useState(false);
 
     useEffect(() => {
-        // If global auth is still loading, do nothing
+        // 1. Fast Check: LocalStorage (Instant Redirect)
+        // If we have a cached ID, go there immediately.
+        const cachedPassId = localStorage.getItem('vs_member_pass_id');
+        if (cachedPassId) {
+            navigate(`/pass/${cachedPassId}`, { replace: true });
+            return;
+        }
+
+        // 2. Wait for Global Auth to load
         if (loading) return;
 
         const checkUser = async () => {
             const currentUser = user || auth.currentUser;
 
             if (currentUser) {
-                // User is logged in. Find their Member ID / Pass.
+                // User is logged in. Find their Member ID.
                 try {
                     const q = query(collection(db, "applications"), where("email", "==", currentUser.email));
                     const snapshot = await getDocs(q);
 
                     if (!snapshot.empty) {
                         const docId = snapshot.docs[0].id;
+                        // Save ID for next time (Fast Path)
+                        localStorage.setItem('vs_member_pass_id', docId);
+                        localStorage.setItem('vs_member_authenticated', 'true');
+
                         navigate(`/pass/${docId}`, { replace: true });
                         return;
                     }
                 } catch (error) {
                     console.error("Error finding member pass:", error);
                 }
-                // Fallback if query failed or empty (shouldn't happen for valid members)
+                // Fallback (Logic failed or no doc) -> Show Landing or Access?
+                // If they are logged in but have no pass, Access/Login is probably safer to force re-check or show error.
+                // But user requested "Landing only if user === null".
+                // If user !== null but no pass, it's an edge case. Let's go to Access.
                 navigate("/access", { replace: true });
             } else {
                 // Not logged in *according to Firebase*.
-                // Check if we *expect* to be logged in (Local Flag) OR if we are in PWA mode (Paranoid Check)
-                // In PWA on iOS, persistence can be slow or the flag might be missing from an old session.
+                // Check if we *expect* to be logged in (Local Flag) OR PWA (Paranoid Mode)
                 const isPWA = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
                 const shouldBeLoggedIn = localStorage.getItem('vs_member_authenticated') === 'true' || isPWA;
 
@@ -47,24 +61,22 @@ const RootRedirect = () => {
                         setIsChecking(true);
 
                         let attempts = 0;
-                        const maxAttempts = 30; // 3 seconds max wait for PWA
+                        const maxAttempts = 30; // 3 seconds max
 
                         const interval = setInterval(async () => {
                             attempts++;
-                            // Check direct auth instance
                             const recoveredUser = auth.currentUser;
 
                             if (recoveredUser) {
                                 clearInterval(interval);
-                                // Recovered! Ensure flag is set for next time
-                                localStorage.setItem('vs_member_authenticated', 'true');
-
-                                // Found user! Re-run the success logic
+                                // Recovered! Fetch ID & Save
                                 try {
                                     const q = query(collection(db, "applications"), where("email", "==", recoveredUser.email));
                                     const snapshot = await getDocs(q);
                                     if (!snapshot.empty) {
                                         const docId = snapshot.docs[0].id;
+                                        localStorage.setItem('vs_member_pass_id', docId);
+                                        localStorage.setItem('vs_member_authenticated', 'true');
                                         navigate(`/pass/${docId}`, { replace: true });
                                     } else {
                                         navigate("/access", { replace: true });
@@ -74,23 +86,18 @@ const RootRedirect = () => {
                                 }
                             } else if (attempts >= maxAttempts) {
                                 clearInterval(interval);
-                                // Timed out - Only remove flag if we failed
+                                // Timeout -> Truly logged out
                                 localStorage.removeItem('vs_member_authenticated');
-                                navigate("/access", { replace: true });
+                                localStorage.removeItem('vs_member_pass_id');
+                                setShowLanding(true);
                             }
                         }, 100);
 
                         return () => clearInterval(interval);
                     }
                 } else {
-                    // Normal not-logged-in state
-                    // If PWA, we usually want them to Login (Access).
-                    // If Web (Mobile/Desktop), we show the Landing Page.
-                    if (isPWA) {
-                        navigate("/access", { replace: true });
-                    } else {
-                        setShowLanding(true);
-                    }
+                    // Not logged in, No PWA/Flag expectation -> Show Landing
+                    setShowLanding(true);
                 }
             }
         };
@@ -107,9 +114,6 @@ const RootRedirect = () => {
     return (
         <div className="min-h-screen bg-black flex items-center justify-center flex-col gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-[#10b981]" />
-            <p className="text-gray-500 text-xs animate-pulse">
-                {isChecking ? "Verifying secure session..." : "Loading..."}
-            </p>
         </div>
     );
 };

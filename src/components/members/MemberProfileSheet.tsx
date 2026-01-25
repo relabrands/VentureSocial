@@ -34,6 +34,7 @@ const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfile
     const handleLogout = async () => {
         if (confirm("Are you sure you want to sign out?")) {
             localStorage.removeItem('vs_member_authenticated');
+            localStorage.removeItem('vs_member_pass_id');
             onClose(); // Close sheet first to avoid flickering
             await logout();
         }

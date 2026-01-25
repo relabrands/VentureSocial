@@ -1,4 +1,4 @@
-import MagicLoginDialog from "./MagicLoginDialog";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
@@ -15,7 +15,7 @@ const Header = () => {
             </span>
           </div>
 
-          <MagicLoginDialog>
+          <Link to="/access">
             <Button
               variant="outline"
               size="sm"
@@ -23,7 +23,7 @@ const Header = () => {
             >
               Member Access
             </Button>
-          </MagicLoginDialog>
+          </Link>
         </div>
       </div>
     </header>

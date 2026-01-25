@@ -45,51 +45,34 @@ interface AgendaProps {
     onEnterRoomLive?: () => void;
     eventStatus?: 'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED';
     onEditSpotMe?: () => void;
+    config?: AgendaConfig; // New prop
 }
 
-const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpotMe }: AgendaProps) => {
-    const [config, setConfig] = useState<AgendaConfig | null>(null);
-    const [loading, setLoading] = useState(true);
+const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpotMe, config: propConfig }: AgendaProps) => {
+    // const [config, setConfig] = useState<AgendaConfig | null>(null); // Removed internal state
+    // const [loading, setLoading] = useState(true); // Removed internal loading
     const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
     const [rsvpLoading, setRsvpLoading] = useState(false);
 
     useEffect(() => {
-        const fetchConfigAndStatus = async () => {
+        const fetchStatus = async () => {
             try {
-                // Fetch Config
-                const docRef = doc(db, "config", "agenda");
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    setConfig(docSnap.data() as AgendaConfig);
-                } else {
-                    setConfig(DEFAULT_AGENDA);
-                }
-
-                // Fetch User Status if memberId provided
+                // Only fetch User Status if memberId provided
                 if (memberId) {
                     const memberDoc = await getDoc(doc(db, "applications", memberId));
                     if (memberDoc.exists()) {
                         setAttendanceStatus(memberDoc.data().attendance_status);
                     }
                 }
-
             } catch (error) {
-                console.error("Error fetching agenda/status:", error);
-                setConfig(DEFAULT_AGENDA);
-            } finally {
-                setLoading(false);
+                console.error("Error fetching status:", error);
             }
         };
 
-        fetchConfigAndStatus();
+        fetchStatus();
     }, [memberId]);
 
-    if (loading) {
-        return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-[#10b981]" /></div>;
-    }
-
-    const data = config || DEFAULT_AGENDA;
+    const data = propConfig || DEFAULT_AGENDA;
 
     const handleConfirmAttendance = async () => {
         if (!memberId) return;

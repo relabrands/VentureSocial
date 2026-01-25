@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { collection, query, where, getDocs, doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, onSnapshot, updateDoc, orderBy } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import FounderPass from "@/components/members/FounderPass";
 import MemberDirectory from "@/components/members/MemberDirectory";
@@ -53,51 +53,79 @@ const PassPage = () => {
 
     const [eventStatus, setEventStatus] = useState<'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED'>('UPCOMING');
     const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
+    const [agendaConfig, setAgendaConfig] = useState<any>(null);
 
-    // Fetch Event Status
+    // Fetch Active Event
     useEffect(() => {
-        const fetchEventStatus = async () => {
+        const fetchActiveEvent = async () => {
             try {
-                const docRef = doc(db, "config", "agenda");
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
+                // Fetch all events sorted by start time
+                // We do client-side filtering to pick the "best" one to show
+                const q = query(collection(db, "events"), orderBy("startTimestamp", "asc"));
+                const snapshot = await getDocs(q);
 
-                    // Check for manual override first
-                    if (data.status) {
-                        setEventStatus(data.status);
-                        return;
-                    }
+                let activeEvent: any = null;
+                let status: 'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED' = 'UPCOMING';
 
-                    // Auto-calculate based on timestamps
-                    if (data.startTimestamp && data.endTimestamp) {
-                        const now = new Date();
-                        const start = new Date(data.startTimestamp);
-                        const end = new Date(data.endTimestamp);
+                const events = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-                        if (now >= start && now <= end) {
-                            setEventStatus('LIVE');
-                        } else if (now > end) {
-                            // Check if ended recently (within 24 hours)
-                            const twentyFourHoursAfter = new Date(end.getTime() + (24 * 60 * 60 * 1000));
-                            if (now < twentyFourHoursAfter) {
-                                setEventStatus('ENDED_RECENTLY');
-                            } else {
-                                setEventStatus('ENDED');
-                            }
-                        } else {
-                            setEventStatus('UPCOMING');
-                        }
+                // Logic:
+                // 1. Check for LIVE event (Now inside window)
+                // 2. Check for ENDED_RECENTLY (Now < End + 24h) -- Only if no LIVE event? Or maybe priority?
+                // 3. Check for NEXT UPCOMING (Start > Now)
+
+                const now = new Date();
+
+                // Find LIVE
+                const liveEvent = events.find((e: any) => {
+                    if (!e.startTimestamp || !e.endTimestamp) return false;
+                    const start = new Date(e.startTimestamp);
+                    const end = new Date(e.endTimestamp);
+                    return now >= start && now <= end && !e.archived;
+                });
+
+                if (liveEvent) {
+                    activeEvent = liveEvent;
+                    status = 'LIVE';
+                } else {
+                    // Find ENDED RECENTLY (within 24h)
+                    const recentEvent = events.find((e: any) => {
+                        if (!e.endTimestamp) return false;
+                        const end = new Date(e.endTimestamp);
+                        const twentyFourHoursAfter = new Date(end.getTime() + (24 * 60 * 60 * 1000));
+                        return now > end && now < twentyFourHoursAfter && !e.archived;
+                    });
+
+                    if (recentEvent) {
+                        activeEvent = recentEvent;
+                        status = 'ENDED_RECENTLY';
                     } else {
-                        // Fallback
-                        setEventStatus('UPCOMING');
+                        // Find NEAREST UPCOMING
+                        const upcomingEvent = events.find((e: any) => {
+                            if (!e.startTimestamp) return false;
+                            return new Date(e.startTimestamp) > now && !e.archived;
+                        });
+
+                        if (upcomingEvent) {
+                            activeEvent = upcomingEvent;
+                            status = 'UPCOMING';
+                        }
                     }
                 }
+
+                if (activeEvent) {
+                    setAgendaConfig(activeEvent);
+                    setEventStatus(status);
+                } else {
+                    // Fallback to legacy or defaults if no events found
+                    // Can leave defaults in child components
+                }
+
             } catch (e) {
-                console.error("Error fetching event status", e);
+                console.error("Error fetching events", e);
             }
         };
-        fetchEventStatus();
+        fetchActiveEvent();
     }, []);
 
     const subscribeToMember = (memberId: string) => {
@@ -308,6 +336,7 @@ const PassPage = () => {
                             memberId={member.id} // Pass Firestore Document ID for RSVP updates
                             onEnterRoomLive={() => setCurrentTab('room_live')}
                             eventStatus={eventStatus}
+                            config={agendaConfig}
                             onEditSpotMe={() => {
                                 setSpotMeText(member.how_to_spot_me || "");
                                 setShowSpotMeModal(true);

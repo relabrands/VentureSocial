@@ -39,29 +39,42 @@ const RootRedirect = () => {
                 const shouldBeLoggedIn = localStorage.getItem('vs_member_authenticated') === 'true';
 
                 if (shouldBeLoggedIn) {
-                    // Give it a moment - PWA storage might be lagging or waking up
-                    // We only do this wait ONCE per mount to avoid hanging
                     if (!isChecking) {
                         setIsChecking(true);
-                        setTimeout(() => {
-                            // Check one last time
-                            if (auth.currentUser) {
-                                // Recovered! Trigger effect again or just reload logic? 
-                                // Best to just reload page to force fresh auth state if stuck 
-                                // OR navigate(0). But let's verify logic.
-                                // If auth.currentUser exists now, the next render cycle of AuthProvider should pick it up?
-                                // Not necessarily if listeners detached.
-                                // Let's just reload to be safe if we found a user late.
-                                window.location.reload();
-                            } else {
-                                // Truly gone
+
+                        let attempts = 0;
+                        const maxAttempts = 50; // 50 * 100ms = 5 seconds
+
+                        const interval = setInterval(async () => {
+                            attempts++;
+                            // Check direct auth instance
+                            const recoveredUser = auth.currentUser;
+
+                            if (recoveredUser) {
+                                clearInterval(interval);
+                                // Found user! Re-run the success logic
+                                try {
+                                    const q = query(collection(db, "applications"), where("email", "==", recoveredUser.email));
+                                    const snapshot = await getDocs(q);
+                                    if (!snapshot.empty) {
+                                        const docId = snapshot.docs[0].id;
+                                        navigate(`/pass/${docId}`, { replace: true });
+                                    } else {
+                                        navigate("/access", { replace: true });
+                                    }
+                                } catch (e) {
+                                    navigate("/access", { replace: true });
+                                }
+                            } else if (attempts >= maxAttempts) {
+                                clearInterval(interval);
+                                // Timed out
                                 localStorage.removeItem('vs_member_authenticated');
                                 navigate("/access", { replace: true });
                             }
-                        }, 3000);
-                        return; // return to wait for timeout
+                        }, 100);
+
+                        return () => clearInterval(interval);
                     }
-                    // If isChecking is true, we are waiting, do nothing.
                 } else {
                     // Normal not-logged-in state
                     navigate("/access", { replace: true });
@@ -76,9 +89,10 @@ const RootRedirect = () => {
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center flex-col gap-4">
-            {/* Show meaningful status if taking a while */}
             <Loader2 className="h-8 w-8 animate-spin text-[#10b981]" />
-            {isChecking && <p className="text-gray-500 text-xs animate-pulse">Resuming session...</p>}
+            <p className="text-gray-500 text-xs animate-pulse">
+                {isChecking ? "Verifying secure session..." : "Loading..."}
+            </p>
         </div>
     );
 };

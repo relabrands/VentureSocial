@@ -565,6 +565,8 @@ export const verifyMemberCode = onCall(async (request) => {
         if (error instanceof HttpsError || error.code?.startsWith('functions/')) {
             throw error;
         }
-        throw new HttpsError('internal', `Verification failed: ${error.message}`);
+        // Log sensitive details for debugging ONLY
+        logger.error("Detailed Verify Error", JSON.stringify(error));
+        throw new HttpsError('internal', `Verification failed: ${error.message}. Please check Cloud Functions IAM permissions.`);
     }
 });

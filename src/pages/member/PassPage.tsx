@@ -303,7 +303,12 @@ const PassPage = () => {
     // AUTHENTICATED UI
     // Auth redirect logic
     if (!loading && !currentUser) {
-        window.location.href = '/access';
+        // Show message before redirecting
+        toast.error("Please login to access your Founder Pass");
+        // Small delay to allow toast to show? No, just redirect, toast usually persists or we can use a query param
+        // Actually, window.location.href is hard refresh. Navigate is better.
+        // But since we used window.location before, let's stick to it but maybe adding a query param for the login page to show the error
+        window.location.href = '/access?error=auth_required';
         return null;
     }
 
@@ -342,6 +347,26 @@ const PassPage = () => {
                     <meta property="og:url" content={window.location.href} />
                     <meta property="og:type" content="website" />
                 </Helmet>
+
+                {/* Profile Header */}
+                <div className="absolute top-4 right-4 z-50">
+                    <button
+                        onClick={() => setIsProfileOpen(true)}
+                        className="flex items-center gap-2 bg-gray-900/80 backdrop-blur border border-gray-800 rounded-full pl-1 pr-3 py-1 hover:border-purple-500/50 transition-all group"
+                    >
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-lg group-hover:shadow-purple-500/20">
+                            {member.fullName?.charAt(0) || "U"}
+                        </div>
+                        <span className="text-xs font-medium text-gray-300 group-hover:text-white hidden sm:block">Edit Profile</span>
+                    </button>
+                </div>
+
+                <MemberProfileSheet
+                    isOpen={isProfileOpen}
+                    onClose={() => setIsProfileOpen(false)}
+                    member={member}
+                    onUpdate={(updatedData) => setMember(updatedData)}
+                />
 
                 <OnboardingModal
                     isOpen={showOnboarding}

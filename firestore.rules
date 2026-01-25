@@ -43,5 +43,17 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Events collection
+    match /events/{eventId} {
+      allow read: if true; // Public can see events
+      allow write: if isAdmin(); // Only admins can manage
+      
+      // Events Attendees Subcollection
+      match /attendees/{attendeeId} {
+        allow read: if isAdmin();
+        allow write: if isAdmin();
+      }
+    }
   }
 }

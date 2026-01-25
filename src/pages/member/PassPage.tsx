@@ -15,6 +15,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 import OnboardingModal from "@/components/members/OnboardingModal";
+import MemberProfileSheet from "@/components/members/MemberProfileSheet";
 import { auth } from "@/firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -27,6 +28,7 @@ const PassPage = () => {
 
     const [currentTab, setCurrentTab] = useState<'pass' | 'room' | 'agenda' | 'perks' | 'room_live'>('pass');
     const [showOnboarding, setShowOnboarding] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     // Spot Me State
     const [showSpotMeModal, setShowSpotMeModal] = useState(false);
@@ -46,34 +48,6 @@ const PassPage = () => {
                 setLoading(false);
             }
         });
-        // Assuming checkAuthAndFetch() is a new function or was meant to be here.
-        // If it's not defined elsewhere, this will cause an error.
-        // For the purpose of this edit, I'm adding it as per the instruction's code edit.
-        // If it's meant to be a function, it should be defined.
-        // If it's a typo and was meant to be part of the onAuthStateChanged callback,
-        // please provide further clarification.
-        // For now, adding it as a standalone call within useEffect.
-        // If it was meant to be a state variable in the dependency array, it was not present.
-        // The instruction is to remove 'gatekeeperLoading' from dependency array.
-        // The current dependency array is `[id]`. If `gatekeeperLoading` was there, it would be removed.
-        // Since it's not there, the dependency array remains `[id]`.
-        // The `checkAuthAndFetch()` call is added as per the provided code edit.
-        // If `checkAuthAndFetch` is not defined, this will be a runtime error.
-        // Assuming it's a placeholder for a function that should exist.
-        // If the intent was to remove `gatekeeperLoading` from the dependency array,
-        // and it was never there, then the dependency array remains `[id]`.
-        // The `checkAuthAndFetch()` call is an addition to the effect's body.
-        // If `gatekeeperLoading` was implicitly part of the dependency array due to a previous state,
-        // and the instruction is to remove it, then `[id]` is the correct result.
-        // Given the instruction "Remove 'gatekeeperLoading' from dependency array" and the provided
-        // code snippet showing `}, [id]);`, it implies `gatekeeperLoading` was previously in the array.
-        // However, the original code provided *already* has `}, [id]);`.
-        // I will assume the instruction implies that `gatekeeperLoading` was *intended* to be there
-        // or was there in a previous version not fully reflected in the input, and the goal is to
-        // ensure it's not there, and to add `checkAuthAndFetch();`.
-        // Since the original code already has `[id]`, the dependency array part of the instruction
-        // effectively makes no change to the dependency array itself.
-        // The only concrete change from the provided "Code Edit" snippet is the addition of `checkAuthAndFetch();`.
     }, [id]);
 
     const [eventStatus, setEventStatus] = useState<'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED'>('UPCOMING');
@@ -182,90 +156,7 @@ const PassPage = () => {
         return unsubscribe;
     };
 
-    const handleVerify = async (e?: React.FormEvent) => {
-        e?.preventDefault();
-        if (!emailInput) {
-            setAuthError("Please enter your email.");
-            return;
-        }
 
-        setIsVerifying(true);
-        setAuthError("");
-
-        try {
-            // Secure Verification: Query Firestore directly
-            // We try to match memberId AND email.
-            // Note: We try both the input as-is and lowercase to handle potential casing differences in DB.
-
-            let q;
-            if (id?.startsWith("VS-")) {
-                q = query(
-                    collection(db, "applications"),
-                    where("memberId", "==", id),
-                    where("email", "==", emailInput), // Try exact match first
-                    where("status", "==", "accepted")
-                );
-            } else {
-                // If it's a doc ID, we can't easily query by ID field + email without a composite index or fetching.
-                // For security, we'll assume public links use VS-ID.
-                // If it is a Doc ID, we fallback to fetching (but this should be rare for public).
-                // Let's just treat it as "Access Denied" for now if not VS-ID, or fetch-and-verify for DocID.
-                // Actually, let's allow DocID fetch-and-verify for admin convenience, but strictly check email.
-                const docRef = doc(db, "applications", id || "");
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data.email?.toLowerCase() === emailInput.toLowerCase()) {
-                        // Match!
-                        setMember({ ...data, id: docSnap.id });
-                        localStorage.setItem('vs_member_authenticated', 'true');
-                        setIsAuthenticated(true);
-                        toast.success("Identity Verified");
-                        setIsVerifying(false);
-                        return;
-                    }
-                }
-                throw new Error("Invalid credentials");
-            }
-
-            let querySnapshot = await getDocs(q);
-
-            // If not found, try lowercase email
-            if (querySnapshot.empty) {
-                q = query(
-                    collection(db, "applications"),
-                    where("memberId", "==", id),
-                    where("email", "==", emailInput.toLowerCase()),
-                    where("status", "==", "accepted")
-                );
-                querySnapshot = await getDocs(q);
-            }
-
-            if (!querySnapshot.empty) {
-                const memberData = querySnapshot.docs[0].data();
-                const docId = querySnapshot.docs[0].id;
-
-                setMember({ ...memberData, id: docId });
-                localStorage.setItem('vs_member_authenticated', 'true');
-                setIsAuthenticated(true);
-                toast.success("Identity Verified");
-
-                // Check onboarding
-                if (!memberData.superpower || !memberData.biggestChallenge || !memberData.linkedin) {
-                    setShowOnboarding(true);
-                }
-            } else {
-                setAuthError("Access Denied. Email does not match our records.");
-                toast.error("Access Denied");
-            }
-
-        } catch (error) {
-            console.error("Verification error:", error);
-            setAuthError("Access Denied. Please check your email.");
-        } finally {
-            setIsVerifying(false);
-        }
-    };
 
     const handleOnboardingComplete = () => {
         setShowOnboarding(false);

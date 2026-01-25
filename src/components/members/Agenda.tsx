@@ -97,7 +97,6 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
     };
 
     return (
-    return (
         <div className="w-full max-w-md mx-auto space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6 space-y-6">
                 <div className="flex items-center justify-between">

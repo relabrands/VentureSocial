@@ -166,23 +166,20 @@ const CheckIn = () => {
     };
 
     const handleResetEvent = async () => {
-        if (!window.confirm("ARE YOU SURE? This will RESET ALL RSVPs and Check-ins. Users will have to confirm attendance again.")) return;
+        if (!window.confirm("ARE YOU SURE? This will RESET ALL RSVPs (Confirmations) and Check-ins for UPCOMING events. This cannot be undone.")) return;
 
         setLoading(true);
         try {
             const batch = writeBatch(db);
             let count = 0;
 
-            // Note: In a real large app, we'd query only those who need resetting or use a cloud function.
-            // For now, iterating the loaded members is safest as we have them.
-            // Or better, query firestore to be sure we get everyone even if pagination existed (it doesn't yet).
-
+            // 1. Reset Global Check-in Status on Applications (Door Check-in)
             const q = query(collection(db, "applications"), where("status", "==", "accepted"));
             const snapshot = await getDocs(q);
 
             snapshot.docs.forEach((doc) => {
                 const data = doc.data();
-                if (data.attendance_status || data.checkedIn) {
+                if (data.attendance_status || data.checkedIn || data.checkInTime) {
                     batch.update(doc.ref, {
                         attendance_status: deleteField(),
                         checkedIn: false,
@@ -192,12 +189,40 @@ const CheckIn = () => {
                 }
             });
 
+            // 2. Reset RSVPs (Confirmations) on Upcoming Events
+            const eventsRef = collection(db, "events");
+            const eventsSnap = await getDocs(eventsRef);
+            const now = new Date();
+
+            for (const eventDoc of eventsSnap.docs) {
+                const eventData = eventDoc.data();
+                let isFuture = false;
+
+                // Handle both String (ISO) and Firestore Timestamp
+                const start = eventData.startTimestamp;
+                if (typeof start === 'string') {
+                    if (new Date(start) >= now) isFuture = true;
+                } else if (start?.toDate) {
+                    if (start.toDate() >= now) isFuture = true;
+                }
+
+                // If event is in the future (or very recent), wipe RSVPs
+                if (isFuture) {
+                    const attendeesRef = collection(db, "events", eventDoc.id, "attendees");
+                    const attendeesSnap = await getDocs(attendeesRef);
+                    attendeesSnap.docs.forEach((attDoc) => {
+                        batch.delete(attDoc.ref);
+                        count++;
+                    });
+                }
+            }
+
             if (count > 0) {
                 await batch.commit();
-                toast.success(`Reset complete. ${count} members reset.`);
+                toast.success(`Reset complete. ${count} records (Check-ins/RSVPs) cleared.`);
                 fetchMembers(); // Reload list
             } else {
-                toast.info("No members with active RSVP/Check-in found.");
+                toast.info("No active RSVPs or Check-ins found to reset.");
             }
 
         } catch (error) {

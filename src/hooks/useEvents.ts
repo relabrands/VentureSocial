@@ -5,8 +5,9 @@ import { db } from '@/firebase/firebase';
 export interface Event {
     id: string;
     title: string;
-    startTimestamp: Timestamp;
-    date: string; // Display string or fallback
+    startTimestamp: Timestamp | string;
+    endTimestamp?: Timestamp | string;
+    date: string;
     location: string;
     description?: string;
 }
@@ -19,7 +20,7 @@ export const useEvents = (memberId?: string) => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const now = new Date();
+                const now = new Date().toISOString();
                 const eventsRef = collection(db, 'events');
 
                 const qUpcoming = query(

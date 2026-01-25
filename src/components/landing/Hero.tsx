@@ -22,11 +22,11 @@ const Hero = () => {
 
             {isVenueMode && (
               <div className="mt-4 flex items-center justify-center lg:justify-start gap-3 animate-fade-in transition-all duration-700 mb-6">
-                <span className="text-xs font-medium tracking-[0.2em] uppercase text-zinc-500">Partner oficial</span>
+                <span className="text-xs font-medium tracking-[0.2em] uppercase text-zinc-400">Partner oficial</span>
                 <img
                   src="https://relabrands.com/wp-content/uploads/2026/01/logo-cef-horizontal.png"
                   alt="CEF. - Santo Domingo"
-                  className="h-6 object-contain opacity-70 hover:opacity-100 transition-opacity"
+                  className="h-10 object-contain hover:opacity-100 transition-opacity brightness-0 invert"
                 />
               </div>
             )}

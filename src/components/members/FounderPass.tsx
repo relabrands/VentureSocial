@@ -137,11 +137,11 @@ const FounderPass: React.FC<FounderPassProps> = ({
                         {/* Venue Partner Footer (Front) */}
                         {isVenueMode && (
                             <div className="mt-auto mb-2 flex flex-col items-center justify-center animate-fade-in">
-                                <div className="text-[8px] uppercase tracking-[2px] text-gray-500 mb-1">Official Venue</div>
+                                <div className="text-[8px] uppercase tracking-[2px] text-gray-400 mb-1">Official Venue</div>
                                 <img
                                     src="https://relabrands.com/wp-content/uploads/2026/01/logo-cef-horizontal.png"
                                     alt="CEF. - Santo Domingo"
-                                    className="h-4 object-contain opacity-80 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+                                    className="h-6 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] brightness-0 invert"
                                 />
                             </div>
                         )}
@@ -225,11 +225,11 @@ const FounderPass: React.FC<FounderPassProps> = ({
                             {/* Venue Partner Footer (Back) */}
                             {isVenueMode && (
                                 <div className="mt-auto mb-6 flex flex-col items-center justify-center animate-fade-in">
-                                    <div className="text-[8px] uppercase tracking-[2px] text-gray-500 mb-1">Official Venue</div>
+                                    <div className="text-[8px] uppercase tracking-[2px] text-gray-400 mb-1">Official Venue</div>
                                     <img
                                         src="https://relabrands.com/wp-content/uploads/2026/01/logo-cef-horizontal.png"
                                         alt="CEF. - Santo Domingo"
-                                        className="h-4 object-contain opacity-80 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+                                        className="h-6 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] brightness-0 invert"
                                     />
                                 </div>
                             )}

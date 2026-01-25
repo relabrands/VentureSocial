@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { httpsCallable } from "firebase/functions";
 import { functions, auth } from "@/firebase/firebase";
-import { signInWithCustomToken } from "firebase/auth";
+import { signInWithCustomToken, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { Loader2, ArrowRight, Lock, ShieldCheck } from "lucide-react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
@@ -47,6 +47,8 @@ const AccessPage = () => {
             const { token, uid } = result.data as { token: string, uid: string };
 
             if (token) {
+                // Ensure persistence is set before signing in
+                await setPersistence(auth, browserLocalPersistence);
                 await signInWithCustomToken(auth, token);
                 toast.success("Welcome back!");
                 // Store auth state for gatekeeper if needed locally, though firebase auth persists

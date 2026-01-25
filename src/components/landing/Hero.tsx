@@ -26,7 +26,7 @@ const Hero = () => {
                 <img
                   src="https://relabrands.com/wp-content/uploads/2026/01/logo-cef-horizontal.png"
                   alt="CEF. - Santo Domingo"
-                  className="h-10 object-contain hover:opacity-100 transition-opacity brightness-0 invert"
+                  className="h-12 object-contain hover:opacity-100 transition-opacity brightness-0 invert"
                 />
               </div>
             )}

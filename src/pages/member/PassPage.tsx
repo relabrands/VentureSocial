@@ -209,6 +209,16 @@ const PassPage = () => {
 
 
 
+    // AUTHENTICATED UI
+    // Auth redirect logic - Check this BEFORE checking (!member) because if no user, member will definitely be null.
+    if (!loading && !currentUser) {
+        // Show message before redirecting
+        // toast.error("Please login to access your Founder Pass"); // Optional: Might be annoying on auto-redirect
+        // Navigate replaces window.location logic. Pass error param.
+        navigate('/access?error=auth_required');
+        return null;
+    }
+
     if (!member) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
@@ -218,18 +228,6 @@ const PassPage = () => {
                 </div>
             </div>
         );
-    }
-
-    // AUTHENTICATED UI
-    // Auth redirect logic
-    if (!loading && !currentUser) {
-        // Show message before redirecting
-        toast.error("Please login to access your Founder Pass");
-        // Small delay to allow toast to show? No, just redirect, toast usually persists or we can use a query param
-        // Actually, window.location.href is hard refresh. Navigate is better.
-        // But since we used window.location before, let's stick to it but maybe adding a query param for the login page to show the error
-        navigate('/access?error=auth_required');
-        return null;
     }
 
     if (accessDenied) {

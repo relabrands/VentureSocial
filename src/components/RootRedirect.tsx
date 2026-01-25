@@ -35,15 +35,17 @@ const RootRedirect = () => {
                 navigate("/access", { replace: true });
             } else {
                 // Not logged in *according to Firebase*.
-                // Check if we *expect* to be logged in (Local Flag)
-                const shouldBeLoggedIn = localStorage.getItem('vs_member_authenticated') === 'true';
+                // Check if we *expect* to be logged in (Local Flag) OR if we are in PWA mode (Paranoid Check)
+                // In PWA on iOS, persistence can be slow or the flag might be missing from an old session.
+                const isPWA = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+                const shouldBeLoggedIn = localStorage.getItem('vs_member_authenticated') === 'true' || isPWA;
 
                 if (shouldBeLoggedIn) {
                     if (!isChecking) {
                         setIsChecking(true);
 
                         let attempts = 0;
-                        const maxAttempts = 50; // 50 * 100ms = 5 seconds
+                        const maxAttempts = 30; // 3 seconds max wait for PWA
 
                         const interval = setInterval(async () => {
                             attempts++;
@@ -52,6 +54,9 @@ const RootRedirect = () => {
 
                             if (recoveredUser) {
                                 clearInterval(interval);
+                                // Recovered! Ensure flag is set for next time
+                                localStorage.setItem('vs_member_authenticated', 'true');
+
                                 // Found user! Re-run the success logic
                                 try {
                                     const q = query(collection(db, "applications"), where("email", "==", recoveredUser.email));
@@ -67,7 +72,7 @@ const RootRedirect = () => {
                                 }
                             } else if (attempts >= maxAttempts) {
                                 clearInterval(interval);
-                                // Timed out
+                                // Timed out - Only remove flag if we failed
                                 localStorage.removeItem('vs_member_authenticated');
                                 navigate("/access", { replace: true });
                             }

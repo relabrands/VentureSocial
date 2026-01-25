@@ -28,6 +28,8 @@ interface AgendaConfig {
 }
 
 const DEFAULT_AGENDA: AgendaConfig = {
+    id: "default-event",
+    title: "Venture Social Gathering",
     date: "Thursday, February 27th",
     timeRange: "7:00 PM - 11:00 PM",
     locationName: "Barna Management School",
@@ -104,7 +106,7 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
 
         return {
             id: data.id,
-            title: data.title,
+            title: data.title || "Venture Social Event",
             date: dateStr || "Date TBD",
             timeRange: timeRangeStr || "Time TBD",
             locationName: data.locationName || data.location || "Location TBD",

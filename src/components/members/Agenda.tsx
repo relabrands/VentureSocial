@@ -77,55 +77,77 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
         fetchStatus();
     }, [memberId]);
 
-    // Use the selected event, otherwise default to the first upcoming event
-    const nextEvent = upcomingEvents[0];
-    const targetEvent = selectedEventId
-        ? upcomingEvents.find(e => e.id === selectedEventId) || nextEvent
-        : nextEvent;
-
-    // Helper to format timestamps safely
+    // Helper to format timestamps safely (Independent of mapToConfig for list use)
     const formatStartTimestamp = (event?: Event) => {
         if (!event?.startTimestamp) return null;
         if (event.startTimestamp instanceof Timestamp) {
-            return event.startTimestamp.toDate();
+            return event.startTimestamp.toDate(); // Returns Date
         }
         return new Date(event.startTimestamp as string);
     };
 
-    const formatEndTimestamp = (event?: Event) => {
-        if (!event?.endTimestamp) return null;
-        if (event.endTimestamp instanceof Timestamp) {
-            return event.endTimestamp.toDate();
+    // Event Selection Logic
+    // 1. If user selected an event, show it.
+    // 2. Else if parent provided a config (e.g. Live/Active), show it.
+    // 3. Else show the first upcoming event.
+
+    // Find the event object if selected
+    const userSelectedEvent = selectedEventId ? upcomingEvents.find(e => e.id === selectedEventId) : null;
+
+    // Determine the Source Data (Event or AgendaConfig)
+    // We prefer the user selection. If none, we fallback to propConfig. If none, we fallback to first upcoming.
+    const sourceData = userSelectedEvent || propConfig || upcomingEvents[0];
+
+    // Check if sourceData is an "Event" (from useEvents) or "AgendaConfig" (from props)
+    // We can check existence of 'startTimestamp' (Event) vs 'timeRange' (AgendaConfig) - though props might have both?
+    // Actually, `propConfig` is type `AgendaConfig` or `any` (from PassPage activeEvent).
+    // `PassPage` passes raw Firestore data which has `startTimestamp`.
+
+    // Helper to map ANY event-like object to Agenda UI format
+    const mapToConfig = (data: any) => {
+        if (!data) return null;
+
+        // Date Formatting
+        let dateStr = data.date;
+        let timeRangeStr = data.timeRange;
+
+        // If we have timestamps, override date/time strings
+        // Handle Timestamp object or ISO string
+        const start = data.startTimestamp ? (data.startTimestamp.toDate ? data.startTimestamp.toDate() : new Date(data.startTimestamp)) : null;
+        const end = data.endTimestamp ? (data.endTimestamp.toDate ? data.endTimestamp.toDate() : new Date(data.endTimestamp)) : null;
+
+        if (start && !isNaN(start.getTime())) {
+            dateStr = start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            const sTime = format(start, "h:mm a");
+            const eTime = end && !isNaN(end.getTime()) ? format(end, "h:mm a") : "";
+            timeRangeStr = eTime ? `${sTime} - ${eTime}` : sTime;
         }
-        return new Date(event.endTimestamp as string);
+
+        return {
+            id: data.id,
+            title: data.title,
+            date: dateStr || "Date TBD",
+            timeRange: timeRangeStr || "Time TBD",
+            locationName: data.locationName || data.location || "Location TBD",
+            locationAddress: data.locationAddress || "",
+            locationMapUrl: data.locationMapUrl || "",
+            dressCodeTitle: data.dressCodeTitle || "Dress Code",
+            dressCodeDescription: data.dressCodeDescription || "",
+            timeline: data.timeline || []
+        };
     };
 
-    const effectiveConfig = propConfig || (targetEvent ? {
-        // Map fields
-        id: targetEvent.id, // Add ID for comparison
-        title: targetEvent.title,
-        locationName: targetEvent.location || "TBD",
-        locationAddress: "See details",
-        locationMapUrl: "",
-        dressCodeTitle: "Smart Casual",
-        dressCodeDescription: targetEvent.description || "No description",
-        timeline: [],
-        date: formatStartTimestamp(targetEvent)?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) || targetEvent.date,
-        timeRange: formatStartTimestamp(targetEvent)
-            ? format(formatStartTimestamp(targetEvent) as Date, "h:mm a") + (targetEvent.endTimestamp ? " - " + format(formatEndTimestamp(targetEvent) as Date, "h:mm a") : "")
-            : "See details"
-    } : null);
-
+    const effectiveConfig = mapToConfig(sourceData);
     const activeEvent = effectiveConfig || DEFAULT_AGENDA;
 
-    // Only show confirmed badge if:
-    // 1. User is confirmed
-    // 2. AND we are looking at the *next* event (assuming global status applies to next).
-    // 3. OR if we are looking at a past event they attended (logic pending).
-    // Fix: If user says "it shows confirmed and I haven't", it implies attendanceStatus is improperly default. 
-    // We already init to null. 
-    // We will strict check: isConfirmed is true ONLY if `attendanceStatus === 'CONFIRMED'` AND `targetEvent.id === nextEvent?.id`.
-    const isConfirmed = (attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT') && targetEvent?.id === nextEvent?.id;
+    // Check if Confirmed
+    // Logic: User is confirmed GLOBALLY. We assume this applies if they are viewing the "Next/Active" event.
+    // If they view a future event that is NOT the next one, we shouldn't show confirmed unless we track per-event.
+    // For now: Show confirmed if `attendanceStatus === 'CONFIRMED'` AND (viewing propConfig event OR viewing first upcoming).
+    // If user clicked a DIFFERENT event, hide confirmed.
+    // But what if `userSelectedEvent` IS the first upcoming?
+    const isViewingNextEvent = activeEvent.id === upcomingEvents[0]?.id || (propConfig && activeEvent.id === propConfig.id);
+    const isConfirmed = (attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT') && isViewingNextEvent;
 
     const handleConfirmAttendance = async () => {
         if (!memberId) return;
@@ -272,7 +294,7 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                         {upcomingEvents.map(event => (
                             <button
                                 key={event.id}
-                                className={`w-full text-left p-4 rounded-xl border transition-colors ${selectedEventId === event.id || (!selectedEventId && event.id === nextEvent?.id) ? 'bg-zinc-800 border-emerald-500/50' : 'bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800'}`}
+                                className={`w-full text-left p-4 rounded-xl border transition-colors ${activeEvent.id === event.id ? 'bg-zinc-800 border-emerald-500/50' : 'bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800'}`}
                                 onClick={() => setSelectedEventId(event.id)}
                             >
                                 <div className="flex justify-between items-start">

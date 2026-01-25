@@ -82,6 +82,38 @@ const AgendaEditor = () => {
     const [startTime, setStartTime] = useState("7:00 PM");
     const [endTime, setEndTime] = useState("11:00 PM");
 
+    // Attendees State
+    const [attendees, setAttendees] = useState<any[]>([]);
+    const [attendeesLoading, setAttendeesLoading] = useState(false);
+
+    useEffect(() => {
+        if (!selectedEventId) {
+            setAttendees([]);
+            return;
+        }
+
+        const fetchAttendees = async () => {
+            setAttendeesLoading(true);
+            try {
+                // Fetch users who are CONFIRMED (Global check for now)
+                // TODO: When we move to subcollections, query events/{id}/attendees
+                const q = query(
+                    collection(db, "applications"),
+                    where("attendance_status", "==", "CONFIRMED")
+                );
+                const snapshot = await getDocs(q);
+                const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setAttendees(users);
+            } catch (err) {
+                console.error("Error fetching attendees:", err);
+            } finally {
+                setAttendeesLoading(false);
+            }
+        };
+
+        fetchAttendees();
+    }, [selectedEventId]);
+
     useEffect(() => {
         fetchEvents();
     }, []);
@@ -440,6 +472,48 @@ const AgendaEditor = () => {
                                 ))}
                             </CardContent>
                         </Card>
+
+                        {/* Confirmed Attendees Section */}
+                        {selectedEventId && (
+                            <Card className="md:col-span-2 border-emerald-500/20 bg-emerald-50/5 dark:bg-emerald-950/10">
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <CardTitle className="text-emerald-500">Confirmed Attendees</CardTitle>
+                                            <CardDescription>
+                                                Members who have RSVP'd "Confirmed" (Global Status).
+                                            </CardDescription>
+                                        </div>
+                                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                                            {attendees.length} Confirmed
+                                        </Badge>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {attendeesLoading ? (
+                                        <div className="flex justify-center p-4"><Loader2 className="animate-spin h-5 w-5 text-emerald-500" /></div>
+                                    ) : attendees.length > 0 ? (
+                                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                            {attendees.map(attendee => (
+                                                <div key={attendee.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+                                                    <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold">
+                                                        {(attendee.name?.[0] || "U").toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-sm">{attendee.name || "Unknown Member"}</p>
+                                                        <p className="text-xs text-muted-foreground">{attendee.email}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            No confirmed attendees yet.
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </div>
             </div>

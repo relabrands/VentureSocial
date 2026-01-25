@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "@/firebase/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Index from "../pages/Index";
@@ -30,17 +30,30 @@ const RootRedirect = () => {
             if (currentUser) {
                 // User is logged in. Find their Member ID.
                 try {
-                    const q = query(collection(db, "applications"), where("email", "==", currentUser.email));
-                    const snapshot = await getDocs(q);
+                    // Strategy 1: Check if Doc ID matches Auth UID (Most reliable permissions)
+                    const docRef = doc(db, "applications", currentUser.uid);
+                    const docSnap = await getDoc(docRef);
 
-                    if (!snapshot.empty) {
-                        const docId = snapshot.docs[0].id;
-                        // Save ID for next time (Fast Path)
+                    if (docSnap.exists()) {
+                        const docId = docSnap.id;
                         localStorage.setItem('vs_member_pass_id', docId);
                         localStorage.setItem('vs_member_authenticated', 'true');
-
                         navigate(`/pass/${docId}`, { replace: true });
                         return;
+                    }
+
+                    // Strategy 2: Query by Email (Fallback)
+                    if (currentUser.email) {
+                        const q = query(collection(db, "applications"), where("email", "==", currentUser.email));
+                        const snapshot = await getDocs(q);
+
+                        if (!snapshot.empty) {
+                            const docId = snapshot.docs[0].id;
+                            localStorage.setItem('vs_member_pass_id', docId);
+                            localStorage.setItem('vs_member_authenticated', 'true');
+                            navigate(`/pass/${docId}`, { replace: true });
+                            return;
+                        }
                     }
                 } catch (error) {
                     console.error("Error finding member pass:", error);
@@ -71,13 +84,30 @@ const RootRedirect = () => {
                                 clearInterval(interval);
                                 // Recovered! Fetch ID & Save
                                 try {
-                                    const q = query(collection(db, "applications"), where("email", "==", recoveredUser.email));
-                                    const snapshot = await getDocs(q);
-                                    if (!snapshot.empty) {
-                                        const docId = snapshot.docs[0].id;
+                                    // Strategy 1: Check ID == UID
+                                    const docRef = doc(db, "applications", recoveredUser.uid);
+                                    const docSnap = await getDoc(docRef);
+
+                                    if (docSnap.exists()) {
+                                        const docId = docSnap.id;
                                         localStorage.setItem('vs_member_pass_id', docId);
                                         localStorage.setItem('vs_member_authenticated', 'true');
                                         navigate(`/pass/${docId}`, { replace: true });
+                                        return;
+                                    }
+
+                                    // Strategy 2: Query by Email
+                                    if (recoveredUser.email) {
+                                        const q = query(collection(db, "applications"), where("email", "==", recoveredUser.email));
+                                        const snapshot = await getDocs(q);
+                                        if (!snapshot.empty) {
+                                            const docId = snapshot.docs[0].id;
+                                            localStorage.setItem('vs_member_pass_id', docId);
+                                            localStorage.setItem('vs_member_authenticated', 'true');
+                                            navigate(`/pass/${docId}`, { replace: true });
+                                        } else {
+                                            navigate("/access", { replace: true });
+                                        }
                                     } else {
                                         navigate("/access", { replace: true });
                                     }

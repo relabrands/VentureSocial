@@ -58,7 +58,7 @@ const RootRedirect = () => {
                                 localStorage.removeItem('vs_member_authenticated');
                                 navigate("/access", { replace: true });
                             }
-                        }, 1500);
+                        }, 3000);
                         return; // return to wait for timeout
                     }
                     // If isChecking is true, we are waiting, do nothing.

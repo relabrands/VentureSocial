@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { initializeAuth, browserLocalPersistence } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,10 +16,8 @@ import { getFunctions } from "firebase/functions";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
-// Ensure persistence
-setPersistence(auth, browserLocalPersistence).catch((error) => {
-    console.error("Auth Persistence Error:", error);
+const auth = initializeAuth(app, {
+    persistence: browserLocalPersistence
 });
 const functions = getFunctions(app);
 

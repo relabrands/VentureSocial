@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, doc, getDocs, getDoc, setDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, writeBatch, where } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, setDoc, addDoc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, writeBatch, where } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ interface TimelineItem {
 
 interface EventConfig {
     id?: string;
+    title?: string; // Added title
     date: string;
     timeRange: string;
     locationName: string;
@@ -46,6 +47,7 @@ interface EventConfig {
 }
 
 const DEFAULT_EVENT: Omit<EventConfig, 'id'> = {
+    title: "",
     date: "",
     timeRange: "7:00 PM - 11:00 PM",
     locationName: "Barna Management School",
@@ -54,8 +56,7 @@ const DEFAULT_EVENT: Omit<EventConfig, 'id'> = {
     dressCodeTitle: "Smart Casual / Business Tech",
     dressCodeDescription: "Come as you are, but ready to impress.",
     timeline: [
-        { time: "7:00 PM", title: "Doors Open", description: "Check-in" },
-        { time: "11:00 PM", title: "Event Ends", description: "See you next time" }
+        { time: "7:00 PM", title: "Doors Open", description: "Check-in" }
     ]
 };
 
@@ -312,7 +313,7 @@ const AgendaEditor = () => {
                             )}
                             onClick={() => setSelectedEventId(event.id!)}
                         >
-                            <h3 className="font-semibold text-sm">{event.date || "Untitled Event"}</h3>
+                            <h3 className="font-semibold text-sm">{event.title || event.date || "Untitled Event"}</h3>
                             <p className="text-xs text-muted-foreground">{event.timeRange}</p>
                             {event.id && (
                                 <Button
@@ -397,8 +398,16 @@ const AgendaEditor = () => {
                         </Card>
 
                         <Card>
-                            <CardHeader><CardTitle>Location</CardTitle></CardHeader>
+                            <CardHeader><CardTitle>Event Details</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Event Title</Label>
+                                    <Input
+                                        placeholder="e.g. Founder & Investor Mixer"
+                                        value={config.title || ""}
+                                        onChange={e => updateField("title", e.target.value)}
+                                    />
+                                </div>
                                 <div className="space-y-2"><Label>Venue Name</Label><Input value={config.locationName} onChange={e => updateField("locationName", e.target.value)} /></div>
                                 <div className="space-y-2"><Label>Address</Label><Input value={config.locationAddress} onChange={e => updateField("locationAddress", e.target.value)} /></div>
                                 <div className="space-y-2"><Label>Map URL</Label><Input value={config.locationMapUrl} onChange={e => updateField("locationMapUrl", e.target.value)} /></div>

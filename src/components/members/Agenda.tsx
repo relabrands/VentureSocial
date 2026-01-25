@@ -58,11 +58,11 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
     const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
     const [rsvpLoading, setRsvpLoading] = useState(false);
     const { upcomingEvents, pastEvents, loading } = useEvents(memberId);
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchStatus = async () => {
             try {
-                // Only fetch User Status if memberId provided
                 if (memberId) {
                     const memberDoc = await getDoc(doc(db, "applications", memberId));
                     if (memberDoc.exists()) {
@@ -77,38 +77,55 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
         fetchStatus();
     }, [memberId]);
 
-    // Use the first upcoming event as default config if no specific config provided
-    const displayEvent = propConfig || (upcomingEvents.length > 0 ? {
-        ...upcomingEvents[0],
-        date: upcomingEvents[0].startTimestamp instanceof Timestamp
-            ? upcomingEvents[0].startTimestamp.toDate().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-            : new Date(upcomingEvents[0].startTimestamp).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
-        timeRange: upcomingEvents[0].startTimestamp instanceof Timestamp
-            ? format(upcomingEvents[0].startTimestamp.toDate(), "h:mm a") // Simplified, ideally calculated from start/end
-            : format(new Date(upcomingEvents[0].startTimestamp), "h:mm a") + " - " + format(new Date(upcomingEvents[0].endTimestamp || upcomingEvents[0].startTimestamp), "h:mm a"),
-        locationName: upcomingEvents[0].location || "TBD",
+    // Use the selected event, otherwise default to the first upcoming event
+    const nextEvent = upcomingEvents[0];
+    const targetEvent = selectedEventId
+        ? upcomingEvents.find(e => e.id === selectedEventId) || nextEvent
+        : nextEvent;
+
+    // Helper to format timestamps safely
+    const formatStartTimestamp = (event?: Event) => {
+        if (!event?.startTimestamp) return null;
+        if (event.startTimestamp instanceof Timestamp) {
+            return event.startTimestamp.toDate();
+        }
+        return new Date(event.startTimestamp as string);
+    };
+
+    const formatEndTimestamp = (event?: Event) => {
+        if (!event?.endTimestamp) return null;
+        if (event.endTimestamp instanceof Timestamp) {
+            return event.endTimestamp.toDate();
+        }
+        return new Date(event.endTimestamp as string);
+    };
+
+    const effectiveConfig = propConfig || (targetEvent ? {
+        // Map fields
+        id: targetEvent.id, // Add ID for comparison
+        title: targetEvent.title,
+        locationName: targetEvent.location || "TBD",
         locationAddress: "See details",
         locationMapUrl: "",
         dressCodeTitle: "Smart Casual",
-        dressCodeDescription: upcomingEvents[0].description || "No description",
-        timeline: [] // TODO: Add timeline to Event schema if needed
-    } : DEFAULT_AGENDA); // Fallback to DEFAULT only if absolutely nothing. Ideally show empty state.
-
-    // Better: If no events, show empty.
-    const effectiveConfig = propConfig || (upcomingEvents.length > 0 ? {
-        ...upcomingEvents[0],
-        // Map fields from Event to AgendaConfig
-        locationName: upcomingEvents[0].location,
-        locationAddress: "",
-        locationMapUrl: "",
-        dressCodeTitle: "Detail",
-        dressCodeDescription: upcomingEvents[0].description || "",
+        dressCodeDescription: targetEvent.description || "No description",
         timeline: [],
-        date: typeof upcomingEvents[0].startTimestamp === 'object' && 'toDate' in upcomingEvents[0].startTimestamp
-            ? upcomingEvents[0].startTimestamp.toDate().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-            : new Date(upcomingEvents[0].startTimestamp as string).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
-        timeRange: "See details" // Simplified for now
+        date: formatStartTimestamp(targetEvent)?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) || targetEvent.date,
+        timeRange: formatStartTimestamp(targetEvent)
+            ? format(formatStartTimestamp(targetEvent) as Date, "h:mm a") + (targetEvent.endTimestamp ? " - " + format(formatEndTimestamp(targetEvent) as Date, "h:mm a") : "")
+            : "See details"
     } : null);
+
+    const activeEvent = effectiveConfig || DEFAULT_AGENDA;
+
+    // Only show confirmed badge if:
+    // 1. User is confirmed
+    // 2. AND we are looking at the *next* event (assuming global status applies to next).
+    // 3. OR if we are looking at a past event they attended (logic pending).
+    // Fix: If user says "it shows confirmed and I haven't", it implies attendanceStatus is improperly default. 
+    // We already init to null. 
+    // We will strict check: isConfirmed is true ONLY if `attendanceStatus === 'CONFIRMED'` AND `targetEvent.id === nextEvent?.id`.
+    const isConfirmed = (attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT') && targetEvent?.id === nextEvent?.id;
 
     const handleConfirmAttendance = async () => {
         if (!memberId) return;
@@ -136,20 +153,12 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
         );
     }
 
-    // Adapt effectiveConfig (Partial) to AgendaConfig if needed or just use separate rendering.
-    // To keep it simple, I'll stick to the existing layout but populate with real data or the DEFAULT if loading.
-
-    // Final Decision: Render layout. If `effectiveConfig` is null, show "No events".
-    // I will cast upcomingEvents[0] to match the layout needs or just read directly.
-
-    const activeEvent = effectiveConfig || DEFAULT_AGENDA; // Show default if loading or empty for now to avoid breaking UI, or handle empty.
-
     return (
         <div className="w-full max-w-md mx-auto space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-white">Event Details</h2>
-                    {attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT' ? (
+                    {isConfirmed ? (
                         <span className="px-3 py-1 bg-[#10b981]/10 text-[#10b981] text-xs font-medium rounded-full border border-[#10b981]/20">
                             Confirmed
                         </span>
@@ -182,6 +191,13 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                 )}
 
                 <div className="space-y-6">
+                    {/* Event Title if available */}
+                    {activeEvent.title && (
+                        <div>
+                            <h3 className="text-2xl font-bold text-white">{activeEvent.title}</h3>
+                        </div>
+                    )}
+
                     {/* Date & Time */}
                     <div className="flex items-start gap-4">
                         <div className="p-3 bg-purple-500/10 rounded-xl">
@@ -206,14 +222,16 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                             <h3 className="text-sm font-medium text-gray-400">Location</h3>
                             <p className="text-white font-semibold">{activeEvent.locationName}</p>
                             <p className="text-sm text-gray-500 mt-1">{activeEvent.locationAddress}</p>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="mt-3 w-full border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
-                                onClick={() => window.open(activeEvent.locationMapUrl, "_blank")}
-                            >
-                                Open in Maps
-                            </Button>
+                            {activeEvent.locationMapUrl && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-3 w-full border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+                                    onClick={() => window.open(activeEvent.locationMapUrl, "_blank")}
+                                >
+                                    Open in Maps
+                                </Button>
+                            )}
                         </div>
                     </div>
 
@@ -233,7 +251,7 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                 </div>
 
                 {/* Big Confirm Button */}
-                {!(attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT') && (
+                {!isConfirmed && (
                     <Button
                         size="lg"
                         className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold text-lg h-12 shadow-lg shadow-emerald-500/20"
@@ -254,20 +272,14 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                         {upcomingEvents.map(event => (
                             <button
                                 key={event.id}
-                                className="w-full text-left bg-zinc-800/50 p-4 rounded-xl border border-zinc-700/50 hover:bg-zinc-800 transition-colors"
-                                onClick={() => {
-                                    // Make this event active? For now just toast
-                                    toast.info("Viewing details for " + event.title);
-                                }}
+                                className={`w-full text-left p-4 rounded-xl border transition-colors ${selectedEventId === event.id || (!selectedEventId && event.id === nextEvent?.id) ? 'bg-zinc-800 border-emerald-500/50' : 'bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800'}`}
+                                onClick={() => setSelectedEventId(event.id)}
                             >
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-white font-bold">{event.title}</h3>
+                                        <h3 className="text-white font-bold">{event.title || event.date || "Event"}</h3>
                                         <p className="text-emerald-500 text-xs font-semibold mt-1">
-                                            {/* Handle both Timestamp (if updated) and string (if raw) */}
-                                            {typeof event.startTimestamp === 'string'
-                                                ? new Date(event.startTimestamp).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })
-                                                : (event.startTimestamp as any)?.toDate?.().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' }) || event.date}
+                                            {formatStartTimestamp(event)?.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' }) || event.date}
                                         </p>
                                         <p className="text-gray-400 text-xs mt-1">{event.location}</p>
                                     </div>

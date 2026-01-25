@@ -4,11 +4,13 @@ import { auth, db } from "@/firebase/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import Index from "../pages/Index";
 
 const RootRedirect = () => {
     const navigate = useNavigate();
     const { user, loading } = useAuth();
     const [isChecking, setIsChecking] = useState(false);
+    const [showLanding, setShowLanding] = useState(false);
 
     useEffect(() => {
         // If global auth is still loading, do nothing
@@ -82,7 +84,13 @@ const RootRedirect = () => {
                     }
                 } else {
                     // Normal not-logged-in state
-                    navigate("/access", { replace: true });
+                    // If PWA, we usually want them to Login (Access).
+                    // If Web (Mobile/Desktop), we show the Landing Page.
+                    if (isPWA) {
+                        navigate("/access", { replace: true });
+                    } else {
+                        setShowLanding(true);
+                    }
                 }
             }
         };
@@ -91,6 +99,10 @@ const RootRedirect = () => {
             checkUser();
         }
     }, [user, loading, navigate, isChecking]);
+
+    if (showLanding) {
+        return <Index />;
+    }
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center flex-col gap-4">

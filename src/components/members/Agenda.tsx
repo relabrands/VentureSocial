@@ -97,48 +97,38 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
     };
 
     return (
+    return (
         <div className="w-full max-w-md mx-auto space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6 space-y-6">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-white">Event Details</h2>
+                    <h2 className="text-xl font-bold text-white">Detalles del Evento</h2>
                     {attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT' ? (
                         <span className="px-3 py-1 bg-[#10b981]/10 text-[#10b981] text-xs font-medium rounded-full border border-[#10b981]/20">
-                            Confirmed
+                            Confirmado
                         </span>
-                    ) : (
-                        <Button
-                            size="sm"
-                            variant="default"
-                            className="bg-white text-black hover:bg-gray-200 text-xs h-7"
-                            onClick={handleConfirmAttendance}
-                            disabled={rsvpLoading}
-                        >
-                            {rsvpLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                            Confirm RSVP
-                        </Button>
-                    )}
+                    ) : null}
                 </div>
 
-                {/* The Room Live Access - Only if Event is LIVE (or manually enabled for testing) */}
+                {/* The Room Live Access */}
                 {(eventStatus === 'LIVE' || eventStatus === 'ENDED_RECENTLY') && attendanceStatus === 'PRESENT' && onEnterRoomLive && (
                     <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-xl p-4 flex items-center justify-between">
                         <div>
                             <h3 className="text-white font-bold text-sm">The Room Live</h3>
-                            <p className="text-xs text-gray-400">See who is here right now.</p>
+                            <p className="text-xs text-gray-400">Mira quién está aquí.</p>
                         </div>
                         <Button
                             size="sm"
                             className="bg-purple-600 hover:bg-purple-700 text-white"
                             onClick={onEnterRoomLive}
                         >
-                            Enter Room
+                            Entrar
                         </Button>
                         {onEditSpotMe && (
                             <button
                                 onClick={onEditSpotMe}
                                 className="text-[10px] text-gray-400 hover:text-white underline text-center mt-2 w-full block"
                             >
-                                Edit Spot Info
+                                Editar mi info
                             </button>
                         )}
                     </div>
@@ -151,7 +141,7 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                             <Calendar className="w-6 h-6 text-purple-500" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-gray-400">Date</h3>
+                            <h3 className="text-sm font-medium text-gray-400">Fecha</h3>
                             <p className="text-white font-semibold">{data.date}</p>
                             <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
                                 <Clock className="w-4 h-4" />
@@ -166,7 +156,7 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                             <MapPin className="w-6 h-6 text-blue-500" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-sm font-medium text-gray-400">Location</h3>
+                            <h3 className="text-sm font-medium text-gray-400">Ubicación</h3>
                             <p className="text-white font-semibold">{data.locationName}</p>
                             <p className="text-sm text-gray-500 mt-1">{data.locationAddress}</p>
                             <Button
@@ -175,7 +165,7 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                                 className="mt-3 w-full border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
                                 onClick={() => window.open(data.locationMapUrl, "_blank")}
                             >
-                                Open in Maps
+                                Abrir en Mapa
                             </Button>
                         </div>
                     </div>
@@ -194,10 +184,23 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                         </div>
                     </div>
                 </div>
+
+                {/* Big Confirm Button */}
+                {!(attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT') && (
+                    <Button
+                        size="lg"
+                        className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold text-lg h-12 shadow-lg shadow-emerald-500/20"
+                        onClick={handleConfirmAttendance}
+                        disabled={rsvpLoading}
+                    >
+                        {rsvpLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null}
+                        Confirmar Asistencia
+                    </Button>
+                )}
             </div>
 
             <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6">
-                <h2 className="text-lg font-bold text-white mb-4">Timeline</h2>
+                <h2 className="text-lg font-bold text-white mb-4">Agenda</h2>
                 <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-800">
                     {data.timeline.map((item, i) => (
                         <div key={i} className="relative flex gap-4">
@@ -215,34 +218,45 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
             </div>
 
             {/* Upcoming Events List */}
-            {upcomingEvents.length > 0 && (
-                <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6">
-                    <h2 className="text-lg font-bold text-white mb-4">Upcoming Events</h2>
+            <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6">
+                <h2 className="text-lg font-bold text-white mb-4">Próximos Eventos</h2>
+                {upcomingEvents.length > 0 ? (
                     <div className="space-y-4">
                         {upcomingEvents.map(event => (
-                            <div key={event.id} className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700/50">
+                            <button
+                                key={event.id}
+                                className="w-full text-left bg-zinc-800/50 p-4 rounded-xl border border-zinc-700/50 hover:bg-zinc-800 transition-colors"
+                                onClick={() => {
+                                    // TODO: Select this event to view details
+                                    toast.info("Detalles próximamente");
+                                }}
+                            >
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="text-white font-bold">{event.title}</h3>
                                         <p className="text-emerald-500 text-xs font-semibold mt-1">
                                             {event.startTimestamp && typeof event.startTimestamp.toDate === 'function'
-                                                ? event.startTimestamp.toDate().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })
+                                                ? event.startTimestamp.toDate().toLocaleDateString('es-DO', { weekday: 'short', month: 'long', day: 'numeric' })
                                                 : event.date}
                                         </p>
                                         <p className="text-gray-400 text-xs mt-1">{event.location}</p>
                                     </div>
                                     <Calendar className="w-5 h-5 text-gray-500" />
                                 </div>
-                            </div>
+                            </button>
                         ))}
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div className="text-center text-gray-500 py-4 text-sm italic">
+                        No hay más eventos próximos.
+                    </div>
+                )}
+            </div>
 
             {/* Past Events History */}
             {pastEvents.length > 0 && (
                 <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6">
-                    <h2 className="text-lg font-bold text-white mb-4">You were there</h2>
+                    <h2 className="text-lg font-bold text-white mb-4">Historial</h2>
                     <div className="space-y-3">
                         {pastEvents.map(event => (
                             <div key={event.id} className="flex items-center gap-3 p-3 bg-zinc-800/20 rounded-xl border border-zinc-800">
@@ -253,12 +267,12 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                                     <h3 className="text-gray-200 text-sm font-medium">{event.title}</h3>
                                     <p className="text-gray-500 text-xs">
                                         {event.startTimestamp && typeof event.startTimestamp.toDate === 'function'
-                                            ? event.startTimestamp.toDate().toLocaleDateString()
+                                            ? event.startTimestamp.toDate().toLocaleDateString('es-DO')
                                             : event.date}
                                     </p>
                                 </div>
                                 <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded">
-                                    PRESENT
+                                    ASISTISTE
                                 </div>
                             </div>
                         ))}

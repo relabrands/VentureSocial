@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { toast } from "sonner";
-import { useEvents } from "@/hooks/useEvents";
+import { useEvents, Event } from "@/hooks/useEvents";
 
 interface TimelineItem {
     time: string;
@@ -225,7 +225,9 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                                     <div>
                                         <h3 className="text-white font-bold">{event.title}</h3>
                                         <p className="text-emerald-500 text-xs font-semibold mt-1">
-                                            {event.date?.toDate().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })}
+                                            {event.startTimestamp && typeof event.startTimestamp.toDate === 'function'
+                                                ? event.startTimestamp.toDate().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })
+                                                : event.date}
                                         </p>
                                         <p className="text-gray-400 text-xs mt-1">{event.location}</p>
                                     </div>
@@ -250,7 +252,9 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                                 <div className="flex-1">
                                     <h3 className="text-gray-200 text-sm font-medium">{event.title}</h3>
                                     <p className="text-gray-500 text-xs">
-                                        {event.date?.toDate().toLocaleDateString()}
+                                        {event.startTimestamp && typeof event.startTimestamp.toDate === 'function'
+                                            ? event.startTimestamp.toDate().toLocaleDateString()
+                                            : event.date}
                                     </p>
                                 </div>
                                 <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded">

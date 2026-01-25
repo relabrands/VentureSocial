@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Save, User, Briefcase, Building, Linkedin, Target, Zap } from "lucide-react";
+import { Loader2, Save, User, Briefcase, Building, Linkedin, Target, Zap, LogOut } from "lucide-react";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MemberProfileSheetProps {
     isOpen: boolean;
@@ -17,6 +18,7 @@ interface MemberProfileSheetProps {
 }
 
 const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfileSheetProps) => {
+    const { logout } = useAuth();
     const [formData, setFormData] = useState({
         fullName: "",
         role: "",
@@ -28,6 +30,14 @@ const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfile
         biggestChallenge: ""
     });
     const [saving, setSaving] = useState(false);
+
+    const handleLogout = async () => {
+        if (confirm("Are you sure you want to sign out?")) {
+            localStorage.removeItem('vs_member_authenticated');
+            onClose(); // Close sheet first to avoid flickering
+            await logout();
+        }
+    };
 
     useEffect(() => {
         if (member) {
@@ -181,6 +191,18 @@ const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfile
                                 placeholder="What help do you need right now?"
                             />
                         </div>
+                    </div>
+
+                    {/* Account Actions */}
+                    <div className="pt-8 mt-4">
+                        <Button
+                            variant="ghost"
+                            className="w-full text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-gray-800 hover:border-red-500/30"
+                            onClick={handleLogout}
+                        >
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Sign Out
+                        </Button>
                     </div>
                 </div>
 

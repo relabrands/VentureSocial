@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, Clock, Shirt, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, Timestamp, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -46,36 +46,21 @@ const DEFAULT_AGENDA: AgendaConfig = {
 
 interface AgendaProps {
     memberId?: string;
+    member?: any; // Full member object
     onEnterRoomLive?: () => void;
     eventStatus?: 'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED';
     onEditSpotMe?: () => void;
     config?: AgendaConfig; // New prop
 }
 
-const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpotMe, config: propConfig }: AgendaProps) => {
-    // const [config, setConfig] = useState<AgendaConfig | null>(null); // Removed internal state
-    // const [loading, setLoading] = useState(true); // Removed internal loading
-    const [attendanceStatus, setAttendanceStatus] = useState<string | null>(null);
+const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpotMe, config: propConfig }: AgendaProps) => {
+    // State for RSVP and Check-in
+    const [rsvpConfirmed, setRsvpConfirmed] = useState(false);
+    const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [rsvpLoading, setRsvpLoading] = useState(false);
+
     const { upcomingEvents, pastEvents, loading } = useEvents(memberId);
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchStatus = async () => {
-            try {
-                if (memberId) {
-                    const memberDoc = await getDoc(doc(db, "applications", memberId));
-                    if (memberDoc.exists()) {
-                        setAttendanceStatus(memberDoc.data().attendance_status);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching status:", error);
-            }
-        };
-
-        fetchStatus();
-    }, [memberId]);
 
     // Helper to format timestamps safely (Independent of mapToConfig for list use)
     const formatStartTimestamp = (event?: Event) => {
@@ -98,11 +83,6 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
     // We prefer the user selection. If none, we fallback to propConfig. If none, we fallback to first upcoming.
     const sourceData = userSelectedEvent || propConfig || upcomingEvents[0];
 
-    // Check if sourceData is an "Event" (from useEvents) or "AgendaConfig" (from props)
-    // We can check existence of 'startTimestamp' (Event) vs 'timeRange' (AgendaConfig) - though props might have both?
-    // Actually, `propConfig` is type `AgendaConfig` or `any` (from PassPage activeEvent).
-    // `PassPage` passes raw Firestore data which has `startTimestamp`.
-
     // Helper to map ANY event-like object to Agenda UI format
     const mapToConfig = (data: any) => {
         if (!data) return null;
@@ -112,7 +92,6 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
         let timeRangeStr = data.timeRange;
 
         // If we have timestamps, override date/time strings
-        // Handle Timestamp object or ISO string
         const start = data.startTimestamp ? (data.startTimestamp.toDate ? data.startTimestamp.toDate() : new Date(data.startTimestamp)) : null;
         const end = data.endTimestamp ? (data.endTimestamp.toDate ? data.endTimestamp.toDate() : new Date(data.endTimestamp)) : null;
 
@@ -140,24 +119,57 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
     const effectiveConfig = mapToConfig(sourceData);
     const activeEvent = effectiveConfig || DEFAULT_AGENDA;
 
-    // Check if Confirmed
-    // Logic: User is confirmed GLOBALLY. We assume this applies if they are viewing the "Next/Active" event.
-    // If they view a future event that is NOT the next one, we shouldn't show confirmed unless we track per-event.
-    // For now: Show confirmed if `attendanceStatus === 'CONFIRMED'` AND (viewing propConfig event OR viewing first upcoming).
-    // If user clicked a DIFFERENT event, hide confirmed.
-    // But what if `userSelectedEvent` IS the first upcoming?
-    const isViewingNextEvent = activeEvent.id === upcomingEvents[0]?.id || (propConfig && activeEvent.id === propConfig.id);
-    const isConfirmed = (attendanceStatus === 'CONFIRMED' || attendanceStatus === 'PRESENT') && isViewingNextEvent;
+    // Fetch Status (Per Event and Global Check-in)
+    useEffect(() => {
+        const fetchStatus = async () => {
+            if (!memberId) return;
+
+            try {
+                // 1. Check Global Application Status (For Check-in / Room Live)
+                const memberDoc = await getDoc(doc(db, "applications", memberId));
+                if (memberDoc.exists()) {
+                    const data = memberDoc.data();
+                    setIsCheckedIn(data.attendance_status === 'PRESENT');
+                }
+
+                // 2. Check Per-Event Confirmation (RSVP)
+                if (activeEvent.id) {
+                    const attendeesRef = doc(db, "events", activeEvent.id, "attendees", memberId);
+                    const attendeeDoc = await getDoc(attendeesRef);
+                    setRsvpConfirmed(attendeeDoc.exists());
+                } else {
+                    setRsvpConfirmed(false);
+                }
+            } catch (error) {
+                console.error("Error fetching status:", error);
+            }
+        };
+
+        fetchStatus();
+    }, [memberId, activeEvent.id]); // Re-run when event changes
 
     const handleConfirmAttendance = async () => {
-        if (!memberId) return;
+        if (!memberId || !activeEvent.id) return;
         setRsvpLoading(true);
         try {
-            const memberRef = doc(db, "applications", memberId);
-            await updateDoc(memberRef, {
-                attendance_status: "CONFIRMED"
-            });
-            setAttendanceStatus("CONFIRMED");
+            // Write to events/{id}/attendees/{memberId}
+            const attendeesRef = doc(db, "events", activeEvent.id, "attendees", memberId);
+
+            // Sync necessary display data to the attendee doc
+            const attendeeData = {
+                uid: memberId,
+                name: member?.fullName || member?.name || "Unknown",
+                email: member?.email || "",
+                role: member?.role || "",
+                company: member?.projectCompany || member?.company || "",
+                linkedin: member?.linkedin || "",
+                status: "CONFIRMED",
+                rsvpAt: serverTimestamp()
+            };
+
+            await setDoc(attendeesRef, attendeeData, { merge: true });
+
+            setRsvpConfirmed(true);
             toast.success("Attendance Confirmed! See you there.");
         } catch (error) {
             console.error("Error confirming attendance:", error);
@@ -180,15 +192,15 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
             <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-white">Event Details</h2>
-                    {isConfirmed ? (
+                    {rsvpConfirmed ? (
                         <span className="px-3 py-1 bg-[#10b981]/10 text-[#10b981] text-xs font-medium rounded-full border border-[#10b981]/20">
                             Confirmed
                         </span>
                     ) : null}
                 </div>
 
-                {/* The Room Live Access */}
-                {(eventStatus === 'LIVE' || eventStatus === 'ENDED_RECENTLY') && attendanceStatus === 'PRESENT' && onEnterRoomLive && (
+                {/* The Room Live Access - Requires Global Check-in (PRESENT) */}
+                {(eventStatus === 'LIVE' || eventStatus === 'ENDED_RECENTLY') && isCheckedIn && onEnterRoomLive && (
                     <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-xl p-4 flex items-center justify-between">
                         <div>
                             <h3 className="text-white font-bold text-sm">The Room Live</h3>
@@ -273,7 +285,7 @@ const Agenda = ({ memberId, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpo
                 </div>
 
                 {/* Big Confirm Button */}
-                {!isConfirmed && (
+                {!rsvpConfirmed && activeEvent.id && (
                     <Button
                         size="lg"
                         className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold text-lg h-12 shadow-lg shadow-emerald-500/20"

@@ -95,15 +95,22 @@ const AgendaEditor = () => {
         const fetchAttendees = async () => {
             setAttendeesLoading(true);
             try {
-                // Fetch users who are CONFIRMED (Global check for now)
-                // TODO: When we move to subcollections, query events/{id}/attendees
-                const q = query(
-                    collection(db, "applications"),
-                    where("attendance_status", "==", "CONFIRMED")
-                );
-                const snapshot = await getDocs(q);
-                const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setAttendees(users);
+                // Fetch users from the EVENT SUBCOLLECTION (New Per-Event Logic)
+                const attendeesRef = collection(db, "events", selectedEventId, "attendees");
+                const q = query(attendeesRef, orderBy("rsvpAt", "desc"));
+
+                try {
+                    const snapshot = await getDocs(q);
+                    const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setAttendees(users);
+                } catch (orderError) {
+                    // Fallback if index missing or field missing
+                    console.warn("Ordering failed, fetching unsorted", orderError);
+                    const snapshot = await getDocs(attendeesRef);
+                    const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setAttendees(users);
+                }
+
             } catch (err) {
                 console.error("Error fetching attendees:", err);
             } finally {

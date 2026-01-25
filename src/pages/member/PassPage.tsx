@@ -331,7 +331,8 @@ const PassPage = () => {
 
                     {currentTab === 'agenda' && (
                         <Agenda
-                            memberId={member.id} // Pass Firestore Document ID for RSVP updates
+                            member={member} // Pass full member object for RSVP data
+                            memberId={member.id} // Keep for compatibility if needed, though member.id is same
                             onEnterRoomLive={() => setCurrentTab('room_live')}
                             eventStatus={eventStatus}
                             config={agendaConfig}

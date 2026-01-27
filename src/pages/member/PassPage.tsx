@@ -167,12 +167,6 @@ const PassPage = () => {
                 setAttendanceStatus(data.attendance_status);
 
                 // Spot Me Modal Trigger
-                if (data.attendance_status === 'PRESENT' && !data.how_to_spot_me) {
-                    if (!sessionStorage.getItem(`spot_me_dismissed_${docId}`)) {
-                        setShowSpotMeModal(true);
-                    }
-                }
-
                 if (!data.superpower || !data.biggestChallenge || !data.linkedin) {
                     setShowOnboarding(true);
                 }
@@ -185,6 +179,40 @@ const PassPage = () => {
         return unsubscribe;
     };
 
+
+    // Spot Me Logic: Reset per event
+    useEffect(() => {
+        if (!member || !agendaConfig || !member.id) return;
+
+        // Only trigger if Present
+        if (member.attendance_status === 'PRESENT' && !showSpotMeModal) {
+            const currentEventId = agendaConfig.id;
+            const lastSpotMeEventId = member.spot_me_event_id;
+
+            // Check if we need to collect info:
+            // 1. No info at all
+            // 2. Info is from a different event (stale)
+            const isStale = lastSpotMeEventId !== currentEventId;
+            const hasNoData = !member.how_to_spot_me;
+
+            if (isStale || hasNoData) {
+                // Check session storage for THIS specific event dismissal
+                const dismissedKey = `spot_me_dismissed_${member.id}_${currentEventId}`;
+                const isDismissed = sessionStorage.getItem(dismissedKey);
+
+                if (!isDismissed) {
+                    // If stale (new event), we clear the text default
+                    if (isStale) {
+                        setSpotMeText("");
+                    } else {
+                        // If just empty data but matching event (rare?) or first load
+                        setSpotMeText(member.how_to_spot_me || "");
+                    }
+                    setShowSpotMeModal(true);
+                }
+            }
+        }
+    }, [member, agendaConfig]); // Rely on dependencies to trigger when data loads
 
 
     const handleOnboardingComplete = () => {
@@ -318,6 +346,7 @@ const PassPage = () => {
                         <MemberDirectory
                             currentMemberId={member.memberId}
                             recommendations={member.aiRecommendations}
+                            eventId={agendaConfig?.id}
                         />
                     )}
 
@@ -326,6 +355,7 @@ const PassPage = () => {
                             currentMemberId={member.memberId}
                             recommendations={member.aiRecommendations}
                             liveMode={true}
+                            eventId={agendaConfig?.id}
                         />
                     )}
 
@@ -428,7 +458,9 @@ const PassPage = () => {
                             variant="ghost"
                             onClick={() => {
                                 setShowSpotMeModal(false);
-                                sessionStorage.setItem(`spot_me_dismissed_${member?.id}`, 'true');
+                                if (agendaConfig?.id && member?.id) {
+                                    sessionStorage.setItem(`spot_me_dismissed_${member.id}_${agendaConfig.id}`, 'true');
+                                }
                             }}
                             className="text-gray-400 hover:text-white hover:bg-white/10"
                         >
@@ -439,9 +471,16 @@ const PassPage = () => {
                                 if (!member?.id) return;
                                 setSavingSpotMe(true);
                                 try {
-                                    await updateDoc(doc(db, "applications", member.id), {
+                                    // Update both the text and the event ID
+                                    const updatePayload: any = {
                                         how_to_spot_me: spotMeText
-                                    });
+                                    };
+
+                                    if (agendaConfig?.id) {
+                                        updatePayload.spot_me_event_id = agendaConfig.id;
+                                    }
+
+                                    await updateDoc(doc(db, "applications", member.id), updatePayload);
                                     toast.success("Saved! You are now easier to find.");
                                     setShowSpotMeModal(false);
                                 } catch (e) {

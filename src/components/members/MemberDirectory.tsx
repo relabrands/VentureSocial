@@ -26,9 +26,10 @@ interface MemberDirectoryProps {
     currentMemberId?: string;
     recommendations?: Recommendation[];
     liveMode?: boolean;
+    eventId?: string;
 }
 
-const MemberDirectory = ({ currentMemberId, recommendations = [], liveMode = false }: MemberDirectoryProps) => {
+const MemberDirectory = ({ currentMemberId, recommendations = [], liveMode = false, eventId }: MemberDirectoryProps) => {
     const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -152,7 +153,7 @@ const MemberDirectory = ({ currentMemberId, recommendations = [], liveMode = fal
                                         💡 {match.reason}
                                     </p>
                                 )}
-                                {liveMode && (member as any).how_to_spot_me && (
+                                {liveMode && (member as any).how_to_spot_me && (member as any).spot_me_event_id === eventId && (
                                     <p className="text-purple-400/90 text-[10px] mt-1 italic truncate flex items-center gap-1">
                                         <Eye className="h-3 w-3" /> {(member as any).how_to_spot_me}
                                     </p>

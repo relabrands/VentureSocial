@@ -37,9 +37,10 @@ service cloud.firestore {
 
     // Admins collection (to store admin UIDs)
     match /admins/{userId} {
-      // Allow user to read their own doc to check if they are admin
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if false; // Managed manually in console
+      // Allow user to read their own doc to check if they are admin, or if they are an admin
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      // Writes are handled securely by Cloud Functions
+      allow write: if false; 
     }
 
     // Config collection (for Venue Mode etc)

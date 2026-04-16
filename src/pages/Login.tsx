@@ -13,13 +13,19 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, adminRole, loading: authLoading } = useAuth();
 
     useEffect(() => {
-        if (user) {
-            navigate("/admin/applications");
+        if (!authLoading && user) {
+            if (adminRole === "event_validator") {
+                navigate("/admin/check-in");
+            } else if (adminRole === "partner") {
+                navigate("/admin/dashboard");
+            } else {
+                navigate("/admin/applications");
+            }
         }
-    }, [user, navigate]);
+    }, [user, adminRole, authLoading, navigate]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,11 +34,10 @@ const Login = () => {
         try {
             await signIn(email, password);
             toast.success("Welcome back!");
-            navigate("/admin/applications");
+            // The useEffect will handle the redirect once AuthContext updates
         } catch (error: any) {
             console.error(error);
             toast.error("Login failed. Check your credentials.");
-        } finally {
             setLoading(false);
         }
     };

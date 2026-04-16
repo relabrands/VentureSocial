@@ -27,48 +27,52 @@ const AdminLayout = () => {
                     <p className="text-sm text-muted-foreground">Admin Dashboard</p>
                 </div>
                 <nav className="px-4 space-y-2">
-                    <Link to="/admin/dashboard">
-                        <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                            Dashboard
-                        </Button>
-                    </Link>
-                    <Link to="/admin/applications">
-                        <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Applications
-                        </Button>
-                    </Link>
-                    <Link to="/admin/members">
-                        <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
-                            <Users className="mr-2 h-4 w-4" />
-                            Members
-                        </Button>
-                    </Link>
-                    <Link to="/admin/templates">
-                        <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Email Templates
-                        </Button>
-                    </Link>
-                    <Link to="/admin/priority-invites">
-                        <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                            <Users className="mr-2 h-4 w-4" />
-                            Priority Invite List
-                        </Button>
-                    </Link>
-                    <Link to="/admin/agenda">
-                        <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                            <Calendar className="mr-2 h-4 w-4" />
-                            Agenda
-                        </Button>
-                    </Link>
-                    <Link to="/admin/perks">
-                        <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
-                            <Gift className="mr-2 h-4 w-4" />
-                            Perks
-                        </Button>
-                    </Link>
+                    {adminRole !== "event_validator" && (
+                        <>
+                            <Link to="/admin/dashboard">
+                                <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
+                                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                                    Dashboard
+                                </Button>
+                            </Link>
+                            <Link to="/admin/applications">
+                                <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Applications
+                                </Button>
+                            </Link>
+                            <Link to="/admin/members">
+                                <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
+                                    <Users className="mr-2 h-4 w-4" />
+                                    Members
+                                </Button>
+                            </Link>
+                            <Link to="/admin/templates">
+                                <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Email Templates
+                                </Button>
+                            </Link>
+                            <Link to="/admin/priority-invites">
+                                <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                    <Users className="mr-2 h-4 w-4" />
+                                    Priority Invite List
+                                </Button>
+                            </Link>
+                            <Link to="/admin/agenda">
+                                <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    Agenda
+                                </Button>
+                            </Link>
+                            <Link to="/admin/perks">
+                                <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                                    <Gift className="mr-2 h-4 w-4" />
+                                    Perks
+                                </Button>
+                            </Link>
+                        </>
+                    )}
                     <Link to="/admin/check-in">
                         <Button variant={isActive("check-in") ? "secondary" : "ghost"} className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
                             <QrCode className="mr-2 h-4 w-4" />
@@ -107,48 +111,52 @@ const AdminLayout = () => {
                                 <p className="text-sm text-muted-foreground">Admin Dashboard</p>
                             </div>
                             <nav className="p-4 space-y-2">
-                                <Link to="/admin/dashboard">
-                                    <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
-                                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                                        Dashboard
-                                    </Button>
-                                </Link>
-                                <Link to="/admin/applications">
-                                    <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
-                                        <FileText className="mr-2 h-4 w-4" />
-                                        Applications
-                                    </Button>
-                                </Link>
-                                <Link to="/admin/members">
-                                    <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
-                                        <Users className="mr-2 h-4 w-4" />
-                                        Members
-                                    </Button>
-                                </Link>
-                                <Link to="/admin/templates">
-                                    <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
-                                        <FileText className="mr-2 h-4 w-4" />
-                                        Email Templates
-                                    </Button>
-                                </Link>
-                                <Link to="/admin/priority-invites">
-                                    <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                                        <Users className="mr-2 h-4 w-4" />
-                                        Priority Invite List
-                                    </Button>
-                                </Link>
-                                <Link to="/admin/agenda">
-                                    <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                                        <Calendar className="mr-2 h-4 w-4" />
-                                        Agenda
-                                    </Button>
-                                </Link>
-                                <Link to="/admin/perks">
-                                    <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
-                                        <Gift className="mr-2 h-4 w-4" />
-                                        Perks
-                                    </Button>
-                                </Link>
+                                {adminRole !== "event_validator" && (
+                                    <>
+                                        <Link to="/admin/dashboard">
+                                            <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
+                                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                                Dashboard
+                                            </Button>
+                                        </Link>
+                                        <Link to="/admin/applications">
+                                            <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
+                                                <FileText className="mr-2 h-4 w-4" />
+                                                Applications
+                                            </Button>
+                                        </Link>
+                                        <Link to="/admin/members">
+                                            <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
+                                                <Users className="mr-2 h-4 w-4" />
+                                                Members
+                                            </Button>
+                                        </Link>
+                                        <Link to="/admin/templates">
+                                            <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
+                                                <FileText className="mr-2 h-4 w-4" />
+                                                Email Templates
+                                            </Button>
+                                        </Link>
+                                        <Link to="/admin/priority-invites">
+                                            <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                                <Users className="mr-2 h-4 w-4" />
+                                                Priority Invite List
+                                            </Button>
+                                        </Link>
+                                        <Link to="/admin/agenda">
+                                            <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                                <Calendar className="mr-2 h-4 w-4" />
+                                                Agenda
+                                            </Button>
+                                        </Link>
+                                        <Link to="/admin/perks">
+                                            <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                                                <Gift className="mr-2 h-4 w-4" />
+                                                Perks
+                                            </Button>
+                                        </Link>
+                                    </>
+                                )}
                                 <Link to="/admin/check-in">
                                     <Button variant={isActive("check-in") ? "secondary" : "ghost"} className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
                                         <QrCode className="mr-2 h-4 w-4" />

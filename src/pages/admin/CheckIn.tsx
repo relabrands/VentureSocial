@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { Search, QrCode, CheckCircle, XCircle, UserCheck, Camera, Trash2, RefreshCcw } from "lucide-react";
 import { Scanner } from '@yudiel/react-qr-scanner';
 
+import { useAuth } from "@/contexts/AuthContext";
+
 interface Member {
     id: string;
     memberId?: string;
@@ -22,6 +24,7 @@ interface Member {
 }
 
 const CheckIn = () => {
+    const { adminRole } = useAuth();
     const [members, setMembers] = useState<Member[]>([]);
     const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
     const [search, setSearch] = useState("");
@@ -241,10 +244,12 @@ const CheckIn = () => {
                     <p className="text-sm md:text-base text-muted-foreground">Manage guest attendance</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <Button variant="destructive" onClick={handleResetEvent} className="w-full sm:w-auto flex-1 md:flex-none">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Reset Event
-                    </Button>
+                    {adminRole === "super_admin" && (
+                        <Button variant="destructive" onClick={handleResetEvent} className="w-full sm:w-auto flex-1 md:flex-none">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Reset Event
+                        </Button>
+                    )}
                     <Button onClick={() => setIsScannerOpen(true)} className="w-full sm:w-auto flex-1 md:flex-none">
                         <Camera className="mr-2 h-4 w-4" />
                         Scan QR

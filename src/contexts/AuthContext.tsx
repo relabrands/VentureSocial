@@ -10,6 +10,7 @@ interface AuthContextType {
     loading: boolean;
     isAdmin: boolean;
     adminRole?: string;
+    adminPermissions?: any;
     logout: () => Promise<void>;
 }
 
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
     loading: true,
     isAdmin: false,
     adminRole: undefined,
+    adminPermissions: undefined,
     logout: async () => { },
 });
 
@@ -28,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [adminRole, setAdminRole] = useState<string | undefined>(undefined);
+    const [adminPermissions, setAdminPermissions] = useState<any>(undefined);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -40,9 +43,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 console.log("Admin Status:", adminStatus);
                 setIsAdmin(adminStatus.isAdmin);
                 setAdminRole(adminStatus.role);
+                setAdminPermissions(adminStatus.permissions);
             } else {
                 setIsAdmin(false);
                 setAdminRole(undefined);
+                setAdminPermissions(undefined);
             }
 
             setLoading(false);
@@ -62,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, isAdmin, adminRole, logout }}>
+        <AuthContext.Provider value={{ user, loading, isAdmin, adminRole, adminPermissions, logout }}>
             {!loading && children}
         </AuthContext.Provider>
     );

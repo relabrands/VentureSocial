@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAdminUser = exports.verifyMemberCode = exports.sendMemberCode = exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendMagicLink = exports.triggerMatchmaking = exports.sendAdminEmail = void 0;
+exports.updateAdminUser = exports.createAdminUser = exports.verifyMemberCode = exports.sendMemberCode = exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendMagicLink = exports.triggerMatchmaking = exports.sendAdminEmail = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
@@ -510,15 +510,12 @@ exports.createAdminUser = (0, https_1.onCall)(async (request) => {
     if (!request.auth) {
         throw new https_1.HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
-    const { email, password, name, role } = request.data;
+    const { email, password, name, role, permissions } = request.data;
     // We can do a quick check to see if caller is an admin in Firestore
     const callerDoc = await db.collection("admins").doc(request.auth.uid).get();
     if (!callerDoc.exists) {
         throw new https_1.HttpsError('permission-denied', 'You do not have permission to perform this action.');
     }
-    // Optionally, verify that the caller is a super_admin if we implement strict roles
-    // const callerRole = callerDoc.data()?.role;
-    // if (callerRole !== "super_admin") throw new HttpsError('permission-denied');
     if (!email || !password || !name || !role) {
         throw new https_1.HttpsError('invalid-argument', 'Missing required fields: email, password, name, role');
     }
@@ -534,6 +531,7 @@ exports.createAdminUser = (0, https_1.onCall)(async (request) => {
             email: email,
             name: name,
             role: role,
+            permissions: permissions || {},
             isActive: true,
             createdAt: new Date(),
         });
@@ -546,6 +544,33 @@ exports.createAdminUser = (0, https_1.onCall)(async (request) => {
         if (error.code === 'auth/email-already-exists') {
             throw new https_1.HttpsError('already-exists', 'The email address is already in use by another account.');
         }
+        throw new https_1.HttpsError('internal', error.message);
+    }
+});
+exports.updateAdminUser = (0, https_1.onCall)(async (request) => {
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+    const { uid, role, permissions } = request.data;
+    if (!uid) {
+        throw new https_1.HttpsError('invalid-argument', 'Missing required field: uid');
+    }
+    const callerDoc = await db.collection("admins").doc(request.auth.uid).get();
+    if (!callerDoc.exists) {
+        throw new https_1.HttpsError('permission-denied', 'You do not have permission to perform this action.');
+    }
+    try {
+        const updateData = {};
+        if (role !== undefined)
+            updateData.role = role;
+        if (permissions !== undefined)
+            updateData.permissions = permissions;
+        await db.collection("admins").doc(uid).update(updateData);
+        logger.info(`Admin user updated: ${uid}`);
+        return { success: true };
+    }
+    catch (error) {
+        logger.error("Error updating admin user:", error);
         throw new https_1.HttpsError('internal', error.message);
     }
 });

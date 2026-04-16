@@ -29,7 +29,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { UserPlus, Shield, UserCog, UserCheck, Trash2 } from "lucide-react";
+import { UserPlus, Shield, UserCog, UserCheck, Trash2, Edit2, CheckSquare, Square } from "lucide-react";
 
 interface AdminUser {
     id: string;
@@ -37,21 +37,57 @@ interface AdminUser {
     name: string;
     role: string;
     isActive: boolean;
+    permissions?: any;
     createdAt?: any;
 }
+
+const MODULES = ["dashboard", "applications", "members", "templates", "priority-invites", "agenda", "perks", "check-in"];
+
+const getPresetPermissions = (role: string) => {
+    const p: any = {};
+    MODULES.forEach(m => p[m] = { view: false, edit: false });
+    if (role === "super_admin") {
+        MODULES.forEach(m => p[m] = { view: true, edit: true });
+    } else if (role === "event_validator") {
+        p["check-in"] = { view: true, edit: true };
+    } else if (role === "partner") {
+        ["dashboard", "applications", "members", "priority-invites", "agenda", "perks"].forEach(m => {
+            p[m] = { view: true, edit: false };
+        });
+    }
+    return p;
+};
 
 export default function AdminUsers() {
     const { user, adminRole } = useAuth();
     const [admins, setAdmins] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
     // Form state
     const [newName, setNewName] = useState("");
     const [newEmail, setNewEmail] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [newRole, setNewRole] = useState("event_validator");
+    const [newPermissions, setNewPermissions] = useState<any>(getPresetPermissions("event_validator"));
+
+    const handleRoleChange = (role: string) => {
+        setNewRole(role);
+        setNewPermissions(getPresetPermissions(role));
+    };
+
+    const togglePermission = (module: string, type: "view" | "edit") => {
+        setNewPermissions((prev: any) => ({
+            ...prev,
+            [module]: {
+                ...prev[module],
+                [type]: !prev[module]?.[type]
+            }
+        }));
+    };
 
     const fetchAdmins = async () => {
         try {
@@ -94,14 +130,14 @@ export default function AdminUsers() {
         try {
             setIsSubmitting(true);
             const functions = getFunctions();
-            // Call our new cloud function
             const createAdminUser = httpsCallable(functions, 'createAdminUser');
             
             await createAdminUser({
                 email: newEmail,
                 password: newPassword,
                 name: newName,
-                role: newRole
+                role: newRole,
+                permissions: newPermissions
             });
 
             toast.success("Admin user created successfully!");
@@ -112,12 +148,49 @@ export default function AdminUsers() {
             setNewEmail("");
             setNewPassword("");
             setNewRole("event_validator");
+            setNewPermissions(getPresetPermissions("event_validator"));
             
             // Refresh list
             fetchAdmins();
         } catch (error: any) {
             console.error("Error adding admin:", error);
             toast.error(error.message || "Failed to create admin user");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const openEditModal = (admin: AdminUser) => {
+        setEditingUser(admin);
+        setNewRole(admin.role);
+        
+        // Merge missing permissions in case new modules were added securely
+        const mergedPermissions = { ...getPresetPermissions(admin.role), ...admin.permissions };
+        setNewPermissions(mergedPermissions);
+        setIsEditOpen(true);
+    };
+
+    const handleEditAdmin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUser) return;
+
+        try {
+            setIsSubmitting(true);
+            const functions = getFunctions();
+            const updateAdminUser = httpsCallable(functions, 'updateAdminUser');
+
+            await updateAdminUser({
+                uid: editingUser.id,
+                role: newRole,
+                permissions: newPermissions
+            });
+
+            toast.success("Permissions updated successfully!");
+            setIsEditOpen(false);
+            fetchAdmins();
+        } catch (error: any) {
+            console.error("Error updating admin:", error);
+            toast.error(error.message || "Failed to update admin permissions");
         } finally {
             setIsSubmitting(false);
         }
@@ -161,6 +234,32 @@ export default function AdminUsers() {
             </div>
         );
     }
+
+    const renderPermissionsGrid = () => (
+        <div className="space-y-3 mt-4 border rounded-md p-4 bg-slate-50">
+            <h4 className="text-sm font-semibold">Granular Permissions</h4>
+            <div className="grid grid-cols-3 gap-2 pb-2 mb-2 border-b text-xs font-medium text-slate-500">
+                <div>Module</div>
+                <div className="text-center">View</div>
+                <div className="text-center">Edit</div>
+            </div>
+            {MODULES.map(module => (
+                <div key={module} className="grid grid-cols-3 gap-2 items-center text-sm py-1">
+                    <div className="capitalize">{module.replace('-', ' ')}</div>
+                    <div className="flex justify-center">
+                        <button type="button" onClick={() => togglePermission(module, "view")}>
+                            {newPermissions[module]?.view ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-slate-300" />}
+                        </button>
+                    </div>
+                    <div className="flex justify-center">
+                        <button type="button" onClick={() => togglePermission(module, "edit")}>
+                            {newPermissions[module]?.edit ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-slate-300" />}
+                        </button>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
@@ -215,8 +314,8 @@ export default function AdminUsers() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="role">Role</Label>
-                                <Select value={newRole} onValueChange={setNewRole}>
+                                <Label htmlFor="role">Role (Select a preset)</Label>
+                                <Select value={newRole} onValueChange={handleRoleChange}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a role" />
                                     </SelectTrigger>
@@ -227,8 +326,45 @@ export default function AdminUsers() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            
+                            {renderPermissionsGrid()}
+
                             <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
                                 {isSubmitting ? "Creating..." : "Create User"}
+                            </Button>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Edit Admin Dialog */}
+                <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Edit Permissions</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleEditAdmin} className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                                <Label>User</Label>
+                                <div className="p-2 bg-slate-100 rounded-md text-sm">{editingUser?.name} ({editingUser?.email})</div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-role">Role (Base Template)</Label>
+                                <Select value={newRole} onValueChange={handleRoleChange}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="event_validator">Event Validator</SelectItem>
+                                        <SelectItem value="partner">Partner</SelectItem>
+                                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            
+                            {renderPermissionsGrid()}
+
+                            <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
+                                {isSubmitting ? "Saving..." : "Save Changes"}
                             </Button>
                         </form>
                     </DialogContent>
@@ -267,6 +403,15 @@ export default function AdminUsers() {
                                         <RoleBadge role={admin.role} />
                                     </TableCell>
                                     <TableCell className="text-right">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 mr-2"
+                                            onClick={() => openEditModal(admin)}
+                                            title="Edit permissions"
+                                        >
+                                            <Edit2 className="h-4 w-4" />
+                                        </Button>
                                         <Button
                                             variant="ghost"
                                             size="icon"

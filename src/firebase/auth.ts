@@ -16,6 +16,7 @@ export const signOut = () => {
 export interface AdminStatus {
     isAdmin: boolean;
     role?: string;
+    permissions?: any; // Add more specific type if we define it globally later
 }
 
 export const checkAdminStatus = async (uid: string): Promise<AdminStatus> => {
@@ -25,7 +26,8 @@ export const checkAdminStatus = async (uid: string): Promise<AdminStatus> => {
             const data = adminDoc.data();
             return { 
                 isAdmin: true, 
-                role: data?.role || "super_admin" 
+                role: data?.role || "super_admin",
+                permissions: data?.permissions || {}
             };
         }
         return { isAdmin: false };

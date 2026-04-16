@@ -5,7 +5,7 @@ import { LayoutDashboard, FileText, LogOut, Users, QrCode, Menu, Calendar, Gift,
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const AdminLayout = () => {
-    const { user, loading, isAdmin, adminRole, logout } = useAuth();
+    const { user, loading, isAdmin, adminRole, adminPermissions, logout } = useAuth();
     const location = useLocation();
 
     if (loading) {
@@ -18,6 +18,28 @@ const AdminLayout = () => {
 
     const isActive = (path: string) => location.pathname.includes(path);
 
+    const hasViewAccess = (module: string) => {
+        if (adminRole === "super_admin") return true;
+        
+        // If explicit granular permission exists, respect it
+        if (adminPermissions && typeof adminPermissions === 'object' && module in adminPermissions) {
+            return adminPermissions[module]?.view === true;
+        }
+
+        // Fallbacks for legacy/unmigrated users
+        if (adminRole === "event_validator") {
+            return module === "check-in";
+        }
+        
+        if (adminRole === "partner") {
+            // Partners usually saw mostly everything except users
+            if (module === "users") return false;
+            return true;
+        }
+
+        return false; // Default deny
+    };
+
     return (
         <div className="flex min-h-screen bg-gray-50">
             {/* Sidebar (Desktop) */}
@@ -27,59 +49,71 @@ const AdminLayout = () => {
                     <p className="text-sm text-muted-foreground">Admin Dashboard</p>
                 </div>
                 <nav className="px-4 space-y-2">
-                    {adminRole !== "event_validator" && (
-                        <>
-                            <Link to="/admin/dashboard">
-                                <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
-                                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                                    Dashboard
-                                </Button>
-                            </Link>
-                            <Link to="/admin/applications">
-                                <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    Applications
-                                </Button>
-                            </Link>
-                            <Link to="/admin/members">
-                                <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
-                                    <Users className="mr-2 h-4 w-4" />
-                                    Members
-                                </Button>
-                            </Link>
-                            <Link to="/admin/templates">
-                                <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    Email Templates
-                                </Button>
-                            </Link>
-                            <Link to="/admin/priority-invites">
-                                <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                                    <Users className="mr-2 h-4 w-4" />
-                                    Priority Invite List
-                                </Button>
-                            </Link>
-                            <Link to="/admin/agenda">
-                                <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                                    <Calendar className="mr-2 h-4 w-4" />
-                                    Agenda
-                                </Button>
-                            </Link>
-                            <Link to="/admin/perks">
-                                <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
-                                    <Gift className="mr-2 h-4 w-4" />
-                                    Perks
-                                </Button>
-                            </Link>
-                        </>
+                    {hasViewAccess("dashboard") && (
+                        <Link to="/admin/dashboard">
+                            <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                Dashboard
+                            </Button>
+                        </Link>
                     )}
-                    <Link to="/admin/check-in">
-                        <Button variant={isActive("check-in") ? "secondary" : "ghost"} className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
-                            <QrCode className="mr-2 h-4 w-4" />
-                            Event Check-in
-                        </Button>
-                    </Link>
-                    {adminRole === "super_admin" && (
+                    {hasViewAccess("applications") && (
+                        <Link to="/admin/applications">
+                            <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
+                                <FileText className="mr-2 h-4 w-4" />
+                                Applications
+                            </Button>
+                        </Link>
+                    )}
+                    {hasViewAccess("members") && (
+                        <Link to="/admin/members">
+                            <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
+                                <Users className="mr-2 h-4 w-4" />
+                                Members
+                            </Button>
+                        </Link>
+                    )}
+                    {hasViewAccess("templates") && (
+                        <Link to="/admin/templates">
+                            <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
+                                <FileText className="mr-2 h-4 w-4" />
+                                Email Templates
+                            </Button>
+                        </Link>
+                    )}
+                    {hasViewAccess("priority-invites") && (
+                        <Link to="/admin/priority-invites">
+                            <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                <Users className="mr-2 h-4 w-4" />
+                                Priority Invite List
+                            </Button>
+                        </Link>
+                    )}
+                    {hasViewAccess("agenda") && (
+                        <Link to="/admin/agenda">
+                            <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Agenda
+                            </Button>
+                        </Link>
+                    )}
+                    {hasViewAccess("perks") && (
+                        <Link to="/admin/perks">
+                            <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                                <Gift className="mr-2 h-4 w-4" />
+                                Perks
+                            </Button>
+                        </Link>
+                    )}
+                    {hasViewAccess("check-in") && (
+                        <Link to="/admin/check-in">
+                            <Button variant={isActive("check-in") ? "secondary" : "ghost"} className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
+                                <QrCode className="mr-2 h-4 w-4" />
+                                Event Check-in
+                            </Button>
+                        </Link>
+                    )}
+                    {hasViewAccess("users") && adminRole === "super_admin" && (
                         <Link to="/admin/users">
                             <Button variant={isActive("users") ? "secondary" : "ghost"} className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
                                 <Shield className="mr-2 h-4 w-4" />
@@ -111,59 +145,71 @@ const AdminLayout = () => {
                                 <p className="text-sm text-muted-foreground">Admin Dashboard</p>
                             </div>
                             <nav className="p-4 space-y-2">
-                                {adminRole !== "event_validator" && (
-                                    <>
-                                        <Link to="/admin/dashboard">
-                                            <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
-                                                <LayoutDashboard className="mr-2 h-4 w-4" />
-                                                Dashboard
-                                            </Button>
-                                        </Link>
-                                        <Link to="/admin/applications">
-                                            <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
-                                                <FileText className="mr-2 h-4 w-4" />
-                                                Applications
-                                            </Button>
-                                        </Link>
-                                        <Link to="/admin/members">
-                                            <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
-                                                <Users className="mr-2 h-4 w-4" />
-                                                Members
-                                            </Button>
-                                        </Link>
-                                        <Link to="/admin/templates">
-                                            <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
-                                                <FileText className="mr-2 h-4 w-4" />
-                                                Email Templates
-                                            </Button>
-                                        </Link>
-                                        <Link to="/admin/priority-invites">
-                                            <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                                                <Users className="mr-2 h-4 w-4" />
-                                                Priority Invite List
-                                            </Button>
-                                        </Link>
-                                        <Link to="/admin/agenda">
-                                            <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                                                <Calendar className="mr-2 h-4 w-4" />
-                                                Agenda
-                                            </Button>
-                                        </Link>
-                                        <Link to="/admin/perks">
-                                            <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
-                                                <Gift className="mr-2 h-4 w-4" />
-                                                Perks
-                                            </Button>
-                                        </Link>
-                                    </>
+                                {hasViewAccess("dashboard") && (
+                                    <Link to="/admin/dashboard">
+                                        <Button variant={isActive("dashboard") ? "secondary" : "ghost"} className="w-full justify-start">
+                                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                                            Dashboard
+                                        </Button>
+                                    </Link>
                                 )}
-                                <Link to="/admin/check-in">
-                                    <Button variant={isActive("check-in") ? "secondary" : "ghost"} className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
-                                        <QrCode className="mr-2 h-4 w-4" />
-                                        Event Check-in
-                                    </Button>
-                                </Link>
-                                {adminRole === "super_admin" && (
+                                {hasViewAccess("applications") && (
+                                    <Link to="/admin/applications">
+                                        <Button variant={isActive("applications") ? "secondary" : "ghost"} className="w-full justify-start">
+                                            <FileText className="mr-2 h-4 w-4" />
+                                            Applications
+                                        </Button>
+                                    </Link>
+                                )}
+                                {hasViewAccess("members") && (
+                                    <Link to="/admin/members">
+                                        <Button variant={isActive("members") ? "secondary" : "ghost"} className="w-full justify-start">
+                                            <Users className="mr-2 h-4 w-4" />
+                                            Members
+                                        </Button>
+                                    </Link>
+                                )}
+                                {hasViewAccess("templates") && (
+                                    <Link to="/admin/templates">
+                                        <Button variant={isActive("templates") ? "secondary" : "ghost"} className="w-full justify-start">
+                                            <FileText className="mr-2 h-4 w-4" />
+                                            Email Templates
+                                        </Button>
+                                    </Link>
+                                )}
+                                {hasViewAccess("priority-invites") && (
+                                    <Link to="/admin/priority-invites">
+                                        <Button variant={isActive("priority-invites") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                            <Users className="mr-2 h-4 w-4" />
+                                            Priority Invite List
+                                        </Button>
+                                    </Link>
+                                )}
+                                {hasViewAccess("agenda") && (
+                                    <Link to="/admin/agenda">
+                                        <Button variant={isActive("agenda") ? "secondary" : "ghost"} className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                            <Calendar className="mr-2 h-4 w-4" />
+                                            Agenda
+                                        </Button>
+                                    </Link>
+                                )}
+                                {hasViewAccess("perks") && (
+                                    <Link to="/admin/perks">
+                                        <Button variant={isActive("perks") ? "secondary" : "ghost"} className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                                            <Gift className="mr-2 h-4 w-4" />
+                                            Perks
+                                        </Button>
+                                    </Link>
+                                )}
+                                {hasViewAccess("check-in") && (
+                                    <Link to="/admin/check-in">
+                                        <Button variant={isActive("check-in") ? "secondary" : "ghost"} className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
+                                            <QrCode className="mr-2 h-4 w-4" />
+                                            Event Check-in
+                                        </Button>
+                                    </Link>
+                                )}
+                                {hasViewAccess("users") && adminRole === "super_admin" && (
                                     <Link to="/admin/users">
                                         <Button variant={isActive("users") ? "secondary" : "ghost"} className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
                                             <Shield className="mr-2 h-4 w-4" />

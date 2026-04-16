@@ -578,16 +578,13 @@ export const createAdminUser = onCall(async (request) => {
         throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
 
-    const { email, password, name, role } = request.data;
+    const { email, password, name, role, permissions } = request.data;
 
     // We can do a quick check to see if caller is an admin in Firestore
     const callerDoc = await db.collection("admins").doc(request.auth.uid).get();
     if (!callerDoc.exists) {
         throw new HttpsError('permission-denied', 'You do not have permission to perform this action.');
     }
-    // Optionally, verify that the caller is a super_admin if we implement strict roles
-    // const callerRole = callerDoc.data()?.role;
-    // if (callerRole !== "super_admin") throw new HttpsError('permission-denied');
 
     if (!email || !password || !name || !role) {
         throw new HttpsError('invalid-argument', 'Missing required fields: email, password, name, role');
@@ -606,6 +603,7 @@ export const createAdminUser = onCall(async (request) => {
             email: email,
             name: name,
             role: role,
+            permissions: permissions || {},
             isActive: true,
             createdAt: new Date(),
         });
@@ -621,6 +619,37 @@ export const createAdminUser = onCall(async (request) => {
             throw new HttpsError('already-exists', 'The email address is already in use by another account.');
         }
         
+        throw new HttpsError('internal', error.message);
+    }
+});
+
+export const updateAdminUser = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+
+    const { uid, role, permissions } = request.data;
+    
+    if (!uid) {
+        throw new HttpsError('invalid-argument', 'Missing required field: uid');
+    }
+
+    const callerDoc = await db.collection("admins").doc(request.auth.uid).get();
+    if (!callerDoc.exists) {
+        throw new HttpsError('permission-denied', 'You do not have permission to perform this action.');
+    }
+
+    try {
+        const updateData: any = {};
+        if (role !== undefined) updateData.role = role;
+        if (permissions !== undefined) updateData.permissions = permissions;
+        
+        await db.collection("admins").doc(uid).update(updateData);
+        
+        logger.info(`Admin user updated: ${uid}`);
+        return { success: true };
+    } catch (error: any) {
+        logger.error("Error updating admin user:", error);
         throw new HttpsError('internal', error.message);
     }
 });

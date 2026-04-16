@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyMemberCode = exports.sendMemberCode = exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendMagicLink = exports.triggerMatchmaking = exports.sendAdminEmail = void 0;
+exports.createAdminUser = exports.verifyMemberCode = exports.sendMemberCode = exports.servePass = exports.onApplicationStatusChange = exports.onApplicationCreated = exports.sendMagicLink = exports.triggerMatchmaking = exports.sendAdminEmail = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
@@ -502,6 +502,51 @@ exports.verifyMemberCode = (0, https_1.onCall)(async (request) => {
         // Log sensitive details for debugging ONLY
         logger.error("Detailed Verify Error", JSON.stringify(error));
         throw new https_1.HttpsError('internal', `Verification failed: ${error.message}. Please check Cloud Functions IAM permissions.`);
+    }
+});
+// Admin User Management Funcitions
+exports.createAdminUser = (0, https_1.onCall)(async (request) => {
+    // 1. Verify caller is an authenticated admin (super_admin check optional but recommended here)
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+    const { email, password, name, role } = request.data;
+    // We can do a quick check to see if caller is an admin in Firestore
+    const callerDoc = await db.collection("admins").doc(request.auth.uid).get();
+    if (!callerDoc.exists) {
+        throw new https_1.HttpsError('permission-denied', 'You do not have permission to perform this action.');
+    }
+    // Optionally, verify that the caller is a super_admin if we implement strict roles
+    // const callerRole = callerDoc.data()?.role;
+    // if (callerRole !== "super_admin") throw new HttpsError('permission-denied');
+    if (!email || !password || !name || !role) {
+        throw new https_1.HttpsError('invalid-argument', 'Missing required fields: email, password, name, role');
+    }
+    try {
+        // 2. Create the user in Firebase Auth
+        const userRecord = await (0, auth_1.getAuth)().createUser({
+            email: email,
+            password: password,
+            displayName: name,
+        });
+        // 3. Add the user to the `admins` Firestore collection
+        await db.collection("admins").doc(userRecord.uid).set({
+            email: email,
+            name: name,
+            role: role,
+            isActive: true,
+            createdAt: new Date(),
+        });
+        logger.info(`Admin user created: ${email} (${userRecord.uid}) with role ${role}`);
+        return { success: true, uid: userRecord.uid };
+    }
+    catch (error) {
+        logger.error("Error creating admin user:", error);
+        // Handle case where email is already in use
+        if (error.code === 'auth/email-already-exists') {
+            throw new https_1.HttpsError('already-exists', 'The email address is already in use by another account.');
+        }
+        throw new https_1.HttpsError('internal', error.message);
     }
 });
 //# sourceMappingURL=index.js.map

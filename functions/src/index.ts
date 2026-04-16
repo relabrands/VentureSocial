@@ -570,3 +570,58 @@ export const verifyMemberCode = onCall(async (request) => {
         throw new HttpsError('internal', `Verification failed: ${error.message}. Please check Cloud Functions IAM permissions.`);
     }
 });
+
+// Admin User Management Funcitions
+export const createAdminUser = onCall(async (request) => {
+    // 1. Verify caller is an authenticated admin (super_admin check optional but recommended here)
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+
+    const { email, password, name, role } = request.data;
+
+    // We can do a quick check to see if caller is an admin in Firestore
+    const callerDoc = await db.collection("admins").doc(request.auth.uid).get();
+    if (!callerDoc.exists) {
+        throw new HttpsError('permission-denied', 'You do not have permission to perform this action.');
+    }
+    // Optionally, verify that the caller is a super_admin if we implement strict roles
+    // const callerRole = callerDoc.data()?.role;
+    // if (callerRole !== "super_admin") throw new HttpsError('permission-denied');
+
+    if (!email || !password || !name || !role) {
+        throw new HttpsError('invalid-argument', 'Missing required fields: email, password, name, role');
+    }
+
+    try {
+        // 2. Create the user in Firebase Auth
+        const userRecord = await getAuth().createUser({
+            email: email,
+            password: password,
+            displayName: name,
+        });
+
+        // 3. Add the user to the `admins` Firestore collection
+        await db.collection("admins").doc(userRecord.uid).set({
+            email: email,
+            name: name,
+            role: role,
+            isActive: true,
+            createdAt: new Date(),
+        });
+
+        logger.info(`Admin user created: ${email} (${userRecord.uid}) with role ${role}`);
+
+        return { success: true, uid: userRecord.uid };
+    } catch (error: any) {
+        logger.error("Error creating admin user:", error);
+        
+        // Handle case where email is already in use
+        if (error.code === 'auth/email-already-exists') {
+            throw new HttpsError('already-exists', 'The email address is already in use by another account.');
+        }
+        
+        throw new HttpsError('internal', error.message);
+    }
+});
+

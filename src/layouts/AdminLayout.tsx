@@ -1,11 +1,11 @@
 import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, LogOut, Users, QrCode, Menu, Calendar, Gift } from "lucide-react";
+import { LayoutDashboard, FileText, LogOut, Users, QrCode, Menu, Calendar, Gift, Shield } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const AdminLayout = () => {
-    const { user, loading, isAdmin, logout } = useAuth();
+    const { user, loading, isAdmin, adminRole, logout } = useAuth();
     const location = useLocation();
 
     if (loading) {
@@ -75,6 +75,14 @@ const AdminLayout = () => {
                             Event Check-in
                         </Button>
                     </Link>
+                    {adminRole === "super_admin" && (
+                        <Link to="/admin/users">
+                            <Button variant={isActive("users") ? "secondary" : "ghost"} className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                                <Shield className="mr-2 h-4 w-4" />
+                                User Management
+                            </Button>
+                        </Link>
+                    )}
                 </nav>
                 <div className="absolute bottom-4 left-4 right-4">
                     <Button variant="outline" className="w-full" onClick={logout}>
@@ -147,6 +155,14 @@ const AdminLayout = () => {
                                         Event Check-in
                                     </Button>
                                 </Link>
+                                {adminRole === "super_admin" && (
+                                    <Link to="/admin/users">
+                                        <Button variant={isActive("users") ? "secondary" : "ghost"} className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                                            <Shield className="mr-2 h-4 w-4" />
+                                            User Management
+                                        </Button>
+                                    </Link>
+                                )}
                                 <div className="pt-4 mt-4 border-t">
                                     <Button variant="outline" className="w-full" onClick={logout}>
                                         <LogOut className="mr-2 h-4 w-4" />

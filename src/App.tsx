@@ -20,6 +20,7 @@ import PriorityInviteList from "@/pages/admin/PriorityInviteList";
 import AgendaEditor from "@/pages/admin/AgendaEditor";
 import PerksEditor from "@/pages/admin/PerksEditor";
 import CheckIn from "@/pages/admin/CheckIn";
+import AdminUsers from "@/pages/admin/AdminUsers";
 import PassPage from "@/pages/member/PassPage";
 import SharePage from "@/pages/member/SharePage";
 import ClaimPage from "@/pages/ClaimPage";
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="agenda" element={<AgendaEditor />} />
               <Route path="perks" element={<PerksEditor />} />
               <Route path="check-in" element={<CheckIn />} />
+              <Route path="users" element={<AdminUsers />} />
             </Route>
 
             {/* Public Pass Route */}

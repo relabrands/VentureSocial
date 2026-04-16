@@ -13,12 +13,29 @@ export const signOut = () => {
     return firebaseSignOut(auth);
 };
 
-export const isAdmin = async (uid: string): Promise<boolean> => {
+export interface AdminStatus {
+    isAdmin: boolean;
+    role?: string;
+}
+
+export const checkAdminStatus = async (uid: string): Promise<AdminStatus> => {
     try {
         const adminDoc = await getDoc(doc(db, "admins", uid));
-        return adminDoc.exists();
+        if (adminDoc.exists()) {
+            const data = adminDoc.data();
+            return { 
+                isAdmin: true, 
+                role: data?.role || "super_admin" 
+            };
+        }
+        return { isAdmin: false };
     } catch (error) {
         console.error("Error checking admin status:", error);
-        return false;
+        return { isAdmin: false };
     }
+};
+
+export const isAdmin = async (uid: string): Promise<boolean> => {
+    const status = await checkAdminStatus(uid);
+    return status.isAdmin;
 };

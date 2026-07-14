@@ -66,8 +66,9 @@ async function sendEmailWithTemplate(applicationId: string, data: any, templateK
         };
 
         for (const [key, value] of Object.entries(replacements)) {
-            subject = subject.replace(new RegExp(key, "g"), value);
-            body = body.replace(new RegExp(key, "g"), value);
+            const escaped = key.replace(/[{}]/g, '\\$&');
+            subject = subject.replace(new RegExp(escaped, "g"), value);
+            body = body.replace(new RegExp(escaped, "g"), value);
         }
 
         // Send email
@@ -253,8 +254,9 @@ export const sendMagicLink = onCall(async (request) => {
                     };
 
                     for (const [key, value] of Object.entries(replacements)) {
-                        subject = subject.replace(new RegExp(key, "g"), value);
-                        body = body.replace(new RegExp(key, "g"), value);
+                        const escaped = key.replace(/[{}]/g, '\\$&');
+                        subject = subject.replace(new RegExp(escaped, "g"), value);
+                        body = body.replace(new RegExp(escaped, "g"), value);
                     }
                     html = body;
                 }

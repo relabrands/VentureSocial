@@ -348,8 +348,14 @@ const AgendaEditor = () => {
                         <Plus className="w-4 h-4" />
                     </Button>
                 </div>
-                <div className="space-y-2">
-                    {events.map(event => (
+
+                {(() => {
+                    const now = new Date().toISOString();
+                    const upcoming = events.filter(e => !e.archived && e.isActive !== false && (e.startTimestamp || '') >= now);
+                    const inactive = events.filter(e => !e.archived && e.isActive === false);
+                    const past = events.filter(e => e.archived || (e.startTimestamp && e.startTimestamp < now && e.isActive !== false));
+
+                    const EventCard = ({ event }: { event: EventConfig }) => (
                         <div
                             key={event.id}
                             className={cn(
@@ -358,21 +364,61 @@ const AgendaEditor = () => {
                             )}
                             onClick={() => setSelectedEventId(event.id!)}
                         >
-                            <h3 className="font-semibold text-sm">{event.title || event.date || "Untitled Event"}</h3>
-                            <p className="text-xs text-muted-foreground">{event.timeRange}</p>
-                            {event.id && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 absolute top-2 right-2 opacity-0 group-hover:opacity-100"
-                                    onClick={(e) => { e.stopPropagation(); handleDelete(event.id!); }}
-                                >
-                                    <Trash2 className="w-3 h-3 text-destructive" />
-                                </Button>
-                            )}
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                    <h3 className="font-semibold text-sm truncate">{event.title || event.date || "Untitled Event"}</h3>
+                                    <p className="text-xs text-muted-foreground">{event.timeRange}</p>
+                                    {event.isActive === false && !event.archived && (
+                                        <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 bg-yellow-500/10 text-yellow-500 rounded border border-yellow-500/20">Inactive</span>
+                                    )}
+                                    {event.archived && (
+                                        <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 bg-gray-500/10 text-gray-500 rounded border border-gray-500/20">Archived</span>
+                                    )}
+                                </div>
+                                {event.id && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 opacity-0 group-hover:opacity-100 flex-shrink-0"
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(event.id!); }}
+                                    >
+                                        <Trash2 className="w-3 h-3 text-destructive" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-                    ))}
-                    {events.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No events found.</p>}
+                    );
+
+                    return (
+                        <div className="space-y-4">
+                            {/* Upcoming */}
+                            {upcoming.length > 0 && (
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-500 px-1">Upcoming</p>
+                                    {upcoming.map(event => <EventCard key={event.id} event={event} />)}
+                                </div>
+                            )}
+
+                            {/* Inactive */}
+                            {inactive.length > 0 && (
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-500 px-1">Inactive</p>
+                                    {inactive.map(event => <EventCard key={event.id} event={event} />)}
+                                </div>
+                            )}
+
+                            {/* Past / Archived */}
+                            {past.length > 0 && (
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 px-1">Past / Archived</p>
+                                    {past.map(event => <EventCard key={event.id} event={event} />)}
+                                </div>
+                            )}
+
+                            {events.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No events found.</p>}
+                        </div>
+                    );
+                })()}
                 </div>
             </div>
 

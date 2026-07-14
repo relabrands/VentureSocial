@@ -135,7 +135,7 @@ const PriorityInviteList = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-white mb-2">Priority Invite List</h1>
-                    <p className="text-gray-400">Manage VIP invitations for the January launch</p>
+                    <p className="text-gray-400">Manage VIP invitations for the August launch</p>
                 </div>
                 <div className="flex gap-4">
                     <Button

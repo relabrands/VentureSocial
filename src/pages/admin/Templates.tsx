@@ -116,7 +116,7 @@ const Templates = () => {
                                 <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                     <tr>
                                         <td style="padding-bottom: 8px; color: #6b7280; font-size: 13px;">Next Event:</td>
-                                        <td align="right" style="padding-bottom: 8px; color: #111827; font-weight: bold; font-size: 13px;">January 2026 (Launch)</td>
+                                        <td align="right" style="padding-bottom: 8px; color: #111827; font-weight: bold; font-size: 13px;">August 2026 (Launch)</td>
                                     </tr>
                                     <tr>
                                         <td style="padding-bottom: 8px; color: #6b7280; font-size: 13px;">Location:</td>

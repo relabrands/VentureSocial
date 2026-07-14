@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Save, Calendar as CalendarIcon, MoreVertical, RefreshCw, Archive } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Calendar as CalendarIcon, Archive, Eye, EyeOff, Image } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,7 +31,7 @@ interface TimelineItem {
 
 interface EventConfig {
     id?: string;
-    title?: string; // Added title
+    title?: string;
     date: string;
     timeRange: string;
     locationName: string;
@@ -39,6 +39,9 @@ interface EventConfig {
     locationMapUrl: string;
     dressCodeTitle: string;
     dressCodeDescription: string;
+    description?: string;
+    coverImageUrl?: string;
+    isActive?: boolean;
     timeline: TimelineItem[];
     startTimestamp?: string;
     endTimestamp?: string;
@@ -55,6 +58,9 @@ const DEFAULT_EVENT: Omit<EventConfig, 'id'> = {
     locationMapUrl: "",
     dressCodeTitle: "Smart Casual / Business Tech",
     dressCodeDescription: "Come as you are, but ready to impress.",
+    description: "",
+    coverImageUrl: "",
+    isActive: true,
     timeline: [
         { time: "7:00 PM", title: "Doors Open", description: "Check-in" }
     ]
@@ -383,6 +389,26 @@ const AgendaEditor = () => {
                         <div className="flex gap-2">
                             {selectedEventId && (
                                 <Button
+                                    variant={config.isActive !== false ? "outline" : "default"}
+                                    onClick={async () => {
+                                        const newVal = config.isActive === false ? true : false;
+                                        updateField("isActive", newVal as any);
+                                        if (selectedEventId) {
+                                            await updateDoc(doc(db, "events", selectedEventId), { isActive: newVal });
+                                            toast.success(newVal ? "Event activated" : "Event deactivated");
+                                            fetchEvents();
+                                        }
+                                    }}
+                                    className={config.isActive !== false ? "border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
+                                >
+                                    {config.isActive !== false
+                                        ? <><EyeOff className="mr-2 h-4 w-4" /> Deactivate</>
+                                        : <><Eye className="mr-2 h-4 w-4" /> Activate</>
+                                    }
+                                </Button>
+                            )}
+                            {selectedEventId && (
+                                <Button
                                     variant="destructive"
                                     onClick={handleArchiveAndReset}
                                     disabled={archiving}
@@ -446,6 +472,26 @@ const AgendaEditor = () => {
                                         value={config.title || ""}
                                         onChange={e => updateField("title", e.target.value)}
                                     />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Description</Label>
+                                    <Textarea
+                                        placeholder="Brief description of the event, what to expect, who's invited..."
+                                        value={config.description || ""}
+                                        onChange={e => updateField("description", e.target.value)}
+                                        rows={3}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2"><Image className="w-4 h-4" /> Cover Image URL</Label>
+                                    <Input
+                                        placeholder="https://... (image URL for the event card)"
+                                        value={config.coverImageUrl || ""}
+                                        onChange={e => updateField("coverImageUrl", e.target.value)}
+                                    />
+                                    {config.coverImageUrl && (
+                                        <img src={config.coverImageUrl} alt="Cover preview" className="w-full h-32 object-cover rounded-lg border border-border mt-1" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                    )}
                                 </div>
                                 <div className="space-y-2"><Label>Venue Name</Label><Input value={config.locationName} onChange={e => updateField("locationName", e.target.value)} /></div>
                                 <div className="space-y-2"><Label>Address</Label><Input value={config.locationAddress} onChange={e => updateField("locationAddress", e.target.value)} /></div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { MapPin, Clock, Shirt, Calendar, Loader2, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+import { MapPin, Clock, Shirt, Calendar, Loader2, ChevronDown, ChevronUp, CheckCircle2, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { doc, getDoc, setDoc, Timestamp, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, Timestamp, serverTimestamp, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -17,6 +17,8 @@ interface AgendaConfig {
     locationMapUrl: string;
     dressCodeTitle: string;
     dressCodeDescription: string;
+    description?: string;
+    coverImageUrl?: string;
     timeline: { time: string; title: string; description: string }[];
     status?: 'UPCOMING' | 'LIVE' | 'ENDED_RECENTLY' | 'ENDED';
 }
@@ -30,18 +32,142 @@ interface AgendaProps {
     config?: AgendaConfig;
 }
 
+interface Attendee {
+    id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    company?: string;
+}
+
+// Luma-style attendee section
+const AttendeesSection = ({ eventId, confirmed }: { eventId: string; confirmed: boolean }) => {
+    const [attendees, setAttendees] = useState<Attendee[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [showAll, setShowAll] = useState(false);
+
+    useEffect(() => {
+        if (!confirmed) return;
+        const fetch = async () => {
+            setLoading(true);
+            try {
+                const ref = collection(db, "events", eventId, "attendees");
+                let snap;
+                try {
+                    snap = await getDocs(query(ref, orderBy("rsvpAt", "desc")));
+                } catch {
+                    snap = await getDocs(ref);
+                }
+                setAttendees(snap.docs.map(d => ({ id: d.id, ...d.data() } as Attendee)));
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetch();
+    }, [eventId, confirmed]);
+
+    if (loading) return <div className="flex items-center gap-2 text-xs text-gray-500 py-1"><Loader2 className="w-3 h-3 animate-spin" /> Loading attendees...</div>;
+    if (attendees.length === 0) return null;
+
+    const visible = attendees.slice(0, 5);
+    const extra = attendees.length - 5;
+
+    // Build names string like Luma
+    const firstName = (name?: string) => name?.split(" ")[0] || "Member";
+    let namesStr = "";
+    if (attendees.length === 1) {
+        namesStr = firstName(attendees[0].name);
+    } else if (attendees.length === 2) {
+        namesStr = `${firstName(attendees[0].name)} and ${firstName(attendees[1].name)}`;
+    } else if (attendees.length <= 4) {
+        const names = attendees.slice(0, attendees.length - 1).map(a => firstName(a.name)).join(", ");
+        namesStr = `${names} and ${firstName(attendees[attendees.length - 1].name)}`;
+    } else {
+        namesStr = `${firstName(attendees[0].name)}, ${firstName(attendees[1].name)} and ${attendees.length - 2} more`;
+    }
+
+    return (
+        <>
+            <div className="border-t border-gray-800/60 pt-4 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>{attendees.length} {attendees.length === 1 ? "person" : "people"} confirmed</span>
+                </div>
+                {/* Avatar stack */}
+                <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                        {visible.map((a, i) => (
+                            <div
+                                key={a.id}
+                                className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-emerald-500 border-2 border-[#111827] flex items-center justify-center text-white text-xs font-bold"
+                                style={{ zIndex: visible.length - i }}
+                                title={a.name}
+                            >
+                                {(a.name?.[0] || "?").toUpperCase()}
+                            </div>
+                        ))}
+                        {extra > 0 && (
+                            <div className="w-8 h-8 rounded-full bg-gray-700 border-2 border-[#111827] flex items-center justify-center text-gray-300 text-[10px] font-bold">
+                                +{extra}
+                            </div>
+                        )}
+                    </div>
+                </div>
+                {/* Names — clickable to show all */}
+                <button
+                    className="text-xs text-gray-400 hover:text-white text-left transition-colors"
+                    onClick={() => setShowAll(true)}
+                >
+                    {namesStr}
+                </button>
+            </div>
+
+            {/* Full attendee list modal */}
+            {showAll && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setShowAll(false)}>
+                    <div
+                        className="bg-[#111827] border border-gray-700 rounded-2xl w-full max-w-sm max-h-[70vh] flex flex-col"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+                            <h3 className="text-white font-bold text-sm">{attendees.length} Confirmed</h3>
+                            <button onClick={() => setShowAll(false)} className="text-gray-400 hover:text-white">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="overflow-y-auto flex-1 p-3 space-y-2">
+                            {attendees.map(a => (
+                                <div key={a.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-800/50 transition-colors">
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-emerald-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                                        {(a.name?.[0] || "?").toUpperCase()}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-white text-sm font-medium truncate">{a.name || "Member"}</p>
+                                        {(a.role || a.company) && (
+                                            <p className="text-gray-500 text-xs truncate">{[a.role, a.company].filter(Boolean).join(" · ")}</p>
+                                        )}
+                                    </div>
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 ml-auto" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
 const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', onEditSpotMe, config: propConfig }: AgendaProps) => {
     const { upcomingEvents, pastEvents, loading } = useEvents(memberId);
 
-    // Which event card is expanded (null = none)
     const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
-    // Per-event RSVP status map: { [eventId]: boolean }
     const [rsvpMap, setRsvpMap] = useState<Record<string, boolean>>({});
-    // Per-event RSVP loading
     const [rsvpLoadingId, setRsvpLoadingId] = useState<string | null>(null);
     const [isCheckedIn, setIsCheckedIn] = useState(false);
 
-    // Format Firestore/string timestamps to Date
     const toDate = (ts: any): Date | null => {
         if (!ts) return null;
         if (ts instanceof Timestamp) return ts.toDate();
@@ -73,19 +199,16 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
         return event.date || "Date TBD";
     };
 
-    // Fetch check-in status + RSVP for all upcoming events
     useEffect(() => {
         if (!memberId) return;
 
         const fetchStatuses = async () => {
             try {
-                // Global check-in
                 const memberDoc = await getDoc(doc(db, "applications", memberId));
                 if (memberDoc.exists()) {
                     setIsCheckedIn(memberDoc.data().attendance_status === 'PRESENT');
                 }
 
-                // RSVP per event
                 const rsvpResults: Record<string, boolean> = {};
                 await Promise.all(
                     upcomingEvents.map(async (event) => {
@@ -133,8 +256,6 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
         setExpandedEventId(prev => prev === eventId ? null : eventId);
     };
 
-    // --- RENDER ---
-
     if (loading) {
         return (
             <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center pt-20 pb-24 space-y-4 text-gray-500">
@@ -157,7 +278,7 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
     return (
         <div className="w-full max-w-md mx-auto space-y-4 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-            {/* Live Event Banner (when eventStatus = LIVE and checked in) */}
+            {/* Live Event Banner */}
             {(eventStatus === 'LIVE' || eventStatus === 'ENDED_RECENTLY') && isCheckedIn && onEnterRoomLive && (
                 <div className="bg-gradient-to-r from-purple-900/60 to-blue-900/60 border border-purple-500/40 rounded-2xl p-4 flex items-center justify-between">
                     <div>
@@ -196,6 +317,8 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
                         const locationAddress = event.locationAddress || null;
                         const dressCodeTitle = event.dressCodeTitle || null;
                         const dressCodeDescription = event.dressCodeDescription || null;
+                        const description = event.description || null;
+                        const coverImageUrl = event.coverImageUrl || null;
 
                         return (
                             <div
@@ -204,13 +327,24 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
                                     isExpanded ? 'border-emerald-500/40' : 'border-gray-800 hover:border-gray-700'
                                 }`}
                             >
-                                {/* Card Header — always visible, click to expand */}
+                                {/* Cover Image */}
+                                {coverImageUrl && (
+                                    <div className="w-full h-36 overflow-hidden">
+                                        <img
+                                            src={coverImageUrl}
+                                            alt={event.title}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => (e.currentTarget.parentElement!.style.display = 'none')}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Card Header */}
                                 <button
                                     className="w-full text-left p-4 flex items-center justify-between gap-3"
                                     onClick={() => toggleExpand(event.id)}
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
-                                        {/* Date badge */}
                                         <div className={`flex-shrink-0 p-2.5 rounded-xl ${isExpanded ? 'bg-emerald-500/15' : 'bg-gray-800'}`}>
                                             <Calendar className={`w-5 h-5 ${isExpanded ? 'text-emerald-400' : 'text-gray-400'}`} />
                                         </div>
@@ -234,7 +368,12 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
 
                                 {/* Expanded Detail */}
                                 {isExpanded && (
-                                    <div className="px-4 pb-4 space-y-5 border-t border-gray-800/80 pt-4">
+                                    <div className="px-4 pb-4 space-y-4 border-t border-gray-800/80 pt-4">
+
+                                        {/* Description */}
+                                        {description && (
+                                            <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+                                        )}
 
                                         {/* Date & Time */}
                                         <div className="flex items-start gap-3">
@@ -289,7 +428,10 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
                                             </div>
                                         )}
 
-                                        {/* Confirm Attendance CTA */}
+                                        {/* Luma-style Attendees */}
+                                        <AttendeesSection eventId={event.id} confirmed={isConfirmed} />
+
+                                        {/* Confirm CTA */}
                                         {!isConfirmed ? (
                                             <Button
                                                 size="lg"

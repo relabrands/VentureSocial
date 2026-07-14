@@ -10,6 +10,13 @@ export interface Event {
     date: string;
     location: string;
     description?: string;
+    coverImageUrl?: string;
+    isActive?: boolean;
+    locationName?: string;
+    locationAddress?: string;
+    locationMapUrl?: string;
+    dressCodeTitle?: string;
+    dressCodeDescription?: string;
 }
 
 export const useEvents = (memberId?: string) => {
@@ -30,10 +37,9 @@ export const useEvents = (memberId?: string) => {
                 );
 
                 const upcomingSnapshot = await getDocs(qUpcoming);
-                const upcoming = upcomingSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                })) as Event[];
+                const upcoming = upcomingSnapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }) as Event)
+                    .filter(e => e.isActive !== false); // Only show active events
 
                 setUpcomingEvents(upcoming);
 

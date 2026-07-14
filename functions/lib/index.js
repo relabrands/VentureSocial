@@ -70,8 +70,9 @@ async function sendEmailWithTemplate(applicationId, data, templateKey) {
             "{{memberId}}": data.memberId || "",
         };
         for (const [key, value] of Object.entries(replacements)) {
-            subject = subject.replace(new RegExp(key, "g"), value);
-            body = body.replace(new RegExp(key, "g"), value);
+            const escaped = key.replace(/[{}]/g, '\\$&');
+            subject = subject.replace(new RegExp(escaped, "g"), value);
+            body = body.replace(new RegExp(escaped, "g"), value);
         }
         // Send email
         const { data: resendData, error } = await resend.emails.send({
@@ -232,8 +233,9 @@ exports.sendMagicLink = (0, https_1.onCall)(async (request) => {
                         "{{memberId}}": memberId
                     };
                     for (const [key, value] of Object.entries(replacements)) {
-                        subject = subject.replace(new RegExp(key, "g"), value);
-                        body = body.replace(new RegExp(key, "g"), value);
+                        const escaped = key.replace(/[{}]/g, '\\$&');
+                        subject = subject.replace(new RegExp(escaped, "g"), value);
+                        body = body.replace(new RegExp(escaped, "g"), value);
                     }
                     html = body;
                 }

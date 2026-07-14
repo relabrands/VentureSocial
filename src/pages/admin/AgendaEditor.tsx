@@ -419,7 +419,6 @@ const AgendaEditor = () => {
                         </div>
                     );
                 })()}
-                </div>
             </div>
 
             {/* Main Editor */}

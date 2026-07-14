@@ -119,17 +119,6 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
     };
 
     const effectiveConfig = mapToConfig(sourceData);
-
-    // While loading, don't fall back to DEFAULT_AGENDA — show spinner instead
-    if (loading) {
-        return (
-            <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center pt-20 pb-24 space-y-4 text-gray-500">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-                <p className="text-sm">Loading events...</p>
-            </div>
-        );
-    }
-
     const activeEvent = effectiveConfig;
 
     // Fetch Status (Per Event and Global Check-in)
@@ -146,7 +135,7 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
                 }
 
                 // 2. Check Per-Event Confirmation (RSVP)
-                if (activeEvent.id) {
+                if (activeEvent?.id) {
                     const attendeesRef = doc(db, "events", activeEvent.id, "attendees", memberId);
                     const attendeeDoc = await getDoc(attendeesRef);
                     setRsvpConfirmed(attendeeDoc.exists());
@@ -159,10 +148,10 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
         };
 
         fetchStatus();
-    }, [memberId, activeEvent.id]); // Re-run when event changes
+    }, [memberId, activeEvent?.id]); // Re-run when event changes
 
     const handleConfirmAttendance = async () => {
-        if (!memberId || !activeEvent.id) return;
+        if (!memberId || !activeEvent?.id) return;
         setRsvpLoading(true);
         try {
             // Write to events/{id}/attendees/{memberId}
@@ -191,6 +180,16 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
             setRsvpLoading(false);
         }
     };
+
+    // All early returns must come AFTER all hooks
+    if (loading) {
+        return (
+            <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center pt-20 pb-24 space-y-4 text-gray-500">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                <p className="text-sm">Loading events...</p>
+            </div>
+        );
+    }
 
     if (!activeEvent) {
         return (

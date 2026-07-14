@@ -9,6 +9,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { roleConfig } from "@/components/landing/ApplicationForm";
 
 interface MemberProfileSheetProps {
     isOpen: boolean;
@@ -90,6 +91,16 @@ const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfile
         }
     };
 
+    // Get role-specific config — normalize role to lowercase to match keys
+    const normalizedRole = formData.role?.toLowerCase();
+    const currentRoleConfig = normalizedRole ? roleConfig[normalizedRole] : null;
+
+    // Fallback labels/placeholders when role doesn't match a known key
+    const superpowerLabel = currentRoleConfig?.offerLabel ?? "My Superpower";
+    const superpowerPlaceholder = currentRoleConfig?.offerPlaceholder ?? "What can you help others with?";
+    const challengeLabel = currentRoleConfig?.seekLabel ?? "Biggest Challenge";
+    const challengePlaceholder = currentRoleConfig?.seekPlaceholder ?? "What help do you need right now?";
+
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
             <SheetContent className="w-full sm:max-w-md bg-[#0a0a0a] border-l border-gray-800 text-white p-0 flex flex-col h-full">
@@ -165,31 +176,43 @@ const MemberProfileSheet = ({ isOpen, onClose, member, onUpdate }: MemberProfile
 
                     {/* Community Info Section */}
                     <div className="space-y-4 pt-4 border-t border-gray-800">
-                        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Community Intro</h3>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Community Intro</h3>
+                            {currentRoleConfig && (
+                                <span className="text-xs text-purple-400/70 italic capitalize">{normalizedRole}</span>
+                            )}
+                        </div>
+
+                        {/* Role-based hint */}
+                        {currentRoleConfig && (
+                            <p className="text-xs text-gray-500 italic -mt-2">
+                                * These questions are tailored to your role as a <span className="text-purple-400 capitalize">{normalizedRole}</span>.
+                            </p>
+                        )}
 
                         <div className="space-y-2">
                             <Label htmlFor="superpower" className="text-purple-400 font-medium flex items-center gap-2">
-                                <Zap className="w-4 h-4" /> My Superpower
+                                <Zap className="w-4 h-4" /> {superpowerLabel}
                             </Label>
                             <Textarea
                                 id="superpower"
                                 value={formData.superpower}
                                 onChange={(e) => handleChange("superpower", e.target.value)}
                                 className="bg-gray-900/50 border-gray-700 focus:border-purple-500 min-h-[80px]"
-                                placeholder="What can you help others with?"
+                                placeholder={superpowerPlaceholder}
                             />
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="challenge" className="text-orange-400 font-medium flex items-center gap-2">
-                                <Target className="w-4 h-4" /> Biggest Challenge
+                                <Target className="w-4 h-4" /> {challengeLabel}
                             </Label>
                             <Textarea
                                 id="challenge"
                                 value={formData.biggestChallenge}
                                 onChange={(e) => handleChange("biggestChallenge", e.target.value)}
                                 className="bg-gray-900/50 border-gray-700 focus:border-orange-500 min-h-[80px]"
-                                placeholder="What help do you need right now?"
+                                placeholder={challengePlaceholder}
                             />
                         </div>
                     </div>

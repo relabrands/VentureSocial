@@ -119,7 +119,18 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
     };
 
     const effectiveConfig = mapToConfig(sourceData);
-    const activeEvent = effectiveConfig || DEFAULT_AGENDA;
+
+    // While loading, don't fall back to DEFAULT_AGENDA — show spinner instead
+    if (loading) {
+        return (
+            <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center pt-20 pb-24 space-y-4 text-gray-500">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                <p className="text-sm">Loading events...</p>
+            </div>
+        );
+    }
+
+    const activeEvent = effectiveConfig;
 
     // Fetch Status (Per Event and Global Check-in)
     useEffect(() => {
@@ -181,7 +192,7 @@ const Agenda = ({ memberId, member, onEnterRoomLive, eventStatus = 'UPCOMING', o
         }
     };
 
-    if (!effectiveConfig && !loading) {
+    if (!activeEvent) {
         return (
             <div className="w-full max-w-md mx-auto space-y-6 pb-24 text-center text-gray-500 pt-10">
                 <p>No upcoming events scheduled.</p>

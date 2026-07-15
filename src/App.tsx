@@ -21,6 +21,7 @@ import AgendaEditor from "@/pages/admin/AgendaEditor";
 import PerksEditor from "@/pages/admin/PerksEditor";
 import CheckIn from "@/pages/admin/CheckIn";
 import AdminUsers from "@/pages/admin/AdminUsers";
+import Settings from "@/pages/admin/Settings";
 import PassPage from "@/pages/member/PassPage";
 import SharePage from "@/pages/member/SharePage";
 import ClaimPage from "@/pages/ClaimPage";
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="perks" element={<PerksEditor />} />
               <Route path="check-in" element={<CheckIn />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
 
             {/* Public Pass Route */}

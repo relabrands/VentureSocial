@@ -35,14 +35,8 @@ const Dashboard = () => {
     const [positionData, setPositionData] = useState<any[]>([]);
     const [roleData, setRoleData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const { isVenueMode, toggleVenueMode, venueLogoUrl, updateVenueLogo } = useVenueMode();
+    const { isVenueMode, toggleVenueMode } = useVenueMode();
     const { isGatekeeperEnabled, toggleGatekeeperMode } = useGatekeeperMode();
-    const [localLogoUrl, setLocalLogoUrl] = useState("");
-
-    // Sync local state when external state changes
-    useEffect(() => {
-        setLocalLogoUrl(venueLogoUrl);
-    }, [venueLogoUrl]);
 
     useEffect(() => {
         fetchStats();
@@ -162,38 +156,16 @@ const Dashboard = () => {
                     </div>
 
                     {/* Venue Mode Toggle */}
-                    <div className="relative group">
-                        <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border shadow-sm">
-                            <Zap className={`h-4 w-4 ${isVenueMode ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}`} />
-                            <Label htmlFor="venue-mode" className="text-sm font-medium cursor-pointer">
-                                Venue Partner
-                            </Label>
-                            <Switch
-                                id="venue-mode"
-                                checked={isVenueMode}
-                                onCheckedChange={toggleVenueMode}
-                            />
-                        </div>
-                        {isVenueMode && (
-                            <div className="absolute top-full right-0 mt-2 p-3 bg-white border rounded-lg shadow-lg w-72 z-10">
-                                <Label className="text-xs text-muted-foreground mb-1 block">Venue Logo URL</Label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="https://...logo.png"
-                                        className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm"
-                                        value={localLogoUrl}
-                                        onChange={(e) => setLocalLogoUrl(e.target.value)}
-                                        onBlur={() => {
-                                            if (localLogoUrl !== venueLogoUrl) updateVenueLogo(localLogoUrl);
-                                        }}
-                                    />
-                                    {localLogoUrl && (
-                                        <img src={localLogoUrl} alt="Logo preview" className="h-8 w-8 object-contain rounded bg-black/5" />
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                    <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border shadow-sm">
+                        <Zap className={`h-4 w-4 ${isVenueMode ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}`} />
+                        <Label htmlFor="venue-mode" className="text-sm font-medium cursor-pointer">
+                            Venue Partner
+                        </Label>
+                        <Switch
+                            id="venue-mode"
+                            checked={isVenueMode}
+                            onCheckedChange={toggleVenueMode}
+                        />
                     </div>
                 </div>
             </div>

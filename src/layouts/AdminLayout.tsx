@@ -1,7 +1,7 @@
 import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, LogOut, Users, QrCode, Menu, Calendar, Gift, Shield } from "lucide-react";
+import { LayoutDashboard, FileText, LogOut, Users, QrCode, Menu, Calendar, Gift, Shield, Settings as SettingsIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const AdminLayout = () => {
@@ -121,6 +121,14 @@ const AdminLayout = () => {
                             </Button>
                         </Link>
                     )}
+                    {adminRole === "super_admin" && (
+                        <Link to="/admin/settings">
+                            <Button variant={isActive("settings") ? "secondary" : "ghost"} className="w-full justify-start text-gray-600 hover:text-gray-700 hover:bg-gray-100">
+                                <SettingsIcon className="mr-2 h-4 w-4" />
+                                Settings
+                            </Button>
+                        </Link>
+                    )}
                 </nav>
                 <div className="absolute bottom-4 left-4 right-4">
                     <Button variant="outline" className="w-full" onClick={logout}>
@@ -214,6 +222,14 @@ const AdminLayout = () => {
                                         <Button variant={isActive("users") ? "secondary" : "ghost"} className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
                                             <Shield className="mr-2 h-4 w-4" />
                                             User Management
+                                        </Button>
+                                    </Link>
+                                )}
+                                {adminRole === "super_admin" && (
+                                    <Link to="/admin/settings">
+                                        <Button variant={isActive("settings") ? "secondary" : "ghost"} className="w-full justify-start text-gray-600 hover:text-gray-700 hover:bg-gray-100">
+                                            <SettingsIcon className="mr-2 h-4 w-4" />
+                                            Settings
                                         </Button>
                                     </Link>
                                 )}

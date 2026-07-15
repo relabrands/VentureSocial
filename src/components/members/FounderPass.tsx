@@ -32,7 +32,7 @@ const FounderPass: React.FC<FounderPassProps> = ({
 }) => {
     // If public, start flipped (showing back side)
     const [isFlipped, setIsFlipped] = useState(variant === 'public');
-    const { isVenueMode } = useVenueMode();
+    const { isVenueMode, venueLogoUrl } = useVenueMode();
 
     const handleFlip = () => {
         // Only allow flipping if private
@@ -138,11 +138,17 @@ const FounderPass: React.FC<FounderPassProps> = ({
                         {isVenueMode && (
                             <div className="mt-auto mb-2 flex flex-col items-center justify-center animate-fade-in">
                                 <div className="text-[8px] uppercase tracking-[2px] text-gray-400 mb-1">Official Venue</div>
-                                <img
-                                    src="https://relabrands.com/wp-content/uploads/2026/01/logo-cef-horizontal.png"
-                                    alt="CEF. - Santo Domingo"
-                                    className="h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] brightness-0 invert"
-                                />
+                                {venueLogoUrl ? (
+                                    <img
+                                        src={venueLogoUrl}
+                                        alt="Venue Partner"
+                                        className="h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] brightness-0 invert"
+                                    />
+                                ) : (
+                                    <div className="text-xs font-bold text-white tracking-widest uppercase">
+                                        Partner Venue
+                                    </div>
+                                )}
                             </div>
                         )}
 

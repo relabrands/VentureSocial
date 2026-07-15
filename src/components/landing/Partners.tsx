@@ -1,7 +1,7 @@
 const partners = [
   { name: "RelaBrands", logo: "https://relabrands.com/wp-content/uploads/2024/07/Rela-Brands-Final-01-2-e1719947021908.png", className: "h-10 sm:h-14 invert" },
-  { name: "RELA Collab", logo: "https://relabrands.com/wp-content/uploads/2026/03/Logo-Blanco-icono-color.png", className: "h-10 sm:h-14" },
-  { name: "Nomi", logo: "https://relabrands.com/wp-content/uploads/2026/07/Nomi-Logo.png", className: "h-16 sm:h-24 invert" },
+  { name: "RELA Collab", logo: "https://relabrands.com/wp-content/uploads/2026/03/Logo-Blanco-icono-color.png", className: "h-8 sm:h-12" },
+  { name: "Nomi", logo: "https://relabrands.com/wp-content/uploads/2026/07/Nomi-Logo.png", className: "h-24 sm:h-36 invert" },
   { name: "Portier", logo: "https://relabrands.com/wp-content/uploads/2026/07/portier.png", className: "h-10 sm:h-14 invert" },
 ];
 

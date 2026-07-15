@@ -11,6 +11,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
     Search, CheckCircle, UserCheck, Camera, RefreshCw,
@@ -46,6 +48,7 @@ interface AttendeeRecord {
     checkInTime?: Timestamp | Date | null;
     checkInBy?: string;
     checkInByName?: string;
+    rsvpAt?: any; // To track if they RSVP'd
 }
 
 interface HistoryEntry {
@@ -80,6 +83,7 @@ const CheckIn = () => {
     const [loadingAttendees, setLoadingAttendees] = useState(false);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("list");
+    const [showOnlyRSVP, setShowOnlyRSVP] = useState(true);
 
     /* ── Load events on mount ── */
     useEffect(() => {
@@ -226,7 +230,6 @@ const CheckIn = () => {
             const checkinLogRef = doc(db, "events", selectedEventId, "checkins", member.id);
 
             if (newStatus) {
-                // Write attendee record
                 await setDoc(attendeeRef, {
                     checkedIn: true,
                     checkInTime: serverTimestamp(),
@@ -236,7 +239,7 @@ const CheckIn = () => {
                     memberId: member.memberId || "",
                     company: member.projectCompany || "",
                     email: member.email,
-                });
+                }, { merge: true });
 
                 // Write history log (separate doc so history persists even if attendee is reset)
                 await setDoc(checkinLogRef, {
@@ -259,13 +262,22 @@ const CheckIn = () => {
                 }));
                 toast.success(`✅ ${member.fullName} checked in!`);
             } else {
-                // Undo check-in — remove from attendees but keep history log
-                await deleteDoc(attendeeRef);
-                setAttendees(prev => {
-                    const next = { ...prev };
-                    delete next[member.id];
-                    return next;
-                });
+                // Undo check-in — update checkedIn to false instead of deleting to keep RSVP data
+                await setDoc(attendeeRef, {
+                    checkedIn: false,
+                    checkInTime: null,
+                    checkInBy: null,
+                    checkInByName: null
+                }, { merge: true });
+                setAttendees(prev => ({
+                    ...prev,
+                    [member.id]: {
+                        ...prev[member.id],
+                        checkedIn: false,
+                        checkInTime: null,
+                        checkInByName: undefined
+                    }
+                }));
                 toast.info(`Check-in cancelled for ${member.fullName}`);
             }
 
@@ -445,14 +457,20 @@ const CheckIn = () => {
 
                     {/* ── Tab: Guest List ── */}
                     <TabsContent value="list" className="space-y-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                            <Input
-                                placeholder="Search by name, email, or Member ID…"
-                                className="pl-10 h-11"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                            />
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="relative flex-1 w-full">
+                                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search by name, email, or Member ID…"
+                                    className="pl-10 h-11"
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <Switch id="rsvp-filter" checked={showOnlyRSVP} onCheckedChange={setShowOnlyRSVP} />
+                                <Label htmlFor="rsvp-filter" className="text-sm cursor-pointer whitespace-nowrap">Confirmed Only</Label>
+                            </div>
                         </div>
 
                         {/* Checked-in count bar */}
@@ -478,6 +496,7 @@ const CheckIn = () => {
                             ) : (
                                 /* Checked-in members first */
                                 [...filteredMembers]
+                                    .filter(m => showOnlyRSVP ? attendees[m.id] !== undefined : true)
                                     .sort((a, b) => {
                                         const aIn = attendees[a.id]?.checkedIn ? 1 : 0;
                                         const bIn = attendees[b.id]?.checkedIn ? 1 : 0;

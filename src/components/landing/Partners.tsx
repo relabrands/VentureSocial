@@ -1,8 +1,8 @@
 const partners = [
-  { name: "RelaBrands", logo: "https://relabrands.com/wp-content/uploads/2024/07/Rela-Brands-Final-01-2-e1719947021908.png" },
-  { name: "RELA Collab", logo: "https://relabrands.com/wp-content/uploads/2026/03/Logo-Blanco-icono-color.png" },
-  { name: "Nomi", logo: "https://relabrands.com/wp-content/uploads/2026/07/Nomi-Logo.png" },
-  { name: "Portier", logo: "https://relabrands.com/wp-content/uploads/2026/07/portier.png" },
+  { name: "RelaBrands", logo: "https://relabrands.com/wp-content/uploads/2024/07/Rela-Brands-Final-01-2-e1719947021908.png", className: "h-10 sm:h-14 invert" },
+  { name: "RELA Collab", logo: "https://relabrands.com/wp-content/uploads/2026/03/Logo-Blanco-icono-color.png", className: "h-10 sm:h-14" },
+  { name: "Nomi", logo: "https://relabrands.com/wp-content/uploads/2026/07/Nomi-Logo.png", className: "h-16 sm:h-24 invert" },
+  { name: "Portier", logo: "https://relabrands.com/wp-content/uploads/2026/07/portier.png", className: "h-10 sm:h-14 invert" },
 ];
 
 const Partners = () => {
@@ -23,7 +23,7 @@ const Partners = () => {
               <img
                 src={partner.logo}
                 alt={partner.name}
-                className="h-10 sm:h-14 w-auto grayscale opacity-40 hover:opacity-80 transition-opacity duration-300 invert"
+                className={`w-auto grayscale opacity-40 hover:opacity-80 transition-opacity duration-300 ${partner.className}`}
               />
             </div>
           ))}

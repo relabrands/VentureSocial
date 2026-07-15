@@ -3,7 +3,7 @@ import { useVenueMode } from "@/hooks/useVenueMode";
 import FounderPass from "@/components/members/FounderPass";
 
 const Hero = () => {
-  const { isVenueMode } = useVenueMode();
+  const { isVenueMode, venueLogoUrl, venueTitle } = useVenueMode();
   return (
     <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 pt-32 pb-12 overflow-hidden">
 
@@ -22,12 +22,14 @@ const Hero = () => {
 
             {isVenueMode && (
               <div className="mt-4 flex items-center justify-center lg:justify-start gap-3 animate-fade-in transition-all duration-700 mb-6">
-                <span className="text-xs font-medium tracking-[0.2em] uppercase text-zinc-400">Partner oficial</span>
-                <img
-                  src="https://relabrands.com/wp-content/uploads/2026/01/logo-cef-horizontal.png"
-                  alt="CEF. - Santo Domingo"
-                  className="h-12 object-contain hover:opacity-100 transition-opacity brightness-0 invert"
-                />
+                <span className="text-xs font-medium tracking-[0.2em] uppercase text-zinc-400">{venueTitle || "Partner oficial"}</span>
+                {venueLogoUrl && (
+                  <img
+                    src={venueLogoUrl}
+                    alt={venueTitle || "Partner"}
+                    className="h-12 object-contain hover:opacity-100 transition-opacity brightness-0 invert"
+                  />
+                )}
               </div>
             )}
           </div>
